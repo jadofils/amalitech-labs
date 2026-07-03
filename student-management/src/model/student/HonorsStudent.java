@@ -1,12 +1,13 @@
-package model;
+package model.student;
 
-import model.enums.StudentType;
+public class HonorsStudent extends Student {
+    private final double passingGrade = 60.0;
+    private boolean honorsEligible;
 
-public class RegularStudent extends Student {
-    private final StudentType studentType = StudentType.REGULAR;
-
-    public RegularStudent(String name, int age, String email, String phone) {
+    // Constructor
+    public HonorsStudent(String name, int age, String email, String phone) {
         super(name, age, email, phone);
+        this.honorsEligible = checkHonorsEligibility();
     }
 
     @Override
@@ -18,20 +19,27 @@ public class RegularStudent extends Student {
         System.out.println("Email: " + getEmail());
         System.out.println("Phone: " + getPhone());
         System.out.println("Type: " + getStudentType());
-        System.out.println("Passing Grade: " + studentType.getPassingGrade());
+        System.out.println("Passing Grade: " + passingGrade);
         System.out.println("Status: " + getStatus());
         System.out.println("Average Grade: " + calculateAverageGrade());
         System.out.println("Is Passing: " + (isPassing() ? "Yes" : "No"));
+        System.out.println("Honors Eligible: " + (honorsEligible ? "Yes" : "No"));
         System.out.println("─────────────────────────────────────────────");
     }
 
     @Override
     public String getStudentType() {
-        return studentType.name();
+        return "Honors";
     }
 
     @Override
     public double getPassingGrade() {
-        return studentType.getPassingGrade();
+        return passingGrade;
+    }
+
+    // Method to check honors eligibility
+    public boolean checkHonorsEligibility() {
+        honorsEligible = calculateAverageGrade() >= 85.0;
+        return honorsEligible;
     }
 }
