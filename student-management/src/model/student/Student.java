@@ -1,4 +1,4 @@
-package model;
+package model.student;
 
 import model.enums.StudentStatus;
 
@@ -79,5 +79,11 @@ public abstract class Student {
 
     public void setStudentId(String studentId) {
         this.studentId = studentId;
+    }
+
+    // Keeps the static ID counter ahead of whatever is already persisted,
+    // since it resets to 0 on every JVM restart but the database does not.
+    public static void initializeCounter(int highestExistingSequence) {
+        studentCounter = Math.max(studentCounter, highestExistingSequence);
     }
 }
