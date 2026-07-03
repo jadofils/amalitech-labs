@@ -2,10 +2,9 @@ package repository.impl;
 
 import config.DatabaseConfig;
 import exceptions.StudentNotFoundException;
-import io.github.cdimascio.dotenv.Dotenv;
-import model.HonorsStudent;
-import model.RegularStudent;
-import model.Student;
+import model.student.HonorsStudent;
+import model.student.RegularStudent;
+import model.student.Student;
 import model.enums.StudentStatus;
 
 import java.sql.*;
