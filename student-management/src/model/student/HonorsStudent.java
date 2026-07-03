@@ -1,7 +1,9 @@
 package model.student;
 
+import model.enums.StudentType;
+
 public class HonorsStudent extends Student {
-    private final double passingGrade = 60.0;
+    private final StudentType studentType = StudentType.HONORS;
     private boolean honorsEligible;
 
     // Constructor
@@ -19,7 +21,7 @@ public class HonorsStudent extends Student {
         System.out.println("Email: " + getEmail());
         System.out.println("Phone: " + getPhone());
         System.out.println("Type: " + getStudentType());
-        System.out.println("Passing Grade: " + passingGrade);
+        System.out.println("Passing Grade: " + studentType.getPassingGrade());
         System.out.println("Status: " + getStatus());
         System.out.println("Average Grade: " + calculateAverageGrade());
         System.out.println("Is Passing: " + (isPassing() ? "Yes" : "No"));
@@ -29,12 +31,12 @@ public class HonorsStudent extends Student {
 
     @Override
     public String getStudentType() {
-        return "Honors";
+        return studentType.name();
     }
 
     @Override
     public double getPassingGrade() {
-        return passingGrade;
+        return studentType.getPassingGrade();
     }
 
     // Method to check honors eligibility

@@ -12,7 +12,6 @@ import repository.impl.StudentRepositoryImpl;
 import repository.subject.SubjectRepository;
 import repository.subject.impl.SubjectRepositoryImpl;
 import service.GradeService;
-import validation.GradeValidator;
 
 import java.util.List;
 
@@ -40,8 +39,7 @@ public class GradeServiceImpl implements GradeService {
             throw new SubjectNotFoundException("Subject with code " + grade.getSubject().getSubjectCode() + " not found.");
         }
 
-        // Validate grade range
-        GradeValidator.validateGrade(grade.getGrade());
+        // Grade value range is already enforced by Grade's constructor (Gradable.recordGrade)
 
         // Save grade
         gradeRepository.addGrade(grade);

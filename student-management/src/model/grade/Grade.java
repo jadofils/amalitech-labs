@@ -1,5 +1,6 @@
 package model.grade;
 
+import exceptions.grades.GradeException;
 import model.enums.SubjectType;
 import model.enums.LetterGrade;
 import model.subject.Subject;
@@ -16,10 +17,15 @@ public class Grade implements Gradable {
     private double grade;
     private String date;
 
-    public Grade(String studentId, Subject subject, double grade) {
+    public Grade(String studentId, Subject subject, double gradeValue) {
         this.studentId = studentId;
         this.subject = subject;
-        this.grade = grade;
+
+        // Goes through the Gradable contract so the 0-100 range check lives in
+        // exactly one place; an invalid value never gets an ID/date assigned.
+        if (!recordGrade(gradeValue)) {
+            throw new GradeException("Grade must be between 0 and 100.");
+        }
 
         // Auto-generate grade ID
         this.gradeId = String.format("GRD%03d", gradeCounter++);
@@ -36,7 +42,7 @@ public class Grade implements Gradable {
     public void displayGradeDetails() {
         System.out.println("Grade ID: " + gradeId);
         System.out.println("Student ID: " + studentId);
-        System.out.println("Subject: " + subject.getSubjectName() + " (" + subject.getSubjectType() + ")");
+        subject.displaySubjectDetails();
         System.out.println("Grade: " + grade + " (" + getLetterGrade() + ")");
         System.out.println("Date: " + date);
     }

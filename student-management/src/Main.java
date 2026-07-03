@@ -234,18 +234,16 @@ public class Main {
             System.out.println("Invalid grade. Please enter a number.");
             return;
         }
-        if (gradeValue < 0 || gradeValue > 100) {
-            System.out.println("Invalid grade. Grade must be between 0 and 100.");
-            return;
-        }
 
+        // Range (0-100) is enforced by Grade's constructor via the Gradable
+        // contract; an invalid value throws GradeException, caught by the menu loop.
         Grade grade = new Grade(studentId, subject, gradeValue);
 
         System.out.println("\nGRADE CONFIRMATION");
         System.out.println("─────────────────────────────────────────────");
         System.out.println("Grade ID: " + grade.getGradeId());
         System.out.println("Student: " + studentId + " - " + student.getName());
-        System.out.println("Subject: " + subject.getSubjectName() + " (" + subject.getSubjectType() + ")");
+        subject.displaySubjectDetails();
         System.out.printf("Grade: %.1f%%%n", gradeValue);
         System.out.println("Date: " + grade.getDate());
         System.out.println("─────────────────────────────────────────────");
