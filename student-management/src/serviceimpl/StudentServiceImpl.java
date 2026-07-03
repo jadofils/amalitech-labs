@@ -1,6 +1,6 @@
 package serviceimpl;
 
-import model.Student;
+import model.student.Student;
 import repository.StudentRepository;
 import service.StudentService;
 import validation.StudentValidator;
@@ -34,13 +34,7 @@ public class StudentServiceImpl implements StudentService {
 
     @Override
     public List<Student> getAllStudents() {
-        List<Student> students = studentRepository.getAllStudents();
-
-        if (students == null || students.isEmpty()) {
-            throw new RuntimeException("No students found in database");
-        }
-
-        return students;
+        return studentRepository.getAllStudents();
     }
 
     @Override
