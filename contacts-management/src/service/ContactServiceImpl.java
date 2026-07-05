@@ -44,6 +44,13 @@ public class ContactServiceImpl implements ContactService {
 
     @Override
     public void deleteContact(String id) {
-        throw new UnsupportedOperationException("deleteContact is not implemented yet (see PBI-5)");
+        contactRepository.findById(id)
+                .orElseThrow(() -> {
+                    LOGGER.warning("Contact not found: " + id);
+                    return new ContactNotFoundException("Contact with ID " + id + " not found.");
+                });
+
+        contactRepository.deleteById(id);
+        LOGGER.info("Deleted contact " + id);
     }
 }

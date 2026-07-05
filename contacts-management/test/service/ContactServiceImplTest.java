@@ -86,4 +86,48 @@ class ContactServiceImplTest {
     void getContactByIdForAnUnknownIdThrowsNotFoundException() {
         assertThrows(ContactNotFoundException.class, () -> contactService.getContactById("does-not-exist"));
     }
+
+    @Test
+    void updateContactWithValidDataChangesFieldsButKeepsTheSameId() {
+        Contact added = contactService.addContact("Ada Lovelace", "ada@example.com", "555-0100");
+
+        Contact updated = contactService.updateContact(added.getId(), "Ada King", "ada.king@example.com", "555-0200");
+
+        assertEquals(added.getId(), updated.getId());
+        assertEquals("Ada King", updated.getName());
+        assertEquals("ada.king@example.com", updated.getEmail());
+        assertEquals("555-0200", updated.getPhone());
+    }
+
+    @Test
+    void updateContactForAnUnknownIdThrowsNotFoundException() {
+        assertThrows(ContactNotFoundException.class,
+                () -> contactService.updateContact("does-not-exist", "Ada King", "ada.king@example.com", "555-0200"));
+    }
+
+    @Test
+    void updateContactWithInvalidDataLeavesTheOriginalContactUnchanged() {
+        Contact added = contactService.addContact("Ada Lovelace", "ada@example.com", "555-0100");
+
+        assertThrows(ContactValidationException.class,
+                () -> contactService.updateContact(added.getId(), "Ada Lovelace", "not-an-email", "555-0200"));
+
+        Contact stillOriginal = contactService.getContactById(added.getId());
+        assertEquals("ada@example.com", stillOriginal.getEmail());
+        assertEquals("555-0100", stillOriginal.getPhone());
+    }
+
+    @Test
+    void deleteContactRemovesItSoALaterLookupThrowsNotFound() {
+        Contact added = contactService.addContact("Ada Lovelace", "ada@example.com", "555-0100");
+
+        contactService.deleteContact(added.getId());
+
+        assertThrows(ContactNotFoundException.class, () -> contactService.getContactById(added.getId()));
+    }
+
+    @Test
+    void deleteContactForAnUnknownIdThrowsNotFoundException() {
+        assertThrows(ContactNotFoundException.class, () -> contactService.deleteContact("does-not-exist"));
+    }
 }
