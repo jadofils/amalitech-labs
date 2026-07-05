@@ -6,6 +6,7 @@ import repository.InMemoryContactRepository;
 import service.ContactService;
 import service.ContactServiceImpl;
 
+import java.util.List;
 import java.util.Scanner;
 
 public class Main {
@@ -17,7 +18,8 @@ public class Main {
         while (true) {
             System.out.println("\n===== Contacts Management Menu =====");
             System.out.println("1. Add Contact");
-            System.out.println("2. Exit");
+            System.out.println("2. List All Contacts");
+            System.out.println("3. Exit");
             System.out.print("Choose an option: ");
 
             int choice;
@@ -31,7 +33,8 @@ public class Main {
             try {
                 switch (choice) {
                     case 1 -> addContact();
-                    case 2 -> {
+                    case 2 -> listAllContacts();
+                    case 3 -> {
                         System.out.println("Exiting...");
                         return;
                     }
@@ -56,5 +59,17 @@ public class Main {
         Contact contact = contactService.addContact(name, email, phone);
         System.out.println("\n✓ Contact added successfully!");
         System.out.println(contact);
+    }
+
+    private static void listAllContacts() {
+        List<Contact> contacts = contactService.getAllContacts();
+        if (contacts.isEmpty()) {
+            System.out.println("No contacts found.");
+            return;
+        }
+        System.out.println("\n===== All Contacts (" + contacts.size() + ") =====");
+        for (Contact contact : contacts) {
+            System.out.println(contact);
+        }
     }
 }

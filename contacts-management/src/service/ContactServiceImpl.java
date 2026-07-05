@@ -32,7 +32,7 @@ public class ContactServiceImpl implements ContactService {
 
     @Override
     public List<Contact> getAllContacts() {
-        throw new UnsupportedOperationException("getAllContacts is not implemented yet (see PBI-2)");
+        return contactRepository.findAll();
     }
 
     @Override
