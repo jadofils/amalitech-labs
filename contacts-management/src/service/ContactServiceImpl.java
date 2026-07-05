@@ -1,14 +1,18 @@
 package service;
 
 import exceptions.ContactNotFoundException;
+import exceptions.ContactValidationException;
 import model.Contact;
 import repository.ContactRepository;
 import validation.ContactValidator;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Logger;
 
 public class ContactServiceImpl implements ContactService {
+    private static final Logger LOGGER = Logger.getLogger(ContactServiceImpl.class.getName());
+
     private final ContactRepository contactRepository;
     private final AtomicInteger idCounter = new AtomicInteger(0);
 
@@ -18,18 +22,28 @@ public class ContactServiceImpl implements ContactService {
 
     @Override
     public Contact addContact(String name, String email, String phone) {
-        ContactValidator.validateName(name);
-        ContactValidator.validateEmail(email);
+        try {
+            ContactValidator.validateName(name);
+            ContactValidator.validateEmail(email);
+        } catch (ContactValidationException e) {
+            LOGGER.warning("Rejected addContact: " + e.getMessage());
+            throw e;
+        }
 
         String id = String.format("C%03d", idCounter.incrementAndGet());
         Contact contact = new Contact(id, name, email, phone);
-        return contactRepository.save(contact);
+        contactRepository.save(contact);
+        LOGGER.info("Added contact " + id);
+        return contact;
     }
 
     @Override
     public Contact getContactById(String id) {
         return contactRepository.findById(id)
-                .orElseThrow(() -> new ContactNotFoundException("Contact with ID " + id + " not found."));
+                .orElseThrow(() -> {
+                    LOGGER.warning("Contact not found: " + id);
+                    return new ContactNotFoundException("Contact with ID " + id + " not found.");
+                });
     }
 
     @Override
