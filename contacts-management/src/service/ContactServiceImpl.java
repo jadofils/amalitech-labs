@@ -2,11 +2,14 @@ package service;
 
 import model.Contact;
 import repository.ContactRepository;
+import validation.ContactValidator;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ContactServiceImpl implements ContactService {
     private final ContactRepository contactRepository;
+    private final AtomicInteger idCounter = new AtomicInteger(0);
 
     public ContactServiceImpl(ContactRepository contactRepository) {
         this.contactRepository = contactRepository;
@@ -14,7 +17,12 @@ public class ContactServiceImpl implements ContactService {
 
     @Override
     public Contact addContact(String name, String email, String phone) {
-        throw new UnsupportedOperationException("addContact is not implemented yet (see PBI-1)");
+        ContactValidator.validateName(name);
+        ContactValidator.validateEmail(email);
+
+        String id = String.format("C%03d", idCounter.incrementAndGet());
+        Contact contact = new Contact(id, name, email, phone);
+        return contactRepository.save(contact);
     }
 
     @Override
