@@ -42,24 +42,18 @@ public class StudentRepositoryImpl implements repository.StudentRepository{
     public Student findStudentById(String studentId) {
         //query to find student by id
         String query="SELECT * FROM students WHERE student_id=?";
-        try
-        {
-          Connection conn=DatabaseConfig.getConnection();
-          PreparedStatement ps=conn.prepareStatement(query);
-              ps.setString(1,studentId);
-            ResultSet rs=ps.executeQuery();
-            //check if the students exists
-            if(rs.next()){
-                return mapRowToStudent(rs);
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement ps = conn.prepareStatement(query)) {
+            ps.setString(1, studentId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapRowToStudent(rs);
+                }
             }
-            else{
-                throw new StudentNotFoundException("Student with ID " + studentId +  "not found");
-            }
-
-        }catch (SQLException e){
-            e.printStackTrace();
-        System.out.println("Error fetching student: " + e.getMessage());}
-        return null;
+        } catch (SQLException e) {
+            throw new RuntimeException("Error fetching student: " + e.getMessage(), e);
+        }
+        throw new StudentNotFoundException("Student with ID " + studentId + " not found");
     }
 
     @Override
@@ -67,11 +61,9 @@ public class StudentRepositoryImpl implements repository.StudentRepository{
         List<Student> students=new ArrayList<>();
         //query to find all students
         String query="SELECT * FROM students";
-        try
-        {
-           Connection conn=DatabaseConfig.getConnection();
-           Statement stmt =conn.createStatement();
-            ResultSet rs = stmt.executeQuery(query);
+        try (Connection conn = DatabaseConfig.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
             while(rs.next()){
                 students.add(mapRowToStudent(rs));
             }
@@ -116,22 +108,16 @@ public class StudentRepositoryImpl implements repository.StudentRepository{
     // Helper method to map DB row to Student object
     private Student mapRowToStudent(ResultSet rs) throws SQLException {
         String type = rs.getString("student_type");
+        String studentId = rs.getString("student_id");
         String name = rs.getString("name");
         int age = rs.getInt("age");
         String email = rs.getString("email");
         String phone = rs.getString("phone");
+        StudentStatus status = StudentStatus.valueOf(rs.getString("status"));
 
-        Student student;
         if ("REGULAR".equalsIgnoreCase(type)) {
-            student = new RegularStudent(name, age, email, phone);
-        } else {
-            student = new HonorsStudent(name, age, email, phone);
+            return new RegularStudent(studentId, name, age, email, phone, status);
         }
-
-        // Set ID and status manually (since constructor generates new ID)
-        student.setStudentId(rs.getString("student_id"));
-        student.setStatus(StudentStatus.valueOf(rs.getString("status")));
-
-        return student;
+        return new HonorsStudent(studentId, name, age, email, phone, status);
     }
 }

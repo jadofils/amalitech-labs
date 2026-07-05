@@ -1,6 +1,5 @@
 package serviceimpl;
 
-import exceptions.StudentNotFoundException;
 import exceptions.grades.GradeException;
 import exceptions.subjects.SubjectNotFoundException;
 import model.grade.Grade;
@@ -28,10 +27,8 @@ public class GradeServiceImpl implements GradeService {
 
     @Override
     public void recordGrade(Grade grade) {
-        // Validate student exists
-        if (studentRepository.findStudentById(grade.getStudentId()) == null) {
-            throw new StudentNotFoundException("Student with ID " + grade.getStudentId() + " not found.");
-        }
+        // Validate student exists (throws StudentNotFoundException if not)
+        studentRepository.findStudentById(grade.getStudentId());
 
         // Validate subject exists
         Subject subject = subjectRepository.findSubjectByCode(grade.getSubject().getSubjectCode());

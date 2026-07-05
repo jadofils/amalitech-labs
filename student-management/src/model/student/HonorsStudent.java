@@ -1,5 +1,6 @@
 package model.student;
 
+import model.enums.StudentStatus;
 import model.enums.StudentType;
 
 public class HonorsStudent extends Student {
@@ -9,6 +10,11 @@ public class HonorsStudent extends Student {
     // Constructor
     public HonorsStudent(String name, int age, String email, String phone) {
         super(name, age, email, phone);
+        this.honorsEligible = checkHonorsEligibility();
+    }
+
+    public HonorsStudent(String studentId, String name, int age, String email, String phone, StudentStatus status) {
+        super(studentId, name, age, email, phone, status);
         this.honorsEligible = checkHonorsEligibility();
     }
 

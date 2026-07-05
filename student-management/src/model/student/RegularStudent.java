@@ -1,5 +1,6 @@
 package model.student;
 
+import model.enums.StudentStatus;
 import model.enums.StudentType;
 
 public class RegularStudent extends Student {
@@ -7,6 +8,10 @@ public class RegularStudent extends Student {
 
     public RegularStudent(String name, int age, String email, String phone) {
         super(name, age, email, phone);
+    }
+
+    public RegularStudent(String studentId, String name, int age, String email, String phone, StudentStatus status) {
+        super(studentId, name, age, email, phone, status);
     }
 
     @Override

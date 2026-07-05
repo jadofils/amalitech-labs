@@ -48,10 +48,12 @@ public class GradeRepositoryImpl implements GradeRepository {
                         ? new CoreSubject(rs.getString("subject_name"), rs.getString("subject_code"))
                         : new ElectiveSubject(rs.getString("subject_name"), rs.getString("subject_code"));
 
-                return new Grade(
+                return Grade.reconstruct(
+                        rs.getString("grade_id"),
                         rs.getString("student_id"),
                         subject,
-                        rs.getDouble("grade")
+                        rs.getDouble("grade"),
+                        rs.getDate("date").toString()
                 );
             }
         } catch (SQLException e) {
@@ -76,10 +78,12 @@ public class GradeRepositoryImpl implements GradeRepository {
                         ? new CoreSubject(rs.getString("subject_name"), rs.getString("subject_code"))
                         : new ElectiveSubject(rs.getString("subject_name"), rs.getString("subject_code"));
 
-                grades.add(new Grade(
+                grades.add(Grade.reconstruct(
+                        rs.getString("grade_id"),
                         rs.getString("student_id"),
                         subject,
-                        rs.getDouble("grade")
+                        rs.getDouble("grade"),
+                        rs.getDate("date").toString()
                 ));
             }
         } catch (SQLException e) {
@@ -102,10 +106,12 @@ public class GradeRepositoryImpl implements GradeRepository {
                         ? new CoreSubject(rs.getString("subject_name"), rs.getString("subject_code"))
                         : new ElectiveSubject(rs.getString("subject_name"), rs.getString("subject_code"));
 
-                grades.add(new Grade(
+                grades.add(Grade.reconstruct(
+                        rs.getString("grade_id"),
                         rs.getString("student_id"),
                         subject,
-                        rs.getDouble("grade")
+                        rs.getDouble("grade"),
+                        rs.getDate("date").toString()
                 ));
             }
         } catch (SQLException e) {

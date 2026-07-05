@@ -33,6 +33,21 @@ public class Grade implements Gradable {
         this.date = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
     }
 
+    private Grade(String gradeId, String studentId, Subject subject, double gradeValue, String date) {
+        this.gradeId = gradeId;
+        this.studentId = studentId;
+        this.subject = subject;
+        this.grade = gradeValue;
+        this.date = date;
+    }
+
+    // Rebuilds a Grade already persisted in the database, keeping its real ID and
+    // date instead of running them through the auto-generation in the main
+    // constructor (which would mint a new ID and stamp today's date on every read).
+    public static Grade reconstruct(String gradeId, String studentId, Subject subject, double gradeValue, String date) {
+        return new Grade(gradeId, studentId, subject, gradeValue, date);
+    }
+
     public String getGradeId() { return gradeId; }
     public String getStudentId() { return studentId; }
     public Subject getSubject() { return subject; }
