@@ -1,9 +1,8 @@
-# Sprint 2 Plan (initial draft)
+# Sprint 2 Plan (finalized after Sprint 1 retro)
 
-> This is the Sprint 0 forward-looking draft. It will be revised once Sprint 1 finishes,
-> under a **"Retro Adjustments"** section below, applying the improvements from
-> [sprint-1-retro.md](sprint-1-retro.md) — per the brief's requirement to actually apply
-> Sprint 1's retrospective in Sprint 2, not just write one.
+> Sprint 1 delivered PBI-1, PBI-2, and PBI-3 (see [sprint-1-review.md](sprint-1-review.md)).
+> This plan has been revised per [sprint-1-retro.md](sprint-1-retro.md) — see
+> **"Retro Adjustments"** below for what changed from the original draft.
 
 ## Sprint Goal
 
@@ -28,17 +27,20 @@ logging are pulled forward specifically because the brief requires "basic monito
 in Sprint 2 — bundling both into this sprint (rather than deferring further) keeps that
 requirement from being a last-minute scramble.
 
-## Task Breakdown
+## Task Breakdown (reordered per retro — see Retro Adjustments)
 
-1. **`feature/update-contact`** (PBI-4): reuse `ContactValidator` from PBI-1 →
-   `ContactServiceImpl.updateContact` → `Main` menu case → tests.
-2. **`feature/delete-contact`** (PBI-5): `ContactServiceImpl.deleteContact` → `Main` menu case →
+1. **`feature/structured-logging`** (PBI-8, moved first): `java.util.logging` calls added to
+   every existing `ContactServiceImpl` method (INFO on success, WARNING on validation/not-found
+   failure) → logging test using a custom `Handler` to capture emitted records. Landing this
+   first means `updateContact` and `deleteContact` are written *with* logging from the start
+   instead of it being retrofitted afterwards.
+2. **`feature/update-contact`** (PBI-4): reuse `ContactValidator` from PBI-1 →
+   `ContactServiceImpl.updateContact` (including its own logging calls) → `Main` menu case →
    tests.
-3. **`feature/health-check`** (PBI-7): new `monitoring/HealthCheck.java` → `Main` menu case →
+3. **`feature/delete-contact`** (PBI-5): `ContactServiceImpl.deleteContact` (including its own
+   logging calls) → `Main` menu case → tests.
+4. **`feature/health-check`** (PBI-7): new `monitoring/HealthCheck.java` → `Main` menu case →
    test.
-4. **`feature/structured-logging`** (PBI-8): `java.util.logging` calls added to every
-   `ContactServiceImpl` method (INFO on success, WARNING on validation/not-found failure) →
-   logging test using a custom `Handler` to capture emitted records.
 
 ## Definition of Done
 
@@ -51,4 +53,12 @@ whether it's worth a Sprint 3 in a real (non-simulated) continuation.
 
 ## Retro Adjustments
 
-*(To be filled in after Sprint 1's retrospective, before Sprint 2 work starts.)*
+Applying [sprint-1-retro.md](sprint-1-retro.md)'s two improvements:
+
+1. **Toolchain verified before any Sprint 2 story code was written**: re-ran
+   `bash scripts/test.sh` clean (24/24 passing) and confirmed `.vscode/settings.json` resolves
+   JUnit imports with no red squiggles, *before* branching `feature/structured-logging` —
+   instead of discovering gaps reactively mid-sprint like in Sprint 1.
+2. **Logging reordered to land first**: PBI-8 was originally last in the task order; it's now
+   first, specifically so PBI-4 and PBI-5 are implemented with their logging calls already
+   part of the method from the start rather than added back in afterwards.
