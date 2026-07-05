@@ -19,7 +19,8 @@ public class Main {
             System.out.println("\n===== Contacts Management Menu =====");
             System.out.println("1. Add Contact");
             System.out.println("2. List All Contacts");
-            System.out.println("3. Exit");
+            System.out.println("3. Get Contact by ID");
+            System.out.println("4. Exit");
             System.out.print("Choose an option: ");
 
             int choice;
@@ -34,7 +35,8 @@ public class Main {
                 switch (choice) {
                     case 1 -> addContact();
                     case 2 -> listAllContacts();
-                    case 3 -> {
+                    case 3 -> getContactById();
+                    case 4 -> {
                         System.out.println("Exiting...");
                         return;
                     }
@@ -71,5 +73,13 @@ public class Main {
         for (Contact contact : contacts) {
             System.out.println(contact);
         }
+    }
+
+    private static void getContactById() {
+        System.out.print("Enter contact ID: ");
+        String id = scanner.nextLine();
+
+        Contact contact = contactService.getContactById(id);
+        System.out.println(contact);
     }
 }
