@@ -1,5 +1,6 @@
 package service;
 
+import exceptions.ContactNotFoundException;
 import model.Contact;
 import repository.ContactRepository;
 import validation.ContactValidator;
@@ -27,7 +28,8 @@ public class ContactServiceImpl implements ContactService {
 
     @Override
     public Contact getContactById(String id) {
-        throw new UnsupportedOperationException("getContactById is not implemented yet (see PBI-3)");
+        return contactRepository.findById(id)
+                .orElseThrow(() -> new ContactNotFoundException("Contact with ID " + id + " not found."));
     }
 
     @Override

@@ -1,5 +1,6 @@
 package service;
 
+import exceptions.ContactNotFoundException;
 import exceptions.ContactValidationException;
 import model.Contact;
 import org.junit.jupiter.api.BeforeEach;
@@ -69,5 +70,20 @@ class ContactServiceImplTest {
         List<Contact> all = contactService.getAllContacts();
 
         assertEquals(2, all.size());
+    }
+
+    @Test
+    void getContactByIdForAnExistingIdReturnsThatContact() {
+        Contact added = contactService.addContact("Ada Lovelace", "ada@example.com", "555-0100");
+
+        Contact found = contactService.getContactById(added.getId());
+
+        assertEquals(added.getId(), found.getId());
+        assertEquals("Ada Lovelace", found.getName());
+    }
+
+    @Test
+    void getContactByIdForAnUnknownIdThrowsNotFoundException() {
+        assertThrows(ContactNotFoundException.class, () -> contactService.getContactById("does-not-exist"));
     }
 }
