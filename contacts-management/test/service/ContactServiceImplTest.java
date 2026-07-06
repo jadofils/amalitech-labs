@@ -116,4 +116,18 @@ class ContactServiceImplTest {
         assertEquals("ada@example.com", stillOriginal.getEmail());
         assertEquals("555-0100", stillOriginal.getPhone());
     }
+
+    @Test
+    void deleteContactRemovesItSoALaterLookupThrowsNotFound() {
+        Contact added = contactService.addContact("Ada Lovelace", "ada@example.com", "555-0100");
+
+        contactService.deleteContact(added.getId());
+
+        assertThrows(ContactNotFoundException.class, () -> contactService.getContactById(added.getId()));
+    }
+
+    @Test
+    void deleteContactForAnUnknownIdThrowsNotFoundException() {
+        assertThrows(ContactNotFoundException.class, () -> contactService.deleteContact("does-not-exist"));
+    }
 }
