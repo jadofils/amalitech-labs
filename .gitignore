@@ -1,0 +1,29 @@
+# IntelliJ IDEA / JetBrains
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Java build output
+out/
+*.class
+
+# VS Code
+.vscode/
+
+# OS files
+.DS_Store
+
+# Environment
+.env
+
+# Maven / Gradle / other
+target/
+.build/
+
+# Database
+*.db
+
+# Local IDE and workspace files
+*.log
+"
