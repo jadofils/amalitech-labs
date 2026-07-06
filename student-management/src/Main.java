@@ -1,4 +1,3 @@
-import config.DatabaseConfig;
 import exceptions.StudentNotFoundException;
 import exceptions.StudentValidationException;
 import exceptions.grades.GradeException;
@@ -29,19 +28,12 @@ public class Main {
 
     private static final StudentRepository studentRepository = new StudentRepositoryImpl();
     private static final SubjectRepository subjectRepository = new SubjectRepositoryImpl();
-    private static final GradeService gradeService = new GradeServiceImpl();
+    private static final GradeService gradeService = new GradeServiceImpl(studentRepository, subjectRepository);
     private static final GradeManager gradeManager = new GradeManager(gradeService, subjectRepository);
     private static final StudentService studentService = new StudentServiceImpl(studentRepository);
     private static final StudentManager studentManager = new StudentManager(studentService, gradeManager);
 
     public static void main(String[] args) {
-        if (DatabaseConfig.testConnection()) {
-            System.out.println("Database connected successfully.");
-        } else {
-            System.out.println("Cannot start application because database connection failed.");
-            return;
-        }
-
         while (true) {
             System.out.println("\n===== Student Grade Management Menu =====");
             System.out.println("1. Add Student");

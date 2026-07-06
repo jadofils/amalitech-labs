@@ -20,9 +20,19 @@ public class GradeServiceImpl implements GradeService {
     private final SubjectRepository subjectRepository;
 
     public GradeServiceImpl() {
-        this.gradeRepository = new GradeRepositoryImpl();
-        this.studentRepository = new StudentRepositoryImpl();
-        this.subjectRepository = new SubjectRepositoryImpl();
+        this(new GradeRepositoryImpl(), new StudentRepositoryImpl(), new SubjectRepositoryImpl());
+    }
+
+    public GradeServiceImpl(StudentRepository studentRepository, SubjectRepository subjectRepository) {
+        this(new GradeRepositoryImpl(), studentRepository, subjectRepository);
+    }
+
+    public GradeServiceImpl(GradeRepository gradeRepository,
+                            StudentRepository studentRepository,
+                            SubjectRepository subjectRepository) {
+        this.gradeRepository = gradeRepository;
+        this.studentRepository = studentRepository;
+        this.subjectRepository = subjectRepository;
     }
 
     @Override
