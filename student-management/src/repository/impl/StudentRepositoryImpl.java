@@ -1,123 +1,62 @@
 package repository.impl;
 
-import config.DatabaseConfig;
 import exceptions.StudentNotFoundException;
 import model.student.HonorsStudent;
 import model.student.RegularStudent;
 import model.student.Student;
-import model.enums.StudentStatus;
 
-import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-public class StudentRepositoryImpl implements repository.StudentRepository{
+public class StudentRepositoryImpl implements repository.StudentRepository {
 
+    private final Map<String, Student> studentsMap = new HashMap<>(50);
 
+    public StudentRepositoryImpl() {
+        // Seed 3 students
+        seedStudent(new RegularStudent("John Doe", 20, "john.doe@example.com", "1234567890"));
+        seedStudent(new HonorsStudent("Jane Smith", 22, "jane.smith@example.com", "0987654321"));
+        seedStudent(new RegularStudent("Bob Johnson", 21, "bob.johnson@example.com", "5555555555"));
+    }
+
+    private void seedStudent(Student student) {
+        studentsMap.put(student.getStudentId(), student);
+    }
 
     @Override
     public void addStudent(Student student) {
-        // Query to add students with prepared statements
-        String query = "INSERT INTO students(student_id, name, age, email, phone, status, student_type) VALUES(?, ?, ?, ?, ?, ?, ?)";
-
-        try (Connection conn = DatabaseConfig.getConnection();
-             PreparedStatement ps = conn.prepareStatement(query)) {
-
-            ps.setString(1, student.getStudentId());
-            ps.setString(2, student.getName());
-            ps.setInt(3, student.getAge());
-            ps.setString(4, student.getEmail());
-            ps.setString(5, student.getPhone());
-            ps.setString(6, student.getStatus().name());
-            ps.setString(7, student.getStudentType());
-
-            ps.executeUpdate();
-
-        } catch (SQLException e) {
-            System.out.println("Error adding student: " + e.getMessage());
-            throw new RuntimeException(e);
-        }
+        studentsMap.put(student.getStudentId(), student);
     }
+
     @Override
     public Student findStudentById(String studentId) {
-        //query to find student by id
-        String query="SELECT * FROM students WHERE student_id=?";
-        try (Connection conn = DatabaseConfig.getConnection();
-             PreparedStatement ps = conn.prepareStatement(query)) {
-            ps.setString(1, studentId);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return mapRowToStudent(rs);
-                }
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("Error fetching student: " + e.getMessage(), e);
+        Student student = studentsMap.get(studentId);
+        if (student == null) {
+            throw new StudentNotFoundException("Student with ID " + studentId + " not found");
         }
-        throw new StudentNotFoundException("Student with ID " + studentId + " not found");
+        return student;
     }
 
     @Override
     public List<Student> getAllStudents() {
-        List<Student> students=new ArrayList<>();
-        //query to find all students
-        String query="SELECT * FROM students";
-        try (Connection conn = DatabaseConfig.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(query)) {
-            while(rs.next()){
-                students.add(mapRowToStudent(rs));
-            }
-        }catch (SQLException e) {
-            e.printStackTrace();
-            System.out.println("Error fetching students: " + e.getMessage());
-        }
-        return students;
-
+        return new ArrayList<>(studentsMap.values());
     }
 
     @Override
     public void updateStudent(Student student) {
-        String sql = "UPDATE students SET name=?, age=?, email=?, phone=?, status=?, student_type=? WHERE student_id=?";
-        try (Connection conn = DatabaseConfig.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, student.getName());
-            stmt.setInt(2, student.getAge());
-            stmt.setString(3, student.getEmail());
-            stmt.setString(4, student.getPhone());
-            stmt.setString(5, student.getStatus().name());
-            stmt.setString(6, student.getStudentType());
-            stmt.setString(7, student.getStudentId());
-            stmt.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
+        if (!studentsMap.containsKey(student.getStudentId())) {
+            throw new StudentNotFoundException("Student with ID " + student.getStudentId() + " not found");
         }
+        studentsMap.put(student.getStudentId(), student);
     }
 
     @Override
     public void deleteStudent(String studentId) {
-        String sql = "DELETE FROM students WHERE student_id=?";
-        try (Connection conn = DatabaseConfig.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, studentId);
-            stmt.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
+        if (!studentsMap.containsKey(studentId)) {
+            throw new StudentNotFoundException("Student with ID " + studentId + " not found");
         }
-    }
-
-    // Helper method to map DB row to Student object
-    private Student mapRowToStudent(ResultSet rs) throws SQLException {
-        String type = rs.getString("student_type");
-        String studentId = rs.getString("student_id");
-        String name = rs.getString("name");
-        int age = rs.getInt("age");
-        String email = rs.getString("email");
-        String phone = rs.getString("phone");
-        StudentStatus status = StudentStatus.valueOf(rs.getString("status"));
-
-        if ("REGULAR".equalsIgnoreCase(type)) {
-            return new RegularStudent(studentId, name, age, email, phone, status);
-        }
-        return new HonorsStudent(studentId, name, age, email, phone, status);
+        studentsMap.remove(studentId);
     }
 }
