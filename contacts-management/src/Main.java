@@ -20,7 +20,8 @@ public class Main {
             System.out.println("1. Add Contact");
             System.out.println("2. List All Contacts");
             System.out.println("3. Get Contact by ID");
-            System.out.println("4. Exit");
+            System.out.println("4. Update Contact");
+            System.out.println("5. Exit");
             System.out.print("Choose an option: ");
 
             int choice;
@@ -36,7 +37,8 @@ public class Main {
                     case 1 -> addContact();
                     case 2 -> listAllContacts();
                     case 3 -> getContactById();
-                    case 4 -> {
+                    case 4 -> updateContact();
+                    case 5 -> {
                         System.out.println("Exiting...");
                         return;
                     }
@@ -81,5 +83,25 @@ public class Main {
 
         Contact contact = contactService.getContactById(id);
         System.out.println(contact);
+    }
+
+    private static void updateContact() {
+        System.out.print("Enter contact ID to update: ");
+        String id = scanner.nextLine();
+
+        Contact existing = contactService.getContactById(id);
+
+        System.out.print("Enter new name (" + existing.getName() + "): ");
+        String name = scanner.nextLine();
+
+        System.out.print("Enter new email (" + existing.getEmail() + "): ");
+        String email = scanner.nextLine();
+
+        System.out.print("Enter new phone (" + existing.getPhone() + "): ");
+        String phone = scanner.nextLine();
+
+        Contact updated = contactService.updateContact(id, name, email, phone);
+        System.out.println("\n✓ Contact updated successfully!");
+        System.out.println(updated);
     }
 }

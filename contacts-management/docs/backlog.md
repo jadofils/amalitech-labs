@@ -85,6 +85,6 @@ Applies to every backlog item before it counts as delivered:
 | ID | Status |
 |----|--------|
 | PBI-1, PBI-2, PBI-3 | Delivered (Sprint 1) |
-| PBI-8 | Delivered (Sprint 2) |
-| PBI-4, PBI-5, PBI-7 | Planned for Sprint 2 |
+| PBI-8, PBI-4 | Delivered (Sprint 2) |
+| PBI-5, PBI-7 | Planned for Sprint 2 |
 | PBI-6 | Backlog — stretch, not currently scheduled |

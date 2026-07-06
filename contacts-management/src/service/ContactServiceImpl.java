@@ -53,7 +53,26 @@ public class ContactServiceImpl implements ContactService {
 
     @Override
     public Contact updateContact(String id, String name, String email, String phone) {
-        throw new UnsupportedOperationException("updateContact is not implemented yet (see PBI-4)");
+        Contact existing = contactRepository.findById(id)
+                .orElseThrow(() -> {
+                    LOGGER.warning("Contact not found: " + id);
+                    return new ContactNotFoundException("Contact with ID " + id + " not found.");
+                });
+
+        try {
+            ContactValidator.validateName(name);
+            ContactValidator.validateEmail(email);
+        } catch (ContactValidationException e) {
+            LOGGER.warning("Rejected updateContact for " + id + ": " + e.getMessage());
+            throw e;
+        }
+
+        existing.setName(name);
+        existing.setEmail(email);
+        existing.setPhone(phone);
+        contactRepository.update(existing);
+        LOGGER.info("Updated contact " + id);
+        return existing;
     }
 
     @Override
