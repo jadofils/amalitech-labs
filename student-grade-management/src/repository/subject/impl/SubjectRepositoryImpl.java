@@ -1,7 +1,6 @@
 package repository.subject.impl;
 
 import exceptions.subjects.SubjectNotFoundException;
-import exceptions.subjects.SubjectValidationException;
 import model.subject.Subject;
 import model.subject.CoreSubject;
 import model.subject.ElectiveSubject;

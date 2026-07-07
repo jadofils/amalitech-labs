@@ -23,6 +23,8 @@ import serviceimpl.StudentServiceImpl;
 import java.util.List;
 import java.util.Scanner;
 
+import javax.management.relation.Role;
+
 public class Main {
     private static final Scanner scanner = new Scanner(System.in);
 
@@ -34,23 +36,21 @@ public class Main {
     private static final StudentManager studentManager = new StudentManager(studentService, gradeManager);
 
     public static void main(String[] args) {
+        Role role = selectRole();
+
         while (true) {
-            System.out.println("\n===== Student Grade Management Menu =====");
-            System.out.println("1. Add Student");
-            System.out.println("2. View Student by ID");
-            System.out.println("3. View All Students");
-            System.out.println("4. Update Student");
-            System.out.println("5. Delete Student");
-            System.out.println("6. Record Grade");
-            System.out.println("7. View Grade Report");
-            System.out.println("8. Exit");
-            System.out.print("Choose an option: ");
+            printMenu(role);
 
             int choice;
             try {
                 choice = Integer.parseInt(scanner.nextLine());
             } catch (NumberFormatException e) {
-                System.out.println("Invalid input. Please enter a number between 1 and 8.");
+                System.out.println("Invalid input. Please enter a number.");
+                continue;
+            }
+
+            if (!isAuthorized(role, choice)) {
+                System.out.println("Access denied. This action is not available for your role.");
                 continue;
             }
 
@@ -67,7 +67,7 @@ public class Main {
                         System.out.println("Exiting...");
                         return;
                     }
-                    default -> System.out.println("Invalid choice. Please select 1-8.");
+                    default -> System.out.println("Invalid choice.");
                 }
             } catch (StudentValidationException | StudentNotFoundException | GradeException
                      | SubjectNotFoundException | SubjectValidationException e) {
@@ -76,6 +76,50 @@ public class Main {
                 System.out.println("An unexpected error occurred: " + e.getMessage());
             }
         }
+    }
+
+    private static Role selectRole() {
+        while (true) {
+            System.out.println("\n===== Select Your Role =====");
+            System.out.println("1. Teacher");
+            System.out.println("2. Student");
+            System.out.print("Choose your role (1-2): ");
+            String input = scanner.nextLine().trim();
+            if (input.equals("1")) return Role.TEACHER;
+            if (input.equals("2")) return Role.STUDENT;
+            System.out.println("Invalid choice. Please select 1 for Teacher or 2 for Student.");
+        }
+    }
+
+    private static void printMenu(Role role) {
+        System.out.println("\n===== Student Grade Management Menu (" + role + ") =====");
+        if (role == Role.TEACHER) {
+            System.out.println("1. Add Student");
+            System.out.println("2. View Student by ID");
+            System.out.println("3. View All Students");
+            System.out.println("4. Update Student");
+            System.out.println("5. Delete Student");
+            System.out.println("6. Record Grade");
+            System.out.println("7. View Grade Report");
+            System.out.println("8. Exit");
+        } else {
+            System.out.println("2. View Student by ID");
+            System.out.println("3. View All Students");
+            System.out.println("7. View Grade Report");
+            System.out.println("8. Exit");
+        }
+        System.out.print("Choose an option: ");
+    }
+
+    private static boolean isAuthorized(Role role, int choice) {
+        if (role == Role.TEACHER) {
+            return choice >= 1 && choice <= 8;
+        }
+        // STUDENT: only view operations
+        return switch (choice) {
+            case 2, 3, 7, 8 -> true;
+            default -> false;
+        };
     }
 
     private static void addStudent() {

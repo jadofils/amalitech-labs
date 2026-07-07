@@ -39,7 +39,7 @@ src/
 │   ├── student/                  Student (abstract), RegularStudent, HonorsStudent
 │   ├── subject/                  Subject (abstract), CoreSubject, ElectiveSubject
 │   ├── grade/                    Grade, Gradable (interface)
-│   └── enums/                    StudentType, StudentStatus, SubjectType, LetterGrade, GradeStatus
+│   └── enums/                    StudentType, StudentStatus, SubjectType, LetterGrade, GradeStatus, Role
 ├── manager/
 │   ├── StudentManager.java       facade over StudentService/GradeManager; the class Main actually talks to for students
 │   └── GradeManager.java         facade over GradeService/SubjectRepository; the class Main actually talks to for grades
@@ -212,10 +212,43 @@ when seed data has been pre-loaded.
 
 ---
 
-## 9. Running it
+## 9. Role-Based Access
+
+The app prompts for a role (`TEACHER` or `STUDENT`) on startup. The role is
+stored as a `Role` enum (`model/enums/Role.java`) and preserved for the
+session. Menu rendering and action authorization both depend on it.
+
+| Action | TEACHER | STUDENT |
+|---|---|---|
+| Add Student | ✓ | ✗ |
+| View Student by ID | ✓ | ✓ |
+| View All Students | ✓ | ✓ |
+| Update Student | ✓ | ✗ |
+| Delete Student | ✓ | ✗ |
+| Record Grade | ✓ | ✗ |
+| View Grade Report | ✓ | ✓ |
+| Exit | ✓ | ✓ |
+
+Authorization is enforced at two points:
+- **Menu rendering** (`printMenu`) — only authorized options are printed.
+- **Action gate** (`isAuthorized`) — if a STUDENT enters an unauthorized
+  option number directly, the request is rejected before any action runs.
+
+This keeps the switch statement in `Main` unchanged (all 8 cases) while
+the role logic stays in two small helper methods — no permissions leak
+into any service or repository layer.
+
+---
+
+## 10. Running it
 
 1. Open the project in any Java IDE (IntelliJ, VS Code, Eclipse, etc.).
 2. Compile and run `Main.java` — no special classpath or external setup
    required.
-3. The app starts immediately with the menu; 3 sample students and 10
-   subjects are pre-loaded.
+3. At startup you choose a **role** — `TEACHER` or `STUDENT` — which
+   determines which menu options are available.
+4. As a **Teacher** you have full access: add, view, update, delete
+   students; record grades; view grade reports.
+5. As a **Student** you can only view student details and grade reports
+   (options 2, 3, 7, 8).
+6. 3 sample students and 10 subjects are pre-loaded on every start.
