@@ -23,7 +23,7 @@ import serviceimpl.StudentServiceImpl;
 import java.util.List;
 import java.util.Scanner;
 
-import javax.management.relation.Role;
+import model.enums.Role;
 
 public class Main {
     private static final Scanner scanner = new Scanner(System.in);
