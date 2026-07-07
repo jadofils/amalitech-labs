@@ -1,4 +1,4 @@
-package repository.impl;
+package repository.student;
 
 import exceptions.StudentNotFoundException;
 import model.student.HonorsStudent;
@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class StudentRepositoryImpl implements repository.StudentRepository {
+public class StudentRepositoryImpl implements repository.student.StudentRepository {
 
     private final Map<String, Student> studentsMap = new HashMap<>(50);
 
@@ -19,6 +19,7 @@ public class StudentRepositoryImpl implements repository.StudentRepository {
         seedStudent(new RegularStudent("John Doe", 20, "john.doe@example.com", "1234567890"));
         seedStudent(new HonorsStudent("Jane Smith", 22, "jane.smith@example.com", "0987654321"));
         seedStudent(new RegularStudent("Bob Johnson", 21, "bob.johnson@example.com", "5555555555"));
+        
     }
 
     private void seedStudent(Student student) {

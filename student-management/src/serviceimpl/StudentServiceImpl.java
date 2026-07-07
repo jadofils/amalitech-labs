@@ -1,7 +1,7 @@
 package serviceimpl;
 
 import model.student.Student;
-import repository.StudentRepository;
+import repository.student.StudentRepository;
 import service.StudentService;
 import validation.StudentValidator;
 
