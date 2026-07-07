@@ -13,3 +13,12 @@ out/
 
 ### Mac OS ###
 .DS_Store
+
+### Environment ###
+.env
+
+### Logs ###
+*.log
+
+### Database ###
+*.db

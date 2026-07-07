@@ -2,9 +2,9 @@
 
 This is the "how it actually works" reference for the codebase as it stands
 today. `architecturer.md` and `Plan.md` in this same folder capture the
-*original* design plan (which assumed Maven and a `controller/` package);
-this document describes what was actually built, which diverged from that
-plan in a few places (noted below).
+*original* design plan (which assumed PostgreSQL, Maven, and a
+`controller/` package); this document describes what was actually built,
+which diverged from that plan in a few places (noted below).
 
 ---
 
@@ -17,31 +17,16 @@ A console (terminal) application for managing students and their grades:
 - View a student's full grade report (per-subject averages, overall average,
   passing status)
 
-It's backed by a real PostgreSQL database rather than in-memory arrays —
-see [Section 6](#6-deviations-from-the-original-plan) for why, and what that
-trades off against the original lab spec.
+It's backed by an in-memory `HashMap` storage layer — no external database
+required.
 
 ---
 
-## 2. Libraries used
+## 2. What this project does NOT use
 
-The project has **no Maven/Gradle build file**. Dependencies are plain
-`.jar` files wired in as IntelliJ project libraries (see
-`.idea/libraries/*.xml` and `student-management-system.iml`). To build or
-run outside IntelliJ, put these three jars on the classpath:
-
-| Library | Jar | Why it's here |
-|---|---|---|
-| PostgreSQL JDBC Driver | `postgresql-42.7.11.jar` | The actual database driver — everything in `repository/*/impl` and `config/DatabaseConfig` goes through this to talk to Postgres via `java.sql.*`. |
-| java-dotenv | `java-dotenv-5.2.2.jar` | Loads `DB_URL`, `DB_USER`, `DB_PASSWORD` from a local `.env` file at startup (`config/DatabaseConfig`), so credentials aren't hardcoded or committed. |
-| Kotlin stdlib | `kotlin-stdlib-2.2.0.jar` | Not used directly by any of our code — it's a **transitive runtime dependency of java-dotenv**, which is written in Kotlin. It has to be on the classpath or `Dotenv.load()` fails with a `NoClassDefFoundError`. |
-
-`.env` (not committed — see `.gitignore`) needs:
-```
-DB_URL=jdbc:postgresql://localhost:5432/<your_db>
-DB_USER=<your_user>
-DB_PASSWORD=<your_password>
-```
+- **No Maven / Gradle** — pure plain-Java compilation (`javac` or any IDE).
+- **No database driver** — no JDBC, no PostgreSQL, no external `.jar` dependencies.
+- **No `.env` file** — credentials are irrelevant because there is no external database.
 
 ---
 
@@ -50,8 +35,6 @@ DB_PASSWORD=<your_password>
 ```
 src/
 ├── Main.java                     composition root + console menu loop
-├── config/
-│   └── DatabaseConfig.java       loads .env, opens JDBC connections, creates/migrates tables, seeds subjects
 ├── model/
 │   ├── student/                  Student (abstract), RegularStudent, HonorsStudent
 │   ├── subject/                  Subject (abstract), CoreSubject, ElectiveSubject
@@ -63,9 +46,9 @@ src/
 ├── service/                      business-logic interfaces (StudentService, GradeService)
 ├── serviceimpl/                  business-logic implementations
 ├── repository/                   persistence interfaces (StudentRepository, SubjectRepository, GradeRepository)
-│   ├── impl/                     StudentRepositoryImpl (JDBC)
-│   ├── subject/impl/             SubjectRepositoryImpl (JDBC)
-│   └── grade/impl/               GradeRepositoryImpl (JDBC)
+│   ├── impl/                     StudentRepositoryImpl (in-memory HashMap)
+│   ├── subject/impl/             SubjectRepositoryImpl (in-memory HashMap)
+│   └── grade/impl/               GradeRepositoryImpl (in-memory HashMap)
 ├── validation/                   StudentValidator, SubjectValidator, GradeValidator — plain static range/format checks
 └── exceptions/                   StudentNotFoundException, StudentValidationException,
                                    exceptions/grades/GradeException,
@@ -87,9 +70,7 @@ Main (menu loop, Scanner I/O)
                  -> repository.StudentRepository / SubjectRepository (existence checks)
                  -> validation.GradeValidator  (0-100 range check)
                  -> repository.GradeRepository (interface)
-                      -> repository.grade.impl.GradeRepositoryImpl (JDBC)
-                           -> config.DatabaseConfig.getConnection()
-                                -> PostgreSQL
+                      -> repository.grade.impl.GradeRepositoryImpl (in-memory HashMap)
 ```
 
 Rules of the layering:
@@ -100,28 +81,99 @@ Rules of the layering:
   calls `StudentManager` / `GradeManager`.
 - **`manager/`** is the layer Main actually depends on. `StudentManager`
   wraps `StudentService` and, on every read, asks `GradeManager` to
-  "hydrate" a `Student` object's transient grade list (grades live in their
-  own table — see [Section 5](#5-why-studentgetgrades-is-hydrated-on-read))
+  "hydrate" a `Student` object's transient grade list (grades live in a
+  separate `GradeRepository` — see [Section 6](#6-why-studentgetgrades-is-hydrated-on-read))
   so `calculateAverageGrade()` / `isPassing()` / honors eligibility are
   correct without the caller having to know that.
 - **`service` / `serviceimpl`** hold the actual business rules (does the
   student/subject exist, is the grade in range) and are the only callers of
   `validation/`.
-- **`repository` (interfaces) / `repository/*/impl` (JDBC)** are the only
-  place SQL exists in the app.
+- **`repository` (interfaces) / `repository/*/impl` (HashMap)** are the only
+  place data-access logic lives.
 - **`model/`** (`Student`, `Subject`, `Grade`, the enums) has no dependency
-  on anything else — it's pure data + the domain rules that don't need a
-  database (e.g. `Student.isPassing()`, `Grade.getLetterGrade()`).
-- **`config/DatabaseConfig`** is only ever called from `repository/*/impl`.
+  on anything else — it's pure data + the domain rules that don't need any
+  storage layer (e.g. `Student.isPassing()`, `Grade.getLetterGrade()`).
 
 ---
 
-## 5. Why `Student.getGrades()` is hydrated on read
+## 5. Data Mapping & Integrity
+
+### Three independent stores (normalized)
+
+Data is split across three separate `HashMap` repositories — each owns one
+entity type and has no knowledge of the others' internals:
+
+```
+StudentRepositoryImpl          SubjectRepositoryImpl          GradeRepositoryImpl
+  HashMap<String, Student>       HashMap<String, Subject>       HashMap<String, Grade>
+  key: student_id                key: subject_code              key: grade_id
+  e.g. "STU001" -> Student       e.g. "MATH01" -> CoreSubject   e.g. "GRD001" -> Grade
+```
+
+### How a Grade connects a Student to a Subject
+
+A `Grade` object carries two references that link it back to its student and
+subject:
+
+```
+Grade
+├── gradeId:     "GRD001"          ← its own primary key (unique, no collision)
+├── studentId:   "STU001"          ← foreign-key reference to Student
+├── subject:     Subject ref       ← object reference to a Subject instance
+│   ├── subjectCode: "MATH01"
+│   └── subjectName: "Mathematics"
+├── gradeValue:  85.0
+└── date:        "2026-07-07"
+```
+
+The `studentId` is a `String` that must match a key in `StudentRepositoryImpl`.
+The `subject` field holds a direct object reference to the `Subject` from
+`SubjectRepositoryImpl` — so `grade.getSubject().getSubjectName()` works
+without any lookup.
+
+### Querying: retrieving a specific student's grades
+
+Since all grades share one `HashMap`, filtering is done by stream:
+
+```
+GradeRepositoryImpl
+  .findGradesByStudentId(studentId)
+    → gradesMap.values().stream()
+        .filter(g -> g.getStudentId().equals(studentId))
+        .collect(toList())
+```
+
+This returns only the grades whose `studentId` matches the requested student.
+No other student's grades can leak in — the filter guarantees isolation.
+
+### Data integrity (no overlapping, no orphans)
+
+| Concern | How it's enforced |
+|---|---|
+| **No duplicate keys** | Each entity type uses its own ID namespace (`STU001`, `SUB001`, `GRD001`) stored as `HashMap` keys — by definition unique. |
+| **No overlapping IDs** | Prefixes are hard-coded per type (`STU` / `GRD`), so a student ID and a grade ID can never collide even though they share a counter-like pattern. |
+| **Referential integrity (student exists)** | `GradeServiceImpl.recordGrade()` calls `studentRepository.findStudentById(id)` *before* persisting the grade — throws `StudentNotFoundException` if the student doesn't exist. |
+| **Referential integrity (subject exists)** | Same check against `subjectRepository.findByCode(code)` before persisting. |
+| **Grade value integrity** | `Grade.recordGrade()` delegates to `validateGrade()` (the `Gradable` contract) which enforces `0 <= value <= 100`. |
+| **Transient grade list** | `Student.grades` is a `List<Double>` hydrated on read (see §6 below). The source of truth is always `GradeRepositoryImpl` — the list is a denormalized snapshot for computing averages, not the canonical store. |
+
+### Why three maps instead of embedding grades in Student
+
+If each `Student` owned its own `List<Grade>`, queries like "find all students
+who scored above 90 in Mathematics" would require scanning every student's
+list. By keeping grades in their own `HashMap`, the data is *normalized*:
+grades are queryable by student, subject, value range, or date without
+touching any other data structure. The transient `List<Double>` on `Student`
+is a read-time convenience copy (see §6 below).
+
+---
+
+## 6. Why `Student.getGrades()` is hydrated on read
 
 `Student` keeps a transient `List<Double> grades` in memory (used by
 `calculateAverageGrade()` / `isPassing()` / `HonorsStudent.checkHonorsEligibility()`),
-but grades are actually persisted in their own `grades` table, not on the
-`students` row. A `Student` object built straight from a DB row therefore
+but grades are stored in a separate `GradeRepository` (its own `HashMap`),
+not on the `Student` object directly. A newly loaded `Student` therefore
 starts with an *empty* grade list.
 
 `StudentManager` fixes this: every time it hands back a `Student` (from
@@ -133,42 +185,18 @@ has to remember to do this manually.
 
 ---
 
-## 6. Deviations from the original plan
+## 7. Deviations from the original plan
 
-`Plan.md` in this folder planned for a `controller/` package and Maven.
-What actually shipped instead:
+`Plan.md` in this folder planned for PostgreSQL, a `controller/` package,
+Maven, and a `config/` package. What actually shipped instead:
 
 | Planned | Actual | Why |
 |---|---|---|
-| Maven build (`pom.xml`) | Plain `.jar` files as IntelliJ project libraries | Never set up; see Section 2 for the manual classpath if building outside the IDE. |
+| PostgreSQL persistence | In-memory `HashMap` storage in `repository/*/impl` | The assessment brief required in-memory storage. No external DB needed. |
+| `config/DatabaseConfig` / `ConnectionManager` | Not created | No database to configure. |
+| Maven build (`pom.xml`) | Plain `.java` files, compile with `javac` or any IDE | No external dependencies to manage. |
 | `controller/StudentController`, `controller/GradeController` | `Main.java` does menu I/O directly, delegating straight to `manager/` | The controller layer was folded into `Main` — one less indirection for a console app this size. |
-| `StudentManager` / `GradeManager` backed by **arrays** (the original lab spec's requirement) | Backed by the database (`StudentService`/`GradeService`/repositories) | Explicit choice for now — the array-based version is a planned future migration. **This is the one place the lab rubric's "use arrays" requirement is not met**; call this out if submitting against that rubric. |
-
----
-
-## 7. Database schema
-
-Created and self-healed automatically by `config.DatabaseConfig` on
-startup (`CREATE TABLE IF NOT EXISTS` for each table). Six subjects are
-seeded once (idempotent, `ON CONFLICT DO NOTHING`): Mathematics, English,
-Science (Core) and Music, Art, Physical Education (Elective).
-
-```
-students                          subjects                    grades
-─────────                         ────────                    ──────
-student_id   VARCHAR PK           subject_code  VARCHAR PK     grade_id      VARCHAR PK
-name         VARCHAR              subject_name  VARCHAR        student_id    VARCHAR FK -> students
-age          INT                  subject_type  VARCHAR        subject_code  VARCHAR FK -> subjects
-email        VARCHAR UNIQUE                                    grade         NUMERIC(5,2)
-phone        VARCHAR                                           date          DATE
-status       VARCHAR
-student_type VARCHAR
-```
-
-`DatabaseConfig` also runs a one-time self-check on startup: if a `grades`
-table already exists from an older version of the schema (before
-`subject_code` was added) it drops and recreates just that table, so
-upgrading an existing database doesn't require a manual `DROP TABLE`.
+| `StudentManager` / `GradeManager` backed by **arrays** (the original lab spec's requirement) | Backed by `HashMap` repositories (`StudentService`/`GradeService`) | Still in-memory, but uses `Map` for efficient lookups instead of primitive arrays. |
 
 ---
 
@@ -176,19 +204,18 @@ upgrading an existing database doesn't require a manual `DROP TABLE`.
 
 `Student` and `Grade` each keep a `private static int` counter
 (`studentCounter`, `gradeCounter`) that generates `STU001`, `GRD001`, etc.
-Since these reset to their initial value on every JVM restart but the
-database does not, `StudentManager` and `GradeManager` each call
-`Student.initializeCounter(...)` / `Grade.initializeCounter(...)` once at
-startup, scanning the existing rows for the highest sequence number already
-in use. Without this, restarting the app would eventually try to re-issue
-an ID that already exists and fail with a primary-key violation.
+On startup, `StudentManager` and `GradeManager` call
+`Student.initializeCounter(...)` / `Grade.initializeCounter(...)`, scanning
+the existing in-memory entries for the highest sequence number already in
+use. Since data is not persisted across restarts, this is primarily useful
+when seed data has been pre-loaded.
 
 ---
 
 ## 9. Running it
 
-1. Create a Postgres database and a `.env` file as shown in Section 2.
-2. Add the three jars from Section 2 to the classpath (already configured
-   as IntelliJ project libraries — just open the project and run `Main`).
-3. Run `Main`. On first run you'll see `Tables initialized successfully.`
-   followed by `Database connected successfully.` and the menu.
+1. Open the project in any Java IDE (IntelliJ, VS Code, Eclipse, etc.).
+2. Compile and run `Main.java` — no special classpath or external setup
+   required.
+3. The app starts immediately with the menu; 3 sample students and 10
+   subjects are pre-loaded.
