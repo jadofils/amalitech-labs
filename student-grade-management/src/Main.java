@@ -1,3 +1,4 @@
+import calculators.GPACalculator;
 import exceptions.ExportException;
 import exceptions.InvalidGradeException;
 import exceptions.StudentNotFoundException;
@@ -38,6 +39,7 @@ public class Main {
     private static final StudentManager studentManager = new StudentManager(studentService, gradeManager);
     private static final ReportGenerator reportGenerator = new ReportGenerator(gradeManager);
     private static final FileExporter fileExporter = new FileExporter();
+    private static final GPACalculator gpaCalculator = new GPACalculator();
 
     private static boolean useRoleBased = false;
     private static boolean isTeacher = true;
@@ -457,24 +459,23 @@ public class Main {
         System.out.println("\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500");
 
         List<Grade> grades = gradeManager.getGradesForStudent(studentId);
-        double totalGPA = 0;
-        int count = 0;
+        double cumulativeGPA = gpaCalculator.cumulativeGPA(grades);
 
         for (Grade g : grades) {
-            double gpa = percentageToGPA(g.getGrade());
-            totalGPA += gpa;
-            count++;
+            double gpa = gpaCalculator.percentageToGPA(g.getGrade());
             System.out.printf("%-16s | %.0f%%    | %.1f (%s)%n",
-                    g.getSubject().getSubjectName(), g.getGrade(), gpa, gpaToLetter(gpa));
+                    g.getSubject().getSubjectName(), g.getGrade(), gpa, gpaCalculator.gpaToLetter(gpa));
         }
 
-        double cumulativeGPA = count > 0 ? totalGPA / count : 0;
         System.out.println("\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500");
         System.out.printf("Cumulative GPA: %.2f / 4.0%n", cumulativeGPA);
-        System.out.println("Letter Grade: " + gpaToLetter(cumulativeGPA));
+        System.out.println("Letter Grade: " + gpaCalculator.gpaToLetter(cumulativeGPA));
 
-        int rank = calculateClassRank(studentId, student);
         List<Student> allStudents = studentManager.getAllStudents();
+        List<Double> classAverages = allStudents.stream()
+                .map(Student::calculateAverageGrade)
+                .collect(java.util.stream.Collectors.toList());
+        int rank = gpaCalculator.classRank(studentId, student.calculateAverageGrade(), classAverages);
         System.out.println("Class Rank: " + rank + " of " + allStudents.size());
 
         System.out.println("\nPerformance Analysis:");
@@ -491,7 +492,7 @@ public class Main {
             System.out.println("\u2713 Honors eligibility maintained");
         }
         double classAvg = allStudents.isEmpty() ? 0 : allStudents.stream().mapToDouble(Student::calculateAverageGrade).average().orElse(0);
-        double classAvgGPA = percentageToGPA(classAvg);
+        double classAvgGPA = gpaCalculator.percentageToGPA(classAvg);
         if (cumulativeGPA > classAvgGPA) {
             System.out.printf("\u2713 Above class average (%.2f GPA)%n", classAvgGPA);
         } else {
@@ -499,45 +500,6 @@ public class Main {
         }
 
         promptEnter();
-    }
-
-    private static double percentageToGPA(double percentage) {
-        if (percentage >= 93) return 4.0;
-        if (percentage >= 90) return 3.7;
-        if (percentage >= 87) return 3.3;
-        if (percentage >= 83) return 3.0;
-        if (percentage >= 80) return 2.7;
-        if (percentage >= 77) return 2.3;
-        if (percentage >= 73) return 2.0;
-        if (percentage >= 70) return 1.7;
-        if (percentage >= 67) return 1.3;
-        if (percentage >= 60) return 1.0;
-        return 0.0;
-    }
-
-    private static String gpaToLetter(double gpa) {
-        if (gpa >= 3.7) return "A";
-        if (gpa >= 3.3) return "A-";
-        if (gpa >= 3.0) return "B+";
-        if (gpa >= 2.7) return "B";
-        if (gpa >= 2.3) return "B-";
-        if (gpa >= 2.0) return "C+";
-        if (gpa >= 1.7) return "C";
-        if (gpa >= 1.3) return "C-";
-        if (gpa >= 1.0) return "D+";
-        return "F";
-    }
-
-    private static int calculateClassRank(String studentId, Student target) {
-        List<Student> students = studentManager.getAllStudents();
-        double targetAvg = target.calculateAverageGrade();
-        int rank = 1;
-        for (Student s : students) {
-            if (!s.getStudentId().equals(studentId) && s.calculateAverageGrade() > targetAvg) {
-                rank++;
-            }
-        }
-        return rank;
     }
 
     private static void bulkImportGrades() {
