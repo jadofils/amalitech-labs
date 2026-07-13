@@ -12,12 +12,12 @@ which diverged from that plan in a few places (noted below).
 
 A console (terminal) application for managing students and their grades:
 
-- Add / view / update / delete students (Regular or Honors)
+- Add / view students (Regular or Honors)
 - Record a grade for a student in a Core or Elective subject
 - View a student's full grade report (per-subject averages, overall average,
   passing status)
 
-It's backed by an in-memory `HashMap` storage layer — no external database
+It's backed by an in-memory array storage layer — no external database
 required.
 
 ---
@@ -39,16 +39,16 @@ src/
 │   ├── student/                  Student (abstract), RegularStudent, HonorsStudent
 │   ├── subject/                  Subject (abstract), CoreSubject, ElectiveSubject
 │   ├── grade/                    Grade, Gradable (interface)
-│   └── enums/                    StudentType, StudentStatus, SubjectType, LetterGrade, GradeStatus, Role
+│   └── enums/                    StudentType, StudentStatus, SubjectType, LetterGrade
 ├── manager/
 │   ├── StudentManager.java       facade over StudentService/GradeManager; the class Main actually talks to for students
 │   └── GradeManager.java         facade over GradeService/SubjectRepository; the class Main actually talks to for grades
 ├── service/                      business-logic interfaces (StudentService, GradeService)
-├── serviceimpl/                  business-logic implementations
+├── service/serviceimpl/          business-logic implementations (GradeServiceImpl, StudentServiceImpl)
 ├── repository/                   persistence interfaces (StudentRepository, SubjectRepository, GradeRepository)
-│   ├── impl/                     StudentRepositoryImpl (in-memory HashMap)
-│   ├── subject/impl/             SubjectRepositoryImpl (in-memory HashMap)
-│   └── grade/impl/               GradeRepositoryImpl (in-memory HashMap)
+│   ├── impl/                     StudentRepositoryImpl (in-memory Student[50] array)
+│   ├── subject/impl/             SubjectRepositoryImpl (in-memory Subject[50] array)
+│   └── grade/impl/               GradeRepositoryImpl (in-memory Grade[200] array)
 ├── validation/                   StudentValidator, SubjectValidator, GradeValidator — plain static range/format checks
 └── exceptions/                   StudentNotFoundException, StudentValidationException,
                                    exceptions/grades/GradeException,
@@ -195,8 +195,10 @@ Maven, and a `config/` package. What actually shipped instead:
 | PostgreSQL persistence | In-memory `HashMap` storage in `repository/*/impl` | The assessment brief required in-memory storage. No external DB needed. |
 | `config/DatabaseConfig` / `ConnectionManager` | Not created | No database to configure. |
 | Maven build (`pom.xml`) | Plain `.java` files, compile with `javac` or any IDE | No external dependencies to manage. |
+| `StudentManager` / `GradeManager` backed by **arrays** (the original lab spec's requirement) | Backed by **arrays** (`Student[50]`, `Grade[200]`) in repository layer | Uses primitive arrays for storage as required by the README spec. |
 | `controller/StudentController`, `controller/GradeController` | `Main.java` does menu I/O directly, delegating straight to `manager/` | The controller layer was folded into `Main` — one less indirection for a console app this size. |
-| `StudentManager` / `GradeManager` backed by **arrays** (the original lab spec's requirement) | Backed by `HashMap` repositories (`StudentService`/`GradeService`) | Still in-memory, but uses `Map` for efficient lookups instead of primitive arrays. |
+| Role-based access always enabled | Optional role-based access control prompted on startup | Defaults to simple 5-option menu; user can opt into role-based mode. |
+| 9 required classes (arrays) | ~20 classes with layered architecture | Kept the layered architecture but switched repositories from HashMap to arrays. |
 
 ---
 
@@ -212,19 +214,20 @@ when seed data has been pre-loaded.
 
 ---
 
-## 9. Role-Based Access
+## 9. Role-Based Access (Optional)
 
-The app prompts for a role (`TEACHER` or `STUDENT`) on startup. The role is
-stored as a `Role` enum (`model/enums/Role.java`) and preserved for the
-session. Menu rendering and action authorization both depend on it.
+On startup, the app asks whether to enable role-based access control. If
+the user answers `N` (default), the simple 5-option menu is shown with no
+restrictions — matching the README specification exactly.
+
+If the user answers `Y`, a role prompt appears, and the selected role
+(`TEACHER` or `STUDENT`) is preserved for the session. Menu rendering and
+action authorization both depend on it.
 
 | Action | TEACHER | STUDENT |
 |---|---|---|
 | Add Student | ✓ | ✗ |
-| View Student by ID | ✓ | ✓ |
-| View All Students | ✓ | ✓ |
-| Update Student | ✓ | ✗ |
-| Delete Student | ✓ | ✗ |
+| View Students | ✓ | ✓ |
 | Record Grade | ✓ | ✗ |
 | View Grade Report | ✓ | ✓ |
 | Exit | ✓ | ✓ |
@@ -245,10 +248,11 @@ into any service or repository layer.
 1. Open the project in any Java IDE (IntelliJ, VS Code, Eclipse, etc.).
 2. Compile and run `Main.java` — no special classpath or external setup
    required.
-3. At startup you choose a **role** — `TEACHER` or `STUDENT` — which
-   determines which menu options are available.
-4. As a **Teacher** you have full access: add, view, update, delete
-   students; record grades; view grade reports.
-5. As a **Student** you can only view student details and grade reports
-   (options 2, 3, 7, 8).
-6. 3 sample students and 10 subjects are pre-loaded on every start.
+3. Optionally enable **role-based access** — if you answer `Y` at the prompt,
+   you choose `TEACHER` or `STUDENT`, which determines available menu options.
+   Answer `N` to skip and access all features.
+4. As a **Teacher** you have full access: add students, view students, record
+   grades, view grade reports.
+5. As a **Student** you can only view students and grade reports (options 2, 4).
+6. 5 sample students (3 Regular, 2 Honors) and 6 subjects are pre-loaded on
+   every start.
