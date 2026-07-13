@@ -92,8 +92,8 @@ public abstract class Student {
         this.studentId = studentId;
     }
 
-    // Keeps the static ID counter ahead of whatever is already persisted,
-    // since it resets to 0 on every JVM restart but the database does not.
+    // Keeps the static ID counter ahead of whatever is already in storage,
+    // since it resets to 0 on every JVM restart.
     public static void initializeCounter(int highestExistingSequence) {
         studentCounter = Math.max(studentCounter, highestExistingSequence);
     }
