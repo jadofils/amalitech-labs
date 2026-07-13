@@ -6,58 +6,74 @@ import model.student.RegularStudent;
 import model.student.Student;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-public class StudentRepositoryImpl implements repository.student.StudentRepository {
+public class StudentRepositoryImpl implements StudentRepository {
 
-    private final Map<String, Student> studentsMap = new HashMap<>(50);
+    private final Student[] students = new Student[50];
+    private int studentCount = 0;
 
     public StudentRepositoryImpl() {
-        // Seed 3 students
-        seedStudent(new RegularStudent("John Doe", 20, "john.doe@example.com", "1234567890"));
-        seedStudent(new HonorsStudent("Jane Smith", 22, "jane.smith@example.com", "0987654321"));
-        seedStudent(new RegularStudent("Bob Johnson", 21, "bob.johnson@example.com", "5555555555"));
-        
+        // Seed 5 students: 3 Regular, 2 Honors (matching README specification)
+        seedStudent(new RegularStudent("Alice Johnson", 17, "alice.johnson@school.edu", "+1-555-0101"));
+        seedStudent(new HonorsStudent("Bob Smith", 18, "bob.smith@school.edu", "+1-555-0102"));
+        seedStudent(new RegularStudent("Carol Martinez", 16, "carol.martinez@school.edu", "+1-555-0103"));
+        seedStudent(new HonorsStudent("David Chen", 17, "david.chen@school.edu", "+1-555-0104"));
+        seedStudent(new RegularStudent("Emma Wilson", 16, "emma.wilson@school.edu", "+1-555-0105"));
     }
 
     private void seedStudent(Student student) {
-        studentsMap.put(student.getStudentId(), student);
+        students[studentCount++] = student;
     }
 
     @Override
     public void addStudent(Student student) {
-        studentsMap.put(student.getStudentId(), student);
+        if (studentCount >= students.length) {
+            throw new RuntimeException("Cannot add more students. Storage is full.");
+        }
+        students[studentCount++] = student;
     }
 
     @Override
     public Student findStudentById(String studentId) {
-        Student student = studentsMap.get(studentId);
-        if (student == null) {
-            throw new StudentNotFoundException("Student with ID " + studentId + " not found");
+        for (int i = 0; i < studentCount; i++) {
+            if (students[i].getStudentId().equals(studentId)) {
+                return students[i];
+            }
         }
-        return student;
+        throw new StudentNotFoundException("Student with ID " + studentId + " not found");
     }
 
     @Override
     public List<Student> getAllStudents() {
-        return new ArrayList<>(studentsMap.values());
+        List<Student> result = new ArrayList<>();
+        for (int i = 0; i < studentCount; i++) {
+            result.add(students[i]);
+        }
+        return result;
     }
 
     @Override
     public void updateStudent(Student student) {
-        if (!studentsMap.containsKey(student.getStudentId())) {
-            throw new StudentNotFoundException("Student with ID " + student.getStudentId() + " not found");
+        for (int i = 0; i < studentCount; i++) {
+            if (students[i].getStudentId().equals(student.getStudentId())) {
+                students[i] = student;
+                return;
+            }
         }
-        studentsMap.put(student.getStudentId(), student);
+        throw new StudentNotFoundException("Student with ID " + student.getStudentId() + " not found");
     }
 
     @Override
     public void deleteStudent(String studentId) {
-        if (!studentsMap.containsKey(studentId)) {
-            throw new StudentNotFoundException("Student with ID " + studentId + " not found");
+        for (int i = 0; i < studentCount; i++) {
+            if (students[i].getStudentId().equals(studentId)) {
+                students[i] = students[studentCount - 1];
+                students[studentCount - 1] = null;
+                studentCount--;
+                return;
+            }
         }
-        studentsMap.remove(studentId);
+        throw new StudentNotFoundException("Student with ID " + studentId + " not found");
     }
 }
