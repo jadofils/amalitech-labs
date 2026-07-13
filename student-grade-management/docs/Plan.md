@@ -1,5 +1,5 @@
 # Student Grade Management System — Build Plan
-### Plain Java (no frameworks) + In-Memory HashMap Storage + Layered OOP Architecture
+### Plain Java (no frameworks) + In-Memory Array Storage + Layered OOP Architecture
 
 ---
 
@@ -8,11 +8,11 @@
 This plan extends the original **Student Grade Management** lab spec
 (`Java Basics/Student-Grade-Mgt-I.md`), which asked for an in-memory
 console app with 9 classes and arrays as storage. We keep an in-memory
-approach but replace primitive arrays with `HashMap`-backed repositories
-for O(1) lookups and cleaner code.
+approach with array-based repositories, organized in a layered architecture.
 
 **Key conventions:**
-- Storage: a **repository layer** (`HashMap`-backed) replaces array-based
+- Storage: a **repository layer** (array-backed) replaces the simple array
+  approach from the original spec with proper separation of concerns.
   `StudentManager` / `GradeManager`.
 - Two packages beyond the original list: **`repository`** (data access)
   and **`manager`** (facade over services).
