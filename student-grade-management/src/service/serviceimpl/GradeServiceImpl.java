@@ -1,4 +1,4 @@
-package serviceimpl;
+package service.serviceimpl;
 
 import exceptions.grades.GradeException;
 import exceptions.subjects.SubjectNotFoundException;

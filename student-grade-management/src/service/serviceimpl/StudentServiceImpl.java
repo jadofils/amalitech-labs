@@ -1,4 +1,4 @@
-package serviceimpl;
+package service.serviceimpl;
 
 import model.student.Student;
 import repository.student.StudentRepository;
