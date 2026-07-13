@@ -8,60 +8,67 @@ import repository.subject.SubjectRepository;
 import validation.SubjectValidator;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class SubjectRepositoryImpl implements SubjectRepository {
 
-    private final Map<String, Subject> subjectsMap = new HashMap<>(50);
+    private final Subject[] subjects = new Subject[50];
+    private int subjectCount = 0;
 
     public SubjectRepositoryImpl() {
-        // Seed Core Subjects
+        // Seed Core Subjects (matching README specification)
         seedSubject(new CoreSubject("Mathematics", "MATH01"));
         seedSubject(new CoreSubject("English", "ENGL01"));
         seedSubject(new CoreSubject("Science", "SCIE01"));
-        seedSubject(new CoreSubject("History", "HIST01"));
-        seedSubject(new CoreSubject("Physics", "PHYS01"));
 
-        // Seed Elective Subjects
+        // Seed Elective Subjects (matching README specification)
         seedSubject(new ElectiveSubject("Music", "MUSC01"));
         seedSubject(new ElectiveSubject("Art", "ART01"));
         seedSubject(new ElectiveSubject("Physical Education", "PHED01"));
-        seedSubject(new ElectiveSubject("Drama", "DRAM01"));
-        seedSubject(new ElectiveSubject("Computer Science", "COMP01"));
     }
 
     private void seedSubject(Subject subject) {
-        subjectsMap.put(subject.getSubjectCode(), subject);
+        subjects[subjectCount++] = subject;
     }
 
     @Override
     public void addSubject(Subject subject) {
-        // Validate subject before saving
         SubjectValidator.validateSubject(subject);
-        subjectsMap.put(subject.getSubjectCode(), subject);
+        if (subjectCount >= subjects.length) {
+            throw new RuntimeException("Cannot add more subjects. Storage is full.");
+        }
+        subjects[subjectCount++] = subject;
     }
 
     @Override
     public Subject findSubjectByCode(String subjectCode) {
-        Subject subject = subjectsMap.get(subjectCode);
-        if (subject == null) {
-            throw new SubjectNotFoundException("Subject with code " + subjectCode + " not found");
+        for (int i = 0; i < subjectCount; i++) {
+            if (subjects[i].getSubjectCode().equals(subjectCode)) {
+                return subjects[i];
+            }
         }
-        return subject;
+        throw new SubjectNotFoundException("Subject with code " + subjectCode + " not found");
     }
 
     @Override
     public List<Subject> getAllSubjects() {
-        return new ArrayList<>(subjectsMap.values());
+        List<Subject> result = new ArrayList<>();
+        for (int i = 0; i < subjectCount; i++) {
+            result.add(subjects[i]);
+        }
+        return result;
     }
 
     @Override
     public void deleteSubject(String subjectCode) {
-        if (!subjectsMap.containsKey(subjectCode)) {
-            throw new SubjectNotFoundException("Subject with code " + subjectCode + " not found.");
+        for (int i = 0; i < subjectCount; i++) {
+            if (subjects[i].getSubjectCode().equals(subjectCode)) {
+                subjects[i] = subjects[subjectCount - 1];
+                subjects[subjectCount - 1] = null;
+                subjectCount--;
+                return;
+            }
         }
-        subjectsMap.remove(subjectCode);
+        throw new SubjectNotFoundException("Subject with code " + subjectCode + " not found.");
     }
 }
