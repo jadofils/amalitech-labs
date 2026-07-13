@@ -81,6 +81,14 @@ public class StudentManager {
         return studentService.getAllStudents().size();
     }
 
+    public List<Student> getAllStudents() {
+        List<Student> students = studentService.getAllStudents();
+        for (Student student : students) {
+            hydrateGrades(student);
+        }
+        return students;
+    }
+
     public void updateStudent(Student student) {
         studentService.updateStudent(student);
     }
