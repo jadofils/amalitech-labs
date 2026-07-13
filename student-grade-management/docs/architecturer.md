@@ -38,8 +38,8 @@ never calls a manager).
               │ throws          │ implemented by
               ▼                 ▼
        ┌───────────────┐ ┌──────────────────┐
-       │  exceptions/  │ │ repository/impl/  │  HashMap-backed in-memory
-       └───────────────┘ └──────────────────┘  storage — no DB, no config
+        │  exceptions/  │ │ repository/impl/  │  array-backed in-memory
+       └───────────────┘ └──────────────────┘  storage — Student[50], Grade[200], Subject[50] arrays — no DB, no config
 
        ┌───────────────────────────────────────────────────────
        │  model/  — Student, Subject, Grade, Gradable
