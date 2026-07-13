@@ -17,13 +17,11 @@ import repository.subject.SubjectRepository;
 import repository.subject.impl.SubjectRepositoryImpl;
 import service.GradeService;
 import service.StudentService;
-import serviceimpl.GradeServiceImpl;
-import serviceimpl.StudentServiceImpl;
+import service.serviceimpl.GradeServiceImpl;
+import service.serviceimpl.StudentServiceImpl;
 
 import java.util.List;
 import java.util.Scanner;
-
-import model.enums.Role;
 
 public class Main {
     private static final Scanner scanner = new Scanner(System.in);
@@ -35,11 +33,14 @@ public class Main {
     private static final StudentService studentService = new StudentServiceImpl(studentRepository);
     private static final StudentManager studentManager = new StudentManager(studentService, gradeManager);
 
+    private static boolean useRoleBased = false;
+    private static boolean isTeacher = true;
+
     public static void main(String[] args) {
-        Role role = selectRole();
+        askRoleBased();
 
         while (true) {
-            printMenu(role);
+            printMenu();
 
             int choice;
             try {
@@ -49,7 +50,7 @@ public class Main {
                 continue;
             }
 
-            if (!isAuthorized(role, choice)) {
+            if (useRoleBased && !isAuthorized(choice)) {
                 System.out.println("Access denied. This action is not available for your role.");
                 continue;
             }
@@ -57,14 +58,12 @@ public class Main {
             try {
                 switch (choice) {
                     case 1 -> addStudent();
-                    case 2 -> viewStudentById();
-                    case 3 -> viewAllStudents();
-                    case 4 -> updateStudent();
-                    case 5 -> deleteStudent();
-                    case 6 -> recordGrade();
-                    case 7 -> viewGradeReport();
-                    case 8 -> {
-                        System.out.println("Exiting...");
+                    case 2 -> viewAllStudents();
+                    case 3 -> recordGrade();
+                    case 4 -> viewGradeReport();
+                    case 5 -> {
+                        System.out.println("Thank you for using Student Grade Management System!");
+                        System.out.println("Goodbye!");
                         return;
                     }
                     default -> System.out.println("Invalid choice.");
@@ -78,55 +77,70 @@ public class Main {
         }
     }
 
-    private static Role selectRole() {
+    private static void askRoleBased() {
+        System.out.print("Enable role-based access control? (Y/N, default N): ");
+        String input = scanner.nextLine().trim();
+        if (!input.equalsIgnoreCase("Y")) {
+            return;
+        }
+        useRoleBased = true;
+
         while (true) {
-            System.out.println("\n===== Select Your Role =====");
+            System.out.println("\nSelect your role:");
             System.out.println("1. Teacher");
             System.out.println("2. Student");
-            System.out.print("Choose your role (1-2): ");
-            String input = scanner.nextLine().trim();
-            if (input.equals("1")) return Role.TEACHER;
-            if (input.equals("2")) return Role.STUDENT;
-            System.out.println("Invalid choice. Please select 1 for Teacher or 2 for Student.");
+            System.out.print("Choose (1-2): ");
+            String roleInput = scanner.nextLine().trim();
+            if (roleInput.equals("1")) {
+                isTeacher = true;
+                return;
+            } else if (roleInput.equals("2")) {
+                isTeacher = false;
+                return;
+            }
+            System.out.println("Invalid choice. Please select 1 or 2.");
         }
     }
 
-    private static void printMenu(Role role) {
-        System.out.println("\n===== Student Grade Management Menu (" + role + ") =====");
-        if (role == Role.TEACHER) {
-            System.out.println("1. Add Student");
-            System.out.println("2. View Student by ID");
-            System.out.println("3. View All Students");
-            System.out.println("4. Update Student");
-            System.out.println("5. Delete Student");
-            System.out.println("6. Record Grade");
-            System.out.println("7. View Grade Report");
-            System.out.println("8. Exit");
-        } else {
-            System.out.println("2. View Student by ID");
-            System.out.println("3. View All Students");
-            System.out.println("7. View Grade Report");
-            System.out.println("8. Exit");
+    private static void printMenu() {
+        System.out.println("\n╔════════════════════════════════════════════╗");
+        System.out.println("║   STUDENT GRADE MANAGEMENT - MAIN MENU     ║");
+        System.out.println("╚════════════════════════════════════════════╝");
+        System.out.println();
+        System.out.println("1. Add Student");
+        System.out.println("2. View Students");
+        System.out.println("3. Record Grade");
+        System.out.println("4. View Grade Report");
+        System.out.println("5. Exit");
+        if (useRoleBased) {
+            System.out.println("Role: " + (isTeacher ? "Teacher" : "Student"));
         }
-        System.out.print("Choose an option: ");
+        System.out.println();
+        System.out.print("Enter choice: ");
     }
 
-    private static boolean isAuthorized(Role role, int choice) {
-        if (role == Role.TEACHER) {
-            return choice >= 1 && choice <= 8;
-        }
-        // STUDENT: only view operations
+    private static boolean isAuthorized(int choice) {
+        if (isTeacher) return true;
         return switch (choice) {
-            case 2, 3, 7, 8 -> true;
+            case 2, 4, 5 -> true;
             default -> false;
         };
     }
 
     private static void addStudent() {
-        System.out.print("Enter name: ");
+        if (useRoleBased && !isTeacher) {
+            System.out.println("Access denied. This action is not available for your role.");
+            return;
+        }
+
+        System.out.println("\nADD STUDENT");
+        System.out.println("─────────────────────────────────────────────");
+        System.out.println();
+
+        System.out.print("Enter student name: ");
         String name = scanner.nextLine();
 
-        System.out.print("Enter age: ");
+        System.out.print("Enter student age: ");
         int age;
         try {
             age = Integer.parseInt(scanner.nextLine());
@@ -135,89 +149,96 @@ public class Main {
             return;
         }
 
-        System.out.print("Enter email: ");
+        System.out.print("Enter student email: ");
         String email = scanner.nextLine();
 
-        System.out.print("Enter phone: ");
+        System.out.print("Enter student phone: ");
         String phone = scanner.nextLine();
 
-        System.out.print("Enter type (REGULAR/HONORS): ");
-        String type = scanner.nextLine().trim();
+        System.out.println();
+        System.out.println("Student type:");
+        System.out.println("1. Regular Student (Passing grade: 50%)");
+        System.out.println("2. Honors Student (Passing grade: 60%, honors recognition)");
+        System.out.print("Select type (1-2): ");
+        String typeChoice = scanner.nextLine().trim();
 
-        if (!type.equalsIgnoreCase("REGULAR") && !type.equalsIgnoreCase("HONORS")) {
-            System.out.println("Invalid type. Please enter REGULAR or HONORS.");
+        Student student;
+        boolean isHonors;
+        if (typeChoice.equals("2")) {
+            student = new HonorsStudent(name, age, email, phone);
+            isHonors = true;
+        } else if (typeChoice.equals("1")) {
+            student = new RegularStudent(name, age, email, phone);
+            isHonors = false;
+        } else {
+            System.out.println("Invalid selection. Please choose 1 or 2.");
             return;
         }
-
-        Student student = type.equalsIgnoreCase("HONORS")
-                ? new HonorsStudent(name, age, email, phone)
-                : new RegularStudent(name, age, email, phone);
 
         studentManager.addStudent(student);
-        System.out.println("\n✓ Student added successfully!");
-        student.displayStudentDetails();
-    }
-
-    private static void viewStudentById() {
-        System.out.print("Enter student ID: ");
-        String id = scanner.nextLine();
-        Student student = studentManager.findStudent(id);
-        if (student == null) {
-            System.out.println("Student with ID " + id + " not found.");
-            return;
+        System.out.println("\n\u2713 Student added successfully!");
+        System.out.println("  Student ID: " + student.getStudentId());
+        System.out.println("  Name: " + student.getName());
+        System.out.println("  Type: " + student.getStudentType());
+        System.out.println("  Age: " + student.getAge());
+        System.out.println("  Email: " + student.getEmail());
+        System.out.printf("  Passing Grade: %.0f%%%n", student.getPassingGrade());
+        if (isHonors) {
+            System.out.println("  Honors Eligible: Yes");
         }
-        student.displayStudentDetails();
+        System.out.println("  Status: Active");
+
+        System.out.println("\nPress Enter to continue...");
+        scanner.nextLine();
     }
 
     private static void viewAllStudents() {
-        studentManager.viewAllStudents();
-    }
+        System.out.println("\nSTUDENT LISTING");
+        System.out.println("──────────────────────────────────────────────────────────────────────────");
+        System.out.printf("%-8s | %-18s | %-12s | %-9s | %s%n", "STU ID", "NAME", "TYPE", "AVG GRADE", "STATUS");
+        System.out.println("──────────────────────────────────────────────────────────────────────────");
 
-    private static void updateStudent() {
-        System.out.print("Enter student ID to update: ");
-        String id = scanner.nextLine();
+        List<Student> students = studentManager.getAllStudents();
+        double classTotal = 0;
 
-        Student existing = studentManager.findStudent(id);
-        if (existing == null) {
-            System.out.println("Student with ID " + id + " not found.");
-            return;
+        for (Student student : students) {
+            String status = student.isPassing() ? "Passing" : "Failing";
+            System.out.printf("%-8s | %-18s | %-12s | %.1f%%     | %s%n",
+                    student.getStudentId(), student.getName(),
+                    student.getStudentType(), student.calculateAverageGrade(), status);
+
+            int enrolledCount = student.getGrades().size();
+            if (student instanceof HonorsStudent hs) {
+                String honorsStatus = hs.checkHonorsEligibility() ? " | Honors Eligible" : "";
+                System.out.printf("          | Enrolled Subjects: %d | Passing Grade: %.0f%%%s%n",
+                        enrolledCount, student.getPassingGrade(), honorsStatus);
+            } else {
+                System.out.printf("          | Enrolled Subjects: %d | Passing Grade: %.0f%%%n",
+                        enrolledCount, student.getPassingGrade());
+            }
+            System.out.println("──────────────────────────────────────────────────────────────────────────");
+            classTotal += student.calculateAverageGrade();
         }
 
-        System.out.print("Enter new name (" + existing.getName() + "): ");
-        String name = scanner.nextLine();
-
-        System.out.print("Enter new age (" + existing.getAge() + "): ");
-        int age;
-        try {
-            age = Integer.parseInt(scanner.nextLine());
-        } catch (NumberFormatException e) {
-            System.out.println("Invalid age. Please enter a number.");
-            return;
+        System.out.printf("%nTotal Students: %d%n", students.size());
+        if (!students.isEmpty()) {
+            System.out.printf("Average Class Grade: %.1f%%%n", classTotal / students.size());
         }
 
-        System.out.print("Enter new email (" + existing.getEmail() + "): ");
-        String email = scanner.nextLine();
-
-        System.out.print("Enter new phone (" + existing.getPhone() + "): ");
-        String phone = scanner.nextLine();
-
-        existing.setName(name);
-        existing.setAge(age);
-        existing.setEmail(email);
-        existing.setPhone(phone);
-
-        studentManager.updateStudent(existing);
-        System.out.println("Student updated successfully.");
-    }
-
-    private static void deleteStudent() {
-        System.out.print("Enter student ID to delete: ");
-        String id = scanner.nextLine();
-        studentManager.deleteStudent(id);
-        System.out.println("Student deleted successfully.");
+        System.out.println("\nPress Enter to continue...");
+        scanner.nextLine();
     }
 
     private static void recordGrade() {
+        if (useRoleBased && !isTeacher) {
+            System.out.println("Access denied. This action is not available for your role.");
+            return;
+        }
+
+        System.out.println("\nRECORD GRADE");
+        System.out.println("─────────────────────────────────────────────");
+        System.out.println();
+
         System.out.print("Enter Student ID: ");
         String studentId = scanner.nextLine();
 
@@ -230,13 +251,15 @@ public class Main {
         System.out.println("\nStudent Details:");
         System.out.println("Name: " + student.getName());
         System.out.println("Type: " + student.getStudentType() + " Student");
-        System.out.printf("Current Average: %.1f%%%n", gradeManager.calculateOverallAverage(studentId));
+        System.out.printf("Current Average: %.1f%%%n", student.calculateAverageGrade());
 
         System.out.println("\nSubject type:");
-        System.out.println("1. Core Subject");
-        System.out.println("2. Elective Subject");
+        System.out.println("1. Core Subject (Mathematics, English, Science)");
+        System.out.println("2. Elective Subject (Music, Art, Physical Education)");
         System.out.print("Select type (1-2): ");
-        SubjectType subjectType = scanner.nextLine().trim().equals("2") ? SubjectType.ELECTIVE : SubjectType.CORE;
+        String typeChoice = scanner.nextLine().trim();
+
+        SubjectType subjectType = typeChoice.equals("2") ? SubjectType.ELECTIVE : SubjectType.CORE;
 
         List<Subject> subjects = gradeManager.getSubjectsByType(subjectType);
         if (subjects.isEmpty()) {
@@ -262,7 +285,7 @@ public class Main {
         }
         Subject subject = subjects.get(subjectChoice - 1);
 
-        System.out.print("Enter grade (0-100): ");
+        System.out.print("\nEnter grade (0-100): ");
         double gradeValue;
         try {
             gradeValue = Double.parseDouble(scanner.nextLine());
@@ -271,15 +294,13 @@ public class Main {
             return;
         }
 
-        // Range (0-100) is enforced by Grade's constructor via the Gradable
-        // contract; an invalid value throws GradeException, caught by the menu loop.
         Grade grade = new Grade(studentId, subject, gradeValue);
 
         System.out.println("\nGRADE CONFIRMATION");
         System.out.println("─────────────────────────────────────────────");
         System.out.println("Grade ID: " + grade.getGradeId());
         System.out.println("Student: " + studentId + " - " + student.getName());
-        subject.displaySubjectDetails();
+        System.out.println("Subject: " + subject.getSubjectName() + " (" + subject.getSubjectType() + ")");
         System.out.printf("Grade: %.1f%%%n", gradeValue);
         System.out.println("Date: " + grade.getDate());
         System.out.println("─────────────────────────────────────────────");
@@ -292,10 +313,17 @@ public class Main {
         }
 
         gradeManager.addGrade(grade);
-        System.out.println("Grade recorded successfully!");
+        System.out.println("\n\u2713 Grade recorded successfully!");
+
+        System.out.println("\nPress Enter to continue...");
+        scanner.nextLine();
     }
 
     private static void viewGradeReport() {
+        System.out.println("\nVIEW GRADE REPORT");
+        System.out.println("─────────────────────────────────────────────");
+        System.out.println();
+
         System.out.print("Enter Student ID: ");
         String studentId = scanner.nextLine();
 
@@ -308,15 +336,10 @@ public class Main {
         System.out.println("\nStudent: " + studentId + " - " + student.getName());
         System.out.println("Type: " + student.getStudentType() + " Student");
         System.out.printf("Passing Grade: %.0f%%%n", student.getPassingGrade());
-        System.out.println();
 
         gradeManager.viewGradesByStudent(studentId);
 
-        if (!gradeManager.getGradesForStudent(studentId).isEmpty()) {
-            System.out.println("\nPerformance Summary:");
-            System.out.println(student.isPassing()
-                    ? "Meeting passing grade requirement (" + (int) student.getPassingGrade() + "%)"
-                    : "Below passing grade requirement (" + (int) student.getPassingGrade() + "%)");
-        }
+        System.out.println("\nPress Enter to continue...");
+        scanner.nextLine();
     }
 }
