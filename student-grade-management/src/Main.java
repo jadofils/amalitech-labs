@@ -5,6 +5,8 @@ import exceptions.StudentValidationException;
 import exceptions.grades.GradeException;
 import exceptions.subjects.SubjectNotFoundException;
 import exceptions.subjects.SubjectValidationException;
+import export.FileExporter;
+import export.ReportGenerator;
 import manager.GradeManager;
 import manager.StudentManager;
 import model.enums.SubjectType;
@@ -34,6 +36,8 @@ public class Main {
     private static final GradeManager gradeManager = new GradeManager(gradeService, subjectRepository);
     private static final StudentService studentService = new StudentServiceImpl(studentRepository);
     private static final StudentManager studentManager = new StudentManager(studentService, gradeManager);
+    private static final ReportGenerator reportGenerator = new ReportGenerator(gradeManager);
+    private static final FileExporter fileExporter = new FileExporter();
 
     private static boolean useRoleBased = false;
     private static boolean isTeacher = true;
@@ -398,98 +402,36 @@ public class Main {
             return;
         }
 
-        try {
-            java.io.File reportsDir = new java.io.File("reports");
-            if (!reportsDir.exists()) {
-                reportsDir.mkdirs();
-            }
+        boolean summary = option.equals("1") || option.equals("3");
+        boolean detailed = option.equals("2") || option.equals("3");
 
-            boolean summary = option.equals("1") || option.equals("3");
-            boolean detailed = option.equals("2") || option.equals("3");
+        int filesCreated = 0;
+        long totalSize = 0;
 
-            int filesCreated = 0;
-            long totalSize = 0;
-
-            if (summary) {
-                String content = generateSummaryReport(student, studentId);
-                String path = "reports/" + filename + "_summary.txt";
-                java.io.File file = new java.io.File(path);
-                java.io.FileWriter writer = new java.io.FileWriter(file);
-                writer.write(content);
-                writer.close();
-                filesCreated++;
-                totalSize += file.length();
-            }
-
-            if (detailed) {
-                String content = generateDetailedReport(student, studentId);
-                String path = "reports/" + filename + "_detailed.txt";
-                java.io.File file = new java.io.File(path);
-                java.io.FileWriter writer = new java.io.FileWriter(file);
-                writer.write(content);
-                writer.close();
-                filesCreated++;
-                totalSize += file.length();
-            }
-
-            System.out.println("\n\u2713 Report exported successfully!");
-            for (int i = 0; i < filesCreated; i++) {
-                String suffix = summary && detailed ? (i == 0 ? "_summary" : "_detailed") : "";
-                System.out.println("  File: " + filename + suffix + ".txt");
-            }
-            System.out.println("  Location: ./reports/");
-            System.out.println("  Size: " + (totalSize / 1024.0) + " KB");
-            System.out.println("  Contains: " + gradeManager.getGradesForStudent(studentId).size() + " grades");
-        } catch (java.io.IOException e) {
-            throw new ExportException("Failed to export report: " + e.getMessage(), "reports/" + filename, e);
+        if (summary) {
+            String content = reportGenerator.exportSummary(studentId);
+            FileExporter.FileExportResult result = fileExporter.exportToFile(filename + "_summary.txt", content);
+            filesCreated++;
+            totalSize += result.getSize();
         }
+
+        if (detailed) {
+            String content = reportGenerator.exportDetailed(studentId);
+            FileExporter.FileExportResult result = fileExporter.exportToFile(filename + "_detailed.txt", content);
+            filesCreated++;
+            totalSize += result.getSize();
+        }
+
+        System.out.println("\n\u2713 Report exported successfully!");
+        for (int i = 0; i < filesCreated; i++) {
+            String suffix = summary && detailed ? (i == 0 ? "_summary" : "_detailed") : "";
+            System.out.println("  File: " + filename + suffix + ".txt");
+        }
+        System.out.println("  Location: ./reports/");
+        System.out.println("  Size: " + (totalSize / 1024.0) + " KB");
+        System.out.println("  Contains: " + gradeManager.getGradesForStudent(studentId).size() + " grades");
 
         promptEnter();
-    }
-
-    private static String generateSummaryReport(Student student, String studentId) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("STUDENT GRADE REPORT - SUMMARY\n");
-        sb.append("================================\n\n");
-        sb.append("Student ID: ").append(studentId).append("\n");
-        sb.append("Name: ").append(student.getName()).append("\n");
-        sb.append("Type: ").append(student.getStudentType()).append(" Student\n");
-        sb.append("Passing Grade: ").append((int) student.getPassingGrade()).append("%\n");
-        sb.append("Status: ").append(student.isPassing() ? "Passing" : "Failing").append("\n");
-        sb.append("Overall Average: ").append(String.format("%.1f%%", student.calculateAverageGrade())).append("\n\n");
-        sb.append("================================\n");
-        sb.append("Generated on: ").append(new java.text.SimpleDateFormat("dd-MM-yyyy HH:mm").format(new java.util.Date())).append("\n");
-        return sb.toString();
-    }
-
-    private static String generateDetailedReport(Student student, String studentId) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("STUDENT GRADE REPORT - DETAILED\n");
-        sb.append("================================\n\n");
-        sb.append("Student ID: ").append(studentId).append("\n");
-        sb.append("Name: ").append(student.getName()).append("\n");
-        sb.append("Type: ").append(student.getStudentType()).append(" Student\n\n");
-
-        sb.append("GRADE HISTORY\n");
-        sb.append("------------------------------------------------\n");
-        sb.append(String.format("%-8s | %-10s | %-16s | %-9s | %s%n", "GRD ID", "DATE", "SUBJECT", "TYPE", "GRADE"));
-        sb.append("------------------------------------------------\n");
-
-        List<Grade> grades = gradeManager.getGradesForStudent(studentId);
-        for (Grade g : grades) {
-            sb.append(String.format("%-8s | %-10s | %-16s | %-9s | %.1f%%%n",
-                    g.getGradeId(), g.getDate(), g.getSubject().getSubjectName(),
-                    g.getSubjectType(), g.getGrade()));
-        }
-
-        sb.append("------------------------------------------------\n");
-        sb.append("Total Grades: ").append(grades.size()).append("\n");
-        sb.append("Core Average: ").append(String.format("%.1f%%", gradeManager.calculateCoreAverage(studentId))).append("\n");
-        sb.append("Elective Average: ").append(String.format("%.1f%%", gradeManager.calculateElectiveAverage(studentId))).append("\n");
-        sb.append("Overall Average: ").append(String.format("%.1f%%", gradeManager.calculateOverallAverage(studentId))).append("\n\n");
-        sb.append("================================\n");
-        sb.append("Generated on: ").append(new java.text.SimpleDateFormat("dd-MM-yyyy HH:mm").format(new java.util.Date())).append("\n");
-        return sb.toString();
     }
 
     private static void calculateGPA() {
