@@ -1,6 +1,6 @@
 package model.grade;
 
-import exceptions.grades.GradeException;
+import exceptions.InvalidGradeException;
 import model.enums.SubjectType;
 import model.enums.LetterGrade;
 import model.subject.Subject;
@@ -24,7 +24,7 @@ public class Grade implements Gradable {
         // Goes through the Gradable contract so the 0-100 range check lives in
         // exactly one place; an invalid value never gets an ID/date assigned.
         if (!recordGrade(gradeValue)) {
-            throw new GradeException("Grade must be between 0 and 100.");
+            throw new InvalidGradeException("Grade must be between 0 and 100. You entered: " + (int) gradeValue, gradeValue);
         }
 
         // Auto-generate grade ID

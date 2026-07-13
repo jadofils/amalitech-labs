@@ -41,7 +41,7 @@ public class StudentRepositoryImpl implements StudentRepository {
                 return students[i];
             }
         }
-        throw new StudentNotFoundException("Student with ID " + studentId + " not found");
+        throw new StudentNotFoundException("Student with ID " + studentId + " not found.", studentId, getAvailableIds());
     }
 
     @Override
@@ -61,7 +61,7 @@ public class StudentRepositoryImpl implements StudentRepository {
                 return;
             }
         }
-        throw new StudentNotFoundException("Student with ID " + student.getStudentId() + " not found");
+        throw new StudentNotFoundException("Student with ID " + student.getStudentId() + " not found.", student.getStudentId(), getAvailableIds());
     }
 
     @Override
@@ -74,6 +74,14 @@ public class StudentRepositoryImpl implements StudentRepository {
                 return;
             }
         }
-        throw new StudentNotFoundException("Student with ID " + studentId + " not found");
+        throw new StudentNotFoundException("Student with ID " + studentId + " not found.", studentId, getAvailableIds());
+    }
+
+    private List<String> getAvailableIds() {
+        List<String> ids = new ArrayList<>();
+        for (int i = 0; i < studentCount; i++) {
+            ids.add(students[i].getStudentId());
+        }
+        return ids;
     }
 }
