@@ -26,7 +26,6 @@ public abstract class Student {
         this.status = StudentStatus.ACTIVE; // default status
     }
 
-    // Rebuilds a Student already persisted in the database, keeping its real ID
     // and status instead of running them through generateStudentId() (which would
     // mint a new ID and inflate the shared counter on every row read).
     protected Student(String studentId, String name, int age, String email, String phone, StudentStatus status) {
