@@ -30,7 +30,7 @@ public class Grade implements Gradable {
         // Auto-generate grade ID
         this.gradeId = String.format("GRD%03d", gradeCounter++);
         // Auto-generate date
-        this.date = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+        this.date = new SimpleDateFormat("dd-MM-yyyy").format(new Date());
     }
 
     private Grade(String gradeId, String studentId, Subject subject, double gradeValue, String date) {
