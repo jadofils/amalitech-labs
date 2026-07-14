@@ -1,4 +1,5 @@
 import calculators.GPACalculator;
+import calculators.StatisticsCalculator;
 import exceptions.ExportException;
 import exceptions.ImportException;
 import exceptions.InvalidGradeException;
@@ -43,6 +44,7 @@ public class Main {
     private static final FileExporter fileExporter = new FileExporter();
     private static final GPACalculator gpaCalculator = new GPACalculator();
     private static final BulkImportService bulkImportService = new BulkImportService(subjectRepository, studentManager, gradeManager);
+    private static final StatisticsCalculator statisticsCalculator = new StatisticsCalculator();
 
     private static boolean useRoleBased = false;
     private static boolean isTeacher = true;
@@ -573,117 +575,52 @@ public class Main {
         System.out.println("\nTotal Students: " + students.size());
         System.out.println("Total Grades Recorded: " + allGrades.size());
 
-        int[] distribution = new int[5];
-        double sum = 0;
-        double max = Double.MIN_VALUE;
-        double min = Double.MAX_VALUE;
-        String maxStudent = "", maxSubject = "", minStudent = "", minSubject = "";
-
-        for (Grade g : allGrades) {
-            double val = g.getGrade();
-            sum += val;
-            if (val >= 90) distribution[0]++;
-            else if (val >= 80) distribution[1]++;
-            else if (val >= 70) distribution[2]++;
-            else if (val >= 60) distribution[3]++;
-            else distribution[4]++;
-
-            if (val > max) {
-                max = val;
-                maxStudent = findStudentName(g.getStudentId());
-                maxSubject = g.getSubject().getSubjectName();
-            }
-            if (val < min) {
-                min = val;
-                minStudent = findStudentName(g.getStudentId());
-                minSubject = g.getSubject().getSubjectName();
-            }
-        }
-
         if (allGrades.isEmpty()) {
             System.out.println("No grades recorded yet.");
             promptEnter();
             return;
         }
 
-        double mean = sum / allGrades.size();
-
-        java.util.List<Double> sortedVals = new java.util.ArrayList<>();
-        for (Grade g : allGrades) sortedVals.add(g.getGrade());
-        java.util.Collections.sort(sortedVals);
-
-        double median;
-        int n = sortedVals.size();
-        if (n % 2 == 0) {
-            median = (sortedVals.get(n / 2 - 1) + sortedVals.get(n / 2)) / 2;
-        } else {
-            median = sortedVals.get(n / 2);
-        }
-
-        double varianceSum = 0;
-        for (double v : sortedVals) varianceSum += Math.pow(v - mean, 2);
-        double stdDev = Math.sqrt(varianceSum / n);
-        double range = max - min;
+        StatisticsCalculator.GradeDistribution dist = statisticsCalculator.calculateDistribution(allGrades);
+        StatisticsCalculator.StatsResult stats = statisticsCalculator.calculateStats(allGrades, students);
+        List<StatisticsCalculator.SubjectAverage> subjAverages = statisticsCalculator.calculateSubjectAverages(allGrades, subjectRepository.getAllSubjects());
+        StatisticsCalculator.StudentTypeComparison typeComp = statisticsCalculator.compareStudentTypes(students);
 
         System.out.println("\nGRADE DISTRIBUTION");
         System.out.println("\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500");
-        String[] labels = {"90-100% (A)", "80-89%  (B)", "70-79%  (C)", "60-69%  (D)", "0-59%   (F)"};
+        String[] labels = dist.getLabels();
+        int[] counts = dist.getCounts();
         for (int i = 0; i < 5; i++) {
-            double pct = (distribution[i] * 100.0 / allGrades.size());
+            double pct = dist.getPercentages()[i];
             int barLen = (int) (pct / 2);
             String bar = "\u2588".repeat(Math.max(0, barLen)) + "\u2591".repeat(Math.max(0, 50 - barLen));
-            System.out.printf("%s: %s %.1f%% (%d grades)%n", labels[i], bar, pct, distribution[i]);
+            System.out.printf("%s: %s %.1f%% (%d grades)%n", labels[i], bar, pct, counts[i]);
         }
 
         System.out.println("\nSTATISTICAL ANALYSIS");
         System.out.println("\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500");
-        System.out.printf("Mean (Average):      %.1f%%%n", mean);
-        System.out.printf("Median:              %.1f%%%n", median);
-        System.out.printf("Standard Deviation:  %.1f%%%n", stdDev);
-        System.out.printf("Range:               %.1f%% (%.0f%% - %.0f%%)%n", range, min, max);
+        System.out.printf("Mean (Average):      %.1f%%%n", stats.getMean());
+        System.out.printf("Median:              %.1f%%%n", stats.getMedian());
+        System.out.printf("Standard Deviation:  %.1f%%%n", stats.getStdDev());
+        System.out.printf("Range:               %.1f%% (%.0f%% - %.0f%%)%n", stats.getRange(), stats.getMin(), stats.getMax());
 
-        System.out.printf("%nHighest Grade:  %.0f%% (%s - %s)%n", max, maxStudent, maxSubject);
-        System.out.printf("Lowest Grade:    %.0f%% (%s - %s)%n", min, minStudent, minSubject);
+        System.out.printf("%nHighest Grade:  %.0f%% (%s - %s)%n", stats.getMax(), stats.getMaxStudentName(), stats.getMaxSubjectName());
+        System.out.printf("Lowest Grade:    %.0f%% (%s - %s)%n", stats.getMin(), stats.getMinStudentName(), stats.getMinSubjectName());
 
         System.out.println("\nSUBJECT PERFORMANCE");
         System.out.println("\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500");
-        List<Subject> allSubjects = subjectRepository.getAllSubjects();
-        for (Subject subj : allSubjects) {
-            double sSum = 0;
-            int sCount = 0;
-            for (Grade g : allGrades) {
-                if (g.getSubject().getSubjectCode().equals(subj.getSubjectCode())) {
-                    sSum += g.getGrade();
-                    sCount++;
-                }
-            }
-            if (sCount > 0) {
-                System.out.printf("  %s: %.1f%%%n", subj.getSubjectName(), sSum / sCount);
-            }
+        for (StatisticsCalculator.SubjectAverage sa : subjAverages) {
+            System.out.printf("  %s: %.1f%%%n", sa.getSubjectName(), sa.getAverage());
         }
 
         System.out.println("\nSTUDENT TYPE COMPARISON");
         System.out.println("\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500");
-        double regSum = 0, honSum = 0;
-        int regCount = 0, honCount = 0;
-        for (Student s : students) {
-            if (s instanceof HonorsStudent) {
-                honSum += s.calculateAverageGrade();
-                honCount++;
-            } else {
-                regSum += s.calculateAverageGrade();
-                regCount++;
-            }
-        }
-        if (regCount > 0) System.out.printf("  Regular Students:  %.1f%% average (%d students)%n", regSum / regCount, regCount);
-        if (honCount > 0) System.out.printf("  Honors Students:   %.1f%% average (%d students)%n", honSum / honCount, honCount);
+        if (typeComp.getRegularCount() > 0)
+            System.out.printf("  Regular Students:  %.1f%% average (%d students)%n", typeComp.getRegularAverage(), typeComp.getRegularCount());
+        if (typeComp.getHonorsCount() > 0)
+            System.out.printf("  Honors Students:   %.1f%% average (%d students)%n", typeComp.getHonorsAverage(), typeComp.getHonorsCount());
 
         promptEnter();
-    }
-
-    private static String findStudentName(String studentId) {
-        Student s = studentManager.findStudent(studentId);
-        return s != null ? s.getName() : "Unknown";
     }
 
     private static void searchStudents() {
