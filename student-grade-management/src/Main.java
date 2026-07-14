@@ -13,6 +13,7 @@ import export.ReportGenerator;
 import imports.BulkImportService;
 import manager.GradeManager;
 import manager.StudentManager;
+import manager.StudentSearcher;
 import model.enums.SubjectType;
 import model.grade.Grade;
 import model.student.HonorsStudent;
@@ -45,6 +46,7 @@ public class Main {
     private static final GPACalculator gpaCalculator = new GPACalculator();
     private static final BulkImportService bulkImportService = new BulkImportService(subjectRepository, studentManager, gradeManager);
     private static final StatisticsCalculator statisticsCalculator = new StatisticsCalculator();
+    private static final StudentSearcher studentSearcher = new StudentSearcher(studentManager);
 
     private static boolean useRoleBased = false;
     private static boolean isTeacher = true;
@@ -636,40 +638,32 @@ public class Main {
             System.out.print("Select option (1-4): ");
             String option = scanner.nextLine().trim();
 
-            List<Student> results = new java.util.ArrayList<>();
+            List<Student> results;
+            String rawInput = "";
             String searchDesc = "";
 
             switch (option) {
                 case "1" -> {
                     System.out.print("Enter Student ID: ");
-                    String id = scanner.nextLine().trim();
-                    searchDesc = "ID: " + id;
-                    Student s = studentManager.findStudent(id);
-                    if (s != null) results.add(s);
+                    rawInput = scanner.nextLine().trim();
+                    results = studentSearcher.searchById(rawInput);
                 }
                 case "2" -> {
                     System.out.print("Enter name (partial or full): ");
-                    String name = scanner.nextLine().trim().toLowerCase();
-                    searchDesc = "Name: \"" + name + "\"";
-                    for (Student s : studentManager.getAllStudents()) {
-                        if (s.getName().toLowerCase().contains(name)) {
-                            results.add(s);
-                        }
-                    }
+                    rawInput = scanner.nextLine().trim();
+                    results = studentSearcher.searchByName(rawInput);
                 }
                 case "3" -> {
-                    System.out.print("Enter minimum grade: ");
-                    double min;
-                    try { min = Double.parseDouble(scanner.nextLine()); } catch (NumberFormatException e) { System.out.println("Invalid input."); continue; }
-                    System.out.print("Enter maximum grade: ");
-                    double max;
-                    try { max = Double.parseDouble(scanner.nextLine()); } catch (NumberFormatException e) { System.out.println("Invalid input."); continue; }
-                    searchDesc = "Grade range: " + (int) min + "-" + (int) max + "%";
-                    for (Student s : studentManager.getAllStudents()) {
-                        double avg = s.calculateAverageGrade();
-                        if (avg >= min && avg <= max) {
-                            results.add(s);
-                        }
+                    try {
+                        System.out.print("Enter minimum grade: ");
+                        double min = Double.parseDouble(scanner.nextLine());
+                        System.out.print("Enter maximum grade: ");
+                        double max = Double.parseDouble(scanner.nextLine());
+                        rawInput = (int) min + "-" + (int) max + "%";
+                        results = studentSearcher.searchByGradeRange(min, max);
+                    } catch (NumberFormatException e) {
+                        System.out.println("Invalid input.");
+                        continue;
                     }
                 }
                 case "4" -> {
@@ -677,18 +671,16 @@ public class Main {
                     System.out.println("1. Regular");
                     System.out.println("2. Honors");
                     System.out.print("Select (1-2): ");
-                    String t = scanner.nextLine().trim();
-                    searchDesc = "Type: " + (t.equals("2") ? "Honors" : "Regular");
-                    for (Student s : studentManager.getAllStudents()) {
-                        if (t.equals("2") && s instanceof HonorsStudent) results.add(s);
-                        else if (t.equals("1") && !(s instanceof HonorsStudent)) results.add(s);
-                    }
+                    rawInput = scanner.nextLine().trim();
+                    results = studentSearcher.searchByType(rawInput.equals("2"));
                 }
                 default -> {
                     System.out.println("Invalid option.");
                     continue;
                 }
             }
+
+            searchDesc = studentSearcher.getSearchDescription(option, rawInput);
 
             System.out.println("\nSEARCH RESULTS (" + results.size() + " found)");
             System.out.println("\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500");
@@ -721,17 +713,13 @@ public class Main {
                 String expName = scanner.nextLine().trim();
                 if (!expName.isEmpty()) {
                     try {
-                        java.io.File expFile = new java.io.File("reports/search_" + expName + ".txt");
-                        expFile.getParentFile().mkdirs();
-                        java.io.FileWriter fw = new java.io.FileWriter(expFile);
-                        fw.write("Search Results: " + searchDesc + "\n");
-                        fw.write("Found: " + results.size() + " students\n\n");
+                        String content = "Search Results: " + searchDesc + "\nFound: " + results.size() + " students\n\n";
                         for (Student s : results) {
-                            fw.write(s.getStudentId() + " | " + s.getName() + " | " + s.getStudentType() + " | " + String.format("%.1f%%", s.calculateAverageGrade()) + "\n");
+                            content += s.getStudentId() + " | " + s.getName() + " | " + s.getStudentType() + " | " + String.format("%.1f%%", s.calculateAverageGrade()) + "\n";
                         }
-                        fw.close();
+                        fileExporter.exportToFile("search_" + expName + ".txt", content);
                         System.out.println("Results exported to reports/search_" + expName + ".txt");
-                    } catch (java.io.IOException e) {
+                    } catch (Exception e) {
                         System.out.println("Export failed: " + e.getMessage());
                     }
                 }
