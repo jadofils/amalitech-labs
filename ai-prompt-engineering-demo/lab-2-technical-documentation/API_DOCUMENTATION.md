@@ -61,10 +61,11 @@ every rehydration so callers going through `StudentManager` always see a fresh v
 ## 3. `model.subject`
 
 `Subject` (abstract) holds `subjectName`/`subjectCode` and declares `getSubjectType()`.
-`CoreSubject` → `SubjectType.CORE`; `ElectiveSubject` → `SubjectType.ELECTIVE`. Neither subclass
-adds fields beyond the abstract base — the "mandatory" concept described in `ReadMe.md`'s class
-spec (`isMandatory()`) is not present in the current implementation; type is expressed purely via
-`SubjectType`.
+`CoreSubject` → `SubjectType.CORE`, `isMandatory()` always `true`; `ElectiveSubject` →
+`SubjectType.ELECTIVE`, `isMandatory()` always `false` — both match `ReadMe.md`'s class spec
+exactly. `mandatory` is a `final` field set at construction, not derived from `SubjectType`, so the
+two flags (`getSubjectType()` and `isMandatory()`) are independently hard-coded per subclass rather
+than one being computed from the other.
 
 Seeded at `SubjectRepositoryImpl` construction (6 subjects, hard-coded, not configurable):
 
