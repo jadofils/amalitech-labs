@@ -1,5 +1,6 @@
 package calculators;
 
+import model.enums.LetterGrade;
 import model.grade.Grade;
 import model.student.HonorsStudent;
 import model.student.Student;
@@ -8,13 +9,26 @@ import model.subject.Subject;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
+/**
+ * Class-wide grade statistics: distribution by letter grade, descriptive
+ * statistics (mean/median/mode/standard deviation), per-subject averages,
+ * and a Regular-vs-Honors comparison.
+ */
 public class StatisticsCalculator {
 
     public static class GradeDistribution {
         private final int[] counts;
         private final double[] percentages;
-        private static final String[] LABELS = {"90-100% (A)", "80-89%  (B)", "70-79%  (C)", "60-69%  (D)", "0-59%   (F)"};
+        // Bucket order must match LetterGrade's own declaration order
+        // (A, B, C, D, F / ordinal 0-4) - see calculateDistribution(),
+        // which buckets by LetterGrade.ordinal() specifically so this
+        // never has to be kept in sync by hand again (was previously its
+        // own hardcoded 90/80/70/60 scale, disagreeing with LetterGrade's
+        // 85/70/55/40 scale used everywhere else - CHANGELOG.md KI-5).
+        private static final String[] LABELS = {"85-100% (A)", "70-84%  (B)", "55-69%  (C)", "40-54%  (D)", "0-39%   (F)"};
 
         public GradeDistribution(int[] counts, int total) {
             this.counts = counts;
@@ -32,6 +46,7 @@ public class StatisticsCalculator {
     public static class StatsResult {
         private final double mean;
         private final double median;
+        private final double mode;
         private final double stdDev;
         private final double range;
         private final double min;
@@ -41,11 +56,12 @@ public class StatisticsCalculator {
         private final String minStudentName;
         private final String minSubjectName;
 
-        public StatsResult(double mean, double median, double stdDev, double range,
+        public StatsResult(double mean, double median, double mode, double stdDev, double range,
                            double min, double max, String maxStudentName, String maxSubjectName,
                            String minStudentName, String minSubjectName) {
             this.mean = mean;
             this.median = median;
+            this.mode = mode;
             this.stdDev = stdDev;
             this.range = range;
             this.min = min;
@@ -58,6 +74,7 @@ public class StatisticsCalculator {
 
         public double getMean() { return mean; }
         public double getMedian() { return median; }
+        public double getMode() { return mode; }
         public double getStdDev() { return stdDev; }
         public double getRange() { return range; }
         public double getMin() { return min; }
@@ -101,22 +118,19 @@ public class StatisticsCalculator {
         public int getHonorsCount() { return honorsCount; }
     }
 
+    /** Buckets every grade by its {@link LetterGrade}, so this can never disagree with LetterGrade elsewhere. */
     public GradeDistribution calculateDistribution(List<Grade> grades) {
         int[] counts = new int[5];
         for (Grade g : grades) {
-            double val = g.getGrade();
-            if (val >= 90) counts[0]++;
-            else if (val >= 80) counts[1]++;
-            else if (val >= 70) counts[2]++;
-            else if (val >= 60) counts[3]++;
-            else counts[4]++;
+            counts[LetterGrade.fromNumeric(g.getGrade()).ordinal()]++;
         }
         return new GradeDistribution(counts, grades.size());
     }
 
+    /** Mean, median, mode, standard deviation, range, and the highest/lowest single grade (with who/what earned it). */
     public StatsResult calculateStats(List<Grade> grades, List<Student> students) {
         if (grades.isEmpty()) {
-            return new StatsResult(0, 0, 0, 0, 0, 0, "", "", "", "");
+            return new StatsResult(0, 0, 0, 0, 0, 0, 0, "", "", "", "");
         }
 
         double sum = 0;
@@ -153,13 +167,33 @@ public class StatisticsCalculator {
             median = sortedVals.get(n / 2);
         }
 
+        double mode = calculateMode(sortedVals);
+
         double varianceSum = 0;
         for (double v : sortedVals) varianceSum += Math.pow(v - mean, 2);
         double stdDev = Math.sqrt(varianceSum / n);
         double range = max - min;
 
-        return new StatsResult(mean, median, stdDev, range, min, max,
+        return new StatsResult(mean, median, mode, stdDev, range, min, max,
                 maxStudent, maxSubject, minStudent, minSubject);
+    }
+
+    // Ties broken by lowest value, via TreeMap's ascending iteration order
+    // and only replacing the running mode on a strictly higher frequency.
+    private double calculateMode(List<Double> values) {
+        Map<Double, Integer> frequency = new TreeMap<>();
+        for (double v : values) {
+            frequency.merge(v, 1, Integer::sum);
+        }
+        double mode = 0;
+        int highestFrequency = 0;
+        for (Map.Entry<Double, Integer> entry : frequency.entrySet()) {
+            if (entry.getValue() > highestFrequency) {
+                highestFrequency = entry.getValue();
+                mode = entry.getKey();
+            }
+        }
+        return mode;
     }
 
     public List<SubjectAverage> calculateSubjectAverages(List<Grade> allGrades, List<Subject> allSubjects) {
