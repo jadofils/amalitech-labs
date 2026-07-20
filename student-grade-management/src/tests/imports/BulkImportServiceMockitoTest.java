@@ -33,6 +33,9 @@ class BulkImportServiceMockitoTest {
     private String logFilename;
 
     private void writeCsv(String filename, String content) throws IOException {
+        // imports/ is only tracked via .gitkeep (git doesn't track empty
+        // directories), so a fresh checkout - e.g. CI - won't have it yet.
+        new java.io.File("imports").mkdirs();
         try (FileWriter writer = new FileWriter("imports/" + filename + ".csv")) {
             writer.write(content);
         }
