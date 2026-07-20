@@ -1,5 +1,6 @@
 import calculators.GPACalculator;
 import calculators.StatisticsCalculator;
+import exceptions.ApplicationException;
 import exceptions.ExportException;
 import exceptions.ImportException;
 import exceptions.InvalidGradeException;
@@ -119,9 +120,13 @@ public class Main {
                 Logger.warn("Menu action " + choice + " rejected: " + e.getMessage());
                 System.out.println("\n\u2717 ERROR: " + e.getClass().getSimpleName());
                 System.out.println("  " + e.getMessage());
-            } catch (Exception e) {
-                Logger.error("Unexpected error handling menu action " + choice, e);
-                System.out.println("An unexpected error occurred: " + e.getMessage());
+            } catch (ApplicationException e) {
+                // Catches any other custom exception not named above -
+                // deliberately not `catch (Exception e)`, so a genuinely
+                // unexpected failure still surfaces instead of being masked.
+                Logger.error("Unhandled application exception for menu action " + choice, e);
+                System.out.println("\n\u2717 ERROR: " + e.getClass().getSimpleName());
+                System.out.println("  " + e.getMessage());
             }
         }
     }
@@ -290,10 +295,8 @@ public class Main {
 
         Student student = studentManager.findStudent(studentId);
         if (student == null) {
-            System.out.println("\n\u2717 ERROR: StudentNotFoundException");
-            System.out.println("  Student with ID '" + studentId + "' not found in the system.");
-            System.out.println("  Available student IDs: " + String.join(", ", getAvailableStudentIds()));
-            return;
+            throw new StudentNotFoundException("Student with ID '" + studentId + "' not found in the system.",
+                    studentId, getAvailableStudentIds());
         }
 
         System.out.println("\nStudent Details:");
@@ -374,9 +377,8 @@ public class Main {
 
         Student student = studentManager.findStudent(studentId);
         if (student == null) {
-            System.out.println("\n\u2717 ERROR: StudentNotFoundException");
-            System.out.println("  Student with ID '" + studentId + "' not found.");
-            return;
+            throw new StudentNotFoundException("Student with ID '" + studentId + "' not found.",
+                    studentId, getAvailableStudentIds());
         }
 
         System.out.println("\nStudent: " + studentId + " - " + student.getName());
@@ -397,8 +399,8 @@ public class Main {
 
         Student student = studentManager.findStudent(studentId);
         if (student == null) {
-            System.out.println("Student not found.");
-            return;
+            throw new StudentNotFoundException("Student with ID '" + studentId + "' not found.",
+                    studentId, getAvailableStudentIds());
         }
 
         System.out.println("\nStudent: " + studentId + " - " + student.getName());
@@ -461,8 +463,8 @@ public class Main {
 
         Student student = studentManager.findStudent(studentId);
         if (student == null) {
-            System.out.println("Student not found.");
-            return;
+            throw new StudentNotFoundException("Student with ID '" + studentId + "' not found.",
+                    studentId, getAvailableStudentIds());
         }
 
         System.out.println("\nStudent: " + studentId + " - " + student.getName());
@@ -722,7 +724,7 @@ public class Main {
                         }
                         fileExporter.exportToFile("search_" + expName + ".txt", content);
                         System.out.println("Results exported to reports/search_" + expName + ".txt");
-                    } catch (Exception e) {
+                    } catch (ApplicationException e) {
                         System.out.println("Export failed: " + e.getMessage());
                     }
                 }

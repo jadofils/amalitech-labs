@@ -1,6 +1,8 @@
 package exceptions.subjects;
 
-public class SubjectValidationException extends RuntimeException {
+import exceptions.ApplicationException;
+
+public class SubjectValidationException extends ApplicationException {
     public SubjectValidationException(String message) {
         super(message);
     }

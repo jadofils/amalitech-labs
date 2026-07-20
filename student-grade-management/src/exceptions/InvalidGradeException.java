@@ -1,6 +1,6 @@
 package exceptions;
 
-public class InvalidGradeException extends RuntimeException {
+public class InvalidGradeException extends ApplicationException {
     private final double attemptedGrade;
 
     public InvalidGradeException(String message, double attemptedGrade) {
