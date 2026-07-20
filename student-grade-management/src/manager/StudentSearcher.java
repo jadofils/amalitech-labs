@@ -1,12 +1,14 @@
 package manager;
 
 import interfaces.Searchable;
+import logging.Logger;
 import model.student.HonorsStudent;
 import model.student.Student;
 
 import java.util.ArrayList;
 import java.util.List;
 
+/** Search Students (menu option 9): by exact ID, partial name, grade range, or student type. */
 public class StudentSearcher implements Searchable {
     private final StudentManager studentManager;
 
@@ -16,6 +18,7 @@ public class StudentSearcher implements Searchable {
 
     @Override
     public List<Student> searchById(String studentId) {
+        Logger.debug("Searching students by ID: " + studentId);
         List<Student> results = new ArrayList<>();
         Student s = studentManager.findStudent(studentId);
         if (s != null) {
@@ -26,6 +29,7 @@ public class StudentSearcher implements Searchable {
 
     @Override
     public List<Student> searchByName(String name) {
+        Logger.debug("Searching students by name containing: " + name);
         List<Student> results = new ArrayList<>();
         String lower = name.toLowerCase();
         for (Student s : studentManager.getAllStudents()) {
@@ -38,6 +42,7 @@ public class StudentSearcher implements Searchable {
 
     @Override
     public List<Student> searchByGradeRange(double min, double max) {
+        Logger.debug("Searching students with average grade between " + min + " and " + max);
         List<Student> results = new ArrayList<>();
         for (Student s : studentManager.getAllStudents()) {
             double avg = s.calculateAverageGrade();
@@ -50,6 +55,7 @@ public class StudentSearcher implements Searchable {
 
     @Override
     public List<Student> searchByType(boolean isHonors) {
+        Logger.debug("Searching students by type: " + (isHonors ? "Honors" : "Regular"));
         List<Student> results = new ArrayList<>();
         for (Student s : studentManager.getAllStudents()) {
             if (isHonors && s instanceof HonorsStudent) {
@@ -61,6 +67,7 @@ public class StudentSearcher implements Searchable {
         return results;
     }
 
+    /** Human-readable description of a search, for display alongside its results. */
     public String getSearchDescription(String option, String input) {
         return switch (option) {
             case "1" -> "ID: " + input;
