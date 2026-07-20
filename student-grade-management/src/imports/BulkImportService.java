@@ -9,13 +9,12 @@ import manager.StudentManager;
 import model.grade.Grade;
 import model.student.Student;
 import repository.subject.SubjectRepository;
+import utils.DateFormats;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -71,7 +70,7 @@ public class BulkImportService {
 
     private String writeImportLog(String originalFilename, int success, int failed,
                                    int total, List<String> failReasons) {
-        String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String timestamp = DateFormats.now(DateFormats.FILE_SAFE_TIMESTAMP);
         String logFilename = "import_log_" + timestamp + ".txt";
         String logPath = "imports/" + logFilename;
 
@@ -79,7 +78,7 @@ public class BulkImportService {
             writer.write("IMPORT LOG\n");
             writer.write("================================\n\n");
             writer.write("File: " + originalFilename + ".csv\n");
-            writer.write("Date: " + new SimpleDateFormat("dd-MM-yyyy HH:mm:ss").format(new Date()) + "\n\n");
+            writer.write("Date: " + DateFormats.now(DateFormats.DISPLAY_DATE_TIME) + "\n\n");
             writer.write("Total Rows: " + total + "\n");
             writer.write("Successfully Imported: " + success + "\n");
             writer.write("Failed: " + failed + "\n\n");

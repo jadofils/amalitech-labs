@@ -23,12 +23,23 @@ public class StatisticsCalculator {
         private final int[] counts;
         private final double[] percentages;
         // Bucket order must match LetterGrade's own declaration order
-        // (A, B, C, D, F / ordinal 0-4) - see calculateDistribution(),
-        // which buckets by LetterGrade.ordinal() specifically so this
-        // never has to be kept in sync by hand again (was previously its
-        // own hardcoded 90/80/70/60 scale, disagreeing with LetterGrade's
-        // 85/70/55/40 scale used everywhere else - CHANGELOG.md KI-5).
-        private static final String[] LABELS = {"85-100% (A)", "70-84%  (B)", "55-69%  (C)", "40-54%  (D)", "0-39%   (F)"};
+        // (A, B, C, D, F / ordinal 0-4) - see calculateDistribution(), which
+        // buckets by LetterGrade.ordinal() specifically. The labels below are
+        // computed directly from LetterGrade.getMinPercentage() rather than
+        // a second, independently hardcoded set of numbers, so the two can
+        // never disagree again the way they used to (CHANGELOG.md KI-5).
+        private static final String[] LABELS = buildLabels();
+
+        private static String[] buildLabels() {
+            LetterGrade[] letters = LetterGrade.values();
+            String[] labels = new String[letters.length];
+            for (int i = 0; i < letters.length; i++) {
+                int min = (int) letters[i].getMinPercentage();
+                int max = (i == 0) ? 100 : (int) letters[i - 1].getMinPercentage() - 1;
+                labels[i] = String.format("%d-%d%% (%s)", min, max, letters[i].name());
+            }
+            return labels;
+        }
 
         public GradeDistribution(int[] counts, int total) {
             this.counts = counts;

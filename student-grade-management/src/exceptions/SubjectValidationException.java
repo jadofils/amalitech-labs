@@ -1,6 +1,4 @@
-package exceptions.subjects;
-
-import exceptions.ApplicationException;
+package exceptions;
 
 public class SubjectValidationException extends ApplicationException {
     public SubjectValidationException(String message) {

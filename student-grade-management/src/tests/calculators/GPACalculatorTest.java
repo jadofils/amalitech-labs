@@ -13,11 +13,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import repository.student.StudentRepositoryImpl;
-import repository.subject.impl.SubjectRepositoryImpl;
+import repository.subject.SubjectRepositoryImpl;
 import service.GradeService;
 import service.StudentService;
-import service.serviceimpl.GradeServiceImpl;
-import service.serviceimpl.StudentServiceImpl;
+import service.GradeServiceImpl;
+import service.StudentServiceImpl;
 
 import static org.junit.jupiter.api.Assertions.*;
 

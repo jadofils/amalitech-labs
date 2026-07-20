@@ -1,14 +1,15 @@
 import calculators.GPACalculator;
 import calculators.StatisticsCalculator;
+import dto.StudentDTO;
 import exceptions.ApplicationException;
 import exceptions.ExportException;
 import exceptions.ImportException;
 import exceptions.InvalidGradeException;
 import exceptions.StudentNotFoundException;
 import exceptions.StudentValidationException;
-import exceptions.grades.GradeException;
-import exceptions.subjects.SubjectNotFoundException;
-import exceptions.subjects.SubjectValidationException;
+import exceptions.GradeException;
+import exceptions.SubjectNotFoundException;
+import exceptions.SubjectValidationException;
 import export.FileExporter;
 import export.ReportGenerator;
 import imports.BulkImportService;
@@ -16,6 +17,8 @@ import logging.Logger;
 import manager.GradeManager;
 import manager.StudentManager;
 import manager.StudentSearcher;
+import mapper.StudentMapper;
+import model.enums.Role;
 import model.enums.SubjectType;
 import model.grade.Grade;
 import model.student.HonorsStudent;
@@ -25,14 +28,16 @@ import model.subject.Subject;
 import repository.student.StudentRepository;
 import repository.student.StudentRepositoryImpl;
 import repository.subject.SubjectRepository;
-import repository.subject.impl.SubjectRepositoryImpl;
+import repository.subject.SubjectRepositoryImpl;
 import service.GradeService;
 import service.StudentService;
-import service.serviceimpl.GradeServiceImpl;
-import service.serviceimpl.StudentServiceImpl;
+import service.GradeServiceImpl;
+import service.StudentServiceImpl;
+import utils.InputSanitizer;
 
 import java.util.List;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 
 public class Main {
     private static final Scanner scanner = new Scanner(System.in);
@@ -51,7 +56,7 @@ public class Main {
     private static final StudentSearcher studentSearcher = new StudentSearcher(studentManager);
 
     private static boolean useRoleBased = false;
-    private static boolean isTeacher = true;
+    private static Role currentRole = Role.TEACHER;
 
     public static void main(String[] args) {
         askRoleBased();
@@ -146,10 +151,10 @@ public class Main {
             System.out.print("Choose (1-2): ");
             String roleInput = scanner.nextLine().trim();
             if (roleInput.equals("1")) {
-                isTeacher = true;
+                currentRole = Role.TEACHER;
                 return;
             } else if (roleInput.equals("2")) {
-                isTeacher = false;
+                currentRole = Role.STUDENT;
                 return;
             }
             System.out.println("Invalid choice. Please select 1 or 2.");
@@ -172,19 +177,19 @@ public class Main {
         System.out.println("9. Search Students");
         System.out.println("10. Exit");
         if (useRoleBased) {
-            System.out.println("Role: " + (isTeacher ? "Teacher" : "Student"));
+            System.out.println("Role: " + (currentRole == Role.TEACHER ? "Teacher" : "Student"));
         }
         System.out.println();
         System.out.print("Enter choice: ");
     }
 
     private static boolean isAuthorized(int choice) {
-        if (isTeacher) return true;
+        if (currentRole == Role.TEACHER) return true;
         return choice >= 4 && choice <= 10;
     }
 
     private static void addStudent() {
-        if (useRoleBased && !isTeacher) {
+        if (useRoleBased && currentRole != Role.TEACHER) {
             System.out.println("Access denied.");
             return;
         }
@@ -193,7 +198,7 @@ public class Main {
         System.out.println("\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500");
 
         System.out.print("Enter student name: ");
-        String name = scanner.nextLine();
+        String name = InputSanitizer.sanitize(scanner.nextLine());
 
         System.out.print("Enter student age: ");
         int age;
@@ -205,10 +210,10 @@ public class Main {
         }
 
         System.out.print("Enter student email: ");
-        String email = scanner.nextLine();
+        String email = InputSanitizer.sanitize(scanner.nextLine());
 
         System.out.print("Enter student phone: ");
-        String phone = scanner.nextLine();
+        String phone = InputSanitizer.sanitize(scanner.nextLine());
 
         System.out.println("\nStudent type:");
         System.out.println("1. Regular Student (Passing grade: 50%)");
@@ -282,7 +287,7 @@ public class Main {
     }
 
     private static void recordGrade() {
-        if (useRoleBased && !isTeacher) {
+        if (useRoleBased && currentRole != Role.TEACHER) {
             System.out.println("Access denied.");
             return;
         }
@@ -291,7 +296,7 @@ public class Main {
         System.out.println("\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500");
 
         System.out.print("Enter Student ID: ");
-        String studentId = scanner.nextLine();
+        String studentId = InputSanitizer.sanitize(scanner.nextLine());
 
         Student student = studentManager.findStudent(studentId);
         if (student == null) {
@@ -373,7 +378,7 @@ public class Main {
         System.out.println("\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500");
 
         System.out.print("Enter Student ID: ");
-        String studentId = scanner.nextLine();
+        String studentId = InputSanitizer.sanitize(scanner.nextLine());
 
         Student student = studentManager.findStudent(studentId);
         if (student == null) {
@@ -395,7 +400,7 @@ public class Main {
         System.out.println("\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500");
 
         System.out.print("Enter Student ID: ");
-        String studentId = scanner.nextLine();
+        String studentId = InputSanitizer.sanitize(scanner.nextLine());
 
         Student student = studentManager.findStudent(studentId);
         if (student == null) {
@@ -459,7 +464,7 @@ public class Main {
         System.out.println("\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500");
 
         System.out.print("Enter Student ID: ");
-        String studentId = scanner.nextLine();
+        String studentId = InputSanitizer.sanitize(scanner.nextLine());
 
         Student student = studentManager.findStudent(studentId);
         if (student == null) {
@@ -648,12 +653,12 @@ public class Main {
             switch (option) {
                 case "1" -> {
                     System.out.print("Enter Student ID: ");
-                    rawInput = scanner.nextLine().trim();
+                    rawInput = InputSanitizer.sanitize(scanner.nextLine());
                     results = studentSearcher.searchById(rawInput);
                 }
                 case "2" -> {
                     System.out.print("Enter name (partial or full): ");
-                    rawInput = scanner.nextLine().trim();
+                    rawInput = InputSanitizer.sanitize(scanner.nextLine());
                     results = studentSearcher.searchByName(rawInput);
                 }
                 case "3" -> {
@@ -685,13 +690,15 @@ public class Main {
 
             searchDesc = studentSearcher.getSearchDescription(option, rawInput);
 
-            System.out.println("\nSEARCH RESULTS (" + results.size() + " found)");
+            List<StudentDTO> resultDtos = results.stream().map(StudentMapper::toDto).collect(Collectors.toList());
+
+            System.out.println("\nSEARCH RESULTS (" + resultDtos.size() + " found)");
             System.out.println("\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500");
             System.out.printf("%-8s | %-18s | %-9s | %s%n", "STU ID", "NAME", "TYPE", "AVG");
             System.out.println("\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500");
-            for (Student s : results) {
+            for (StudentDTO s : resultDtos) {
                 System.out.printf("%-8s | %-18s | %-9s | %.1f%%%n",
-                        s.getStudentId(), s.getName(), s.getStudentType(), s.calculateAverageGrade());
+                        s.getStudentId(), s.getName(), s.getStudentType(), s.getAverageGrade());
             }
 
             System.out.println("\nActions:");
@@ -704,7 +711,7 @@ public class Main {
 
             if (action.equals("1")) {
                 System.out.print("Enter Student ID to view: ");
-                String viewId = scanner.nextLine().trim();
+                String viewId = InputSanitizer.sanitize(scanner.nextLine());
                 Student viewS = studentManager.findStudent(viewId);
                 if (viewS != null) {
                     viewS.displayStudentDetails();
@@ -716,9 +723,9 @@ public class Main {
                 String expName = scanner.nextLine().trim();
                 if (!expName.isEmpty()) {
                     try {
-                        String content = "Search Results: " + searchDesc + "\nFound: " + results.size() + " students\n\n";
-                        for (Student s : results) {
-                            content += s.getStudentId() + " | " + s.getName() + " | " + s.getStudentType() + " | " + String.format("%.1f%%", s.calculateAverageGrade()) + "\n";
+                        String content = "Search Results: " + searchDesc + "\nFound: " + resultDtos.size() + " students\n\n";
+                        for (StudentDTO s : resultDtos) {
+                            content += s.getStudentId() + " | " + s.getName() + " | " + s.getStudentType() + " | " + String.format("%.1f%%", s.getAverageGrade()) + "\n";
                         }
                         fileExporter.exportToFile("search_" + expName + ".txt", content);
                         System.out.println("Results exported to reports/search_" + expName + ".txt");

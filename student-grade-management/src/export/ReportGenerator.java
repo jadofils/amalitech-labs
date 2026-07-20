@@ -1,15 +1,17 @@
 package export;
 
+import dto.GradeDTO;
 import interfaces.Exportable;
 import logging.Logger;
 import manager.GradeManager;
 import manager.StudentManager;
+import mapper.GradeMapper;
 import model.grade.Grade;
 import model.student.Student;
+import utils.DateFormats;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Builds the text content for a student's exported grade report. Resolves
@@ -66,9 +68,10 @@ public class ReportGenerator implements Exportable {
         sb.append("------------------------------------------------\n");
 
         List<Grade> grades = gradeManager.getGradesForStudent(studentId);
-        for (Grade g : grades) {
+        List<GradeDTO> gradeDtos = grades.stream().map(GradeMapper::toDto).collect(Collectors.toList());
+        for (GradeDTO g : gradeDtos) {
             sb.append(String.format("%-8s | %-10s | %-16s | %-9s | %.1f%%%n",
-                    g.getGradeId(), g.getDate(), g.getSubject().getSubjectName(),
+                    g.getGradeId(), g.getDate(), g.getSubjectName(),
                     g.getSubjectType(), g.getGrade()));
         }
 
@@ -108,6 +111,6 @@ public class ReportGenerator implements Exportable {
     }
 
     private String timestamp() {
-        return new SimpleDateFormat("dd-MM-yyyy HH:mm").format(new Date());
+        return DateFormats.now(DateFormats.DISPLAY_DATE_SHORT_TIME);
     }
 }

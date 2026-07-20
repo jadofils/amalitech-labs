@@ -1,9 +1,8 @@
-package repository.grade.impl;
+package repository.grade;
 
-import exceptions.grades.GradeException;
+import exceptions.GradeException;
 import logging.Logger;
 import model.grade.Grade;
-import repository.grade.GradeRepository;
 
 import java.util.ArrayList;
 import java.util.List;

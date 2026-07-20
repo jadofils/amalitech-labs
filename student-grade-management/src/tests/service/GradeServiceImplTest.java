@@ -1,8 +1,8 @@
 package tests.service;
 
 import exceptions.StudentNotFoundException;
-import exceptions.grades.GradeException;
-import exceptions.subjects.SubjectNotFoundException;
+import exceptions.GradeException;
+import exceptions.SubjectNotFoundException;
 import model.grade.Grade;
 import model.student.RegularStudent;
 import model.student.Student;
@@ -11,8 +11,8 @@ import model.subject.Subject;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import repository.student.StudentRepositoryImpl;
-import repository.subject.impl.SubjectRepositoryImpl;
-import service.serviceimpl.GradeServiceImpl;
+import repository.subject.SubjectRepositoryImpl;
+import service.GradeServiceImpl;
 
 import java.util.List;
 

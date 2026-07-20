@@ -1,6 +1,4 @@
-package exceptions.grades;
-
-import exceptions.ApplicationException;
+package exceptions;
 
 public class GradeException extends ApplicationException {
     private final String gradeId;

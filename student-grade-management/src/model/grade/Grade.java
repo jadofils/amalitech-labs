@@ -4,9 +4,7 @@ import exceptions.InvalidGradeException;
 import model.enums.SubjectType;
 import model.enums.LetterGrade;
 import model.subject.Subject;
-
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import utils.DateFormats;
 
 public class Grade implements Gradable {
     private static int gradeCounter = 1;
@@ -30,7 +28,7 @@ public class Grade implements Gradable {
         // Auto-generate grade ID
         this.gradeId = String.format("GRD%03d", gradeCounter++);
         // Auto-generate date
-        this.date = new SimpleDateFormat("dd-MM-yyyy").format(new Date());
+        this.date = DateFormats.now(DateFormats.DISPLAY_DATE);
     }
 
     private Grade(String gradeId, String studentId, Subject subject, double gradeValue, String date) {

@@ -1,6 +1,6 @@
 package validation;
 
-import exceptions.subjects.SubjectValidationException;
+import exceptions.SubjectValidationException;
 import model.subject.Subject;
 
 public class SubjectValidator {
@@ -11,7 +11,7 @@ public class SubjectValidator {
         validateCode(subject.getSubjectCode());
     }
 
-    // Subject name must be 3–100 characters
+    // Subject name must be 3â€“100 characters
     public static void validateName(String name) {
         if (name == null || name.trim().isEmpty()) {
             throw new SubjectValidationException("Subject name cannot be empty.");

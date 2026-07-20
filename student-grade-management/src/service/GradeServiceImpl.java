@@ -1,17 +1,16 @@
-package service.serviceimpl;
+package service;
 
-import exceptions.grades.GradeException;
-import exceptions.subjects.SubjectNotFoundException;
+import exceptions.GradeException;
+import exceptions.SubjectNotFoundException;
 import logging.Logger;
 import model.grade.Grade;
 import model.subject.Subject;
 import repository.grade.GradeRepository;
-import repository.grade.impl.GradeRepositoryImpl;
+import repository.grade.GradeRepositoryImpl;
 import repository.student.StudentRepository;
 import repository.student.StudentRepositoryImpl;
 import repository.subject.SubjectRepository;
-import repository.subject.impl.SubjectRepositoryImpl;
-import service.GradeService;
+import repository.subject.SubjectRepositoryImpl;
 
 import java.util.List;
 

@@ -1,11 +1,10 @@
-package repository.subject.impl;
+package repository.subject;
 
-import exceptions.subjects.SubjectNotFoundException;
+import exceptions.SubjectNotFoundException;
 import logging.Logger;
 import model.subject.Subject;
 import model.subject.CoreSubject;
 import model.subject.ElectiveSubject;
-import repository.subject.SubjectRepository;
 import validation.SubjectValidator;
 
 import java.util.ArrayList;

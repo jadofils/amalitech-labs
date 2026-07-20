@@ -1,8 +1,8 @@
 package tests.service;
 
 import exceptions.StudentNotFoundException;
-import exceptions.grades.GradeException;
-import exceptions.subjects.SubjectNotFoundException;
+import exceptions.GradeException;
+import exceptions.SubjectNotFoundException;
 import model.grade.Grade;
 import model.subject.CoreSubject;
 import model.subject.Subject;
@@ -12,7 +12,7 @@ import org.mockito.InOrder;
 import repository.grade.GradeRepository;
 import repository.student.StudentRepository;
 import repository.subject.SubjectRepository;
-import service.serviceimpl.GradeServiceImpl;
+import service.GradeServiceImpl;
 
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
