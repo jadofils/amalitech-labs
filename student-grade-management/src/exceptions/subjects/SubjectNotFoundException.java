@@ -1,6 +1,8 @@
 package exceptions.subjects;
 
-public class SubjectNotFoundException extends RuntimeException {
+import exceptions.ApplicationException;
+
+public class SubjectNotFoundException extends ApplicationException {
     public SubjectNotFoundException(String message) {
         super(message);
     }

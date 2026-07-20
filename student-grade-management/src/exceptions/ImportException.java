@@ -1,6 +1,6 @@
 package exceptions;
 
-public class ImportException extends RuntimeException {
+public class ImportException extends ApplicationException {
     private final String filePath;
     private final int successfulRows;
     private final int failedRows;

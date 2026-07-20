@@ -1,6 +1,6 @@
 package exceptions;
 
-public class ExportException extends RuntimeException {
+public class ExportException extends ApplicationException {
     private final String filePath;
 
     public ExportException(String message, String filePath, Throwable cause) {

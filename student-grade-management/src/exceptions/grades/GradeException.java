@@ -1,6 +1,8 @@
 package exceptions.grades;
 
-public class GradeException extends RuntimeException {
+import exceptions.ApplicationException;
+
+public class GradeException extends ApplicationException {
     private final String gradeId;
 
     public GradeException(String message, String gradeId) {

@@ -2,7 +2,7 @@ package exceptions;
 
 import java.util.List;
 
-public class StudentNotFoundException extends RuntimeException {
+public class StudentNotFoundException extends ApplicationException {
     private final String studentId;
     private final List<String> availableIds;
 

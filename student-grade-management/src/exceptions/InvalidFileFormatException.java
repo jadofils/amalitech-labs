@@ -1,6 +1,6 @@
 package exceptions;
 
-public class InvalidFileFormatException extends RuntimeException {
+public class InvalidFileFormatException extends ApplicationException {
     private final String filename;
     private final int lineNumber;
 
