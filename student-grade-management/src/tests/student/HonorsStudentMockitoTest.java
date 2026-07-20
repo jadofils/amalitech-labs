@@ -1,4 +1,4 @@
-package tests.Students;
+package tests.student;
 
 import model.student.HonorsStudent;
 import org.junit.jupiter.api.DisplayName;

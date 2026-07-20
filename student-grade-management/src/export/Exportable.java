@@ -1,4 +1,4 @@
-package interfaces;
+package export;
 
 public interface Exportable {
     String exportSummary(String studentId);

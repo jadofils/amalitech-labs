@@ -1,4 +1,4 @@
-package tests.Students;
+package tests.student;
 
 import model.enums.StudentStatus;
 import model.student.HonorsStudent;

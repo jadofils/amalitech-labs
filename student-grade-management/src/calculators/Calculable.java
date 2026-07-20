@@ -1,4 +1,4 @@
-package interfaces;
+package calculators;
 
 /**
  * GPA-related calculations. Resolves everything by student ID - the caller

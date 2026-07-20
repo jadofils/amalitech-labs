@@ -1,4 +1,4 @@
-package interfaces;
+package manager;
 
 import model.enums.StudentType;
 import model.student.Student;
