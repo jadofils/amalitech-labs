@@ -1,8 +1,8 @@
 package calculators;
 
 import model.enums.LetterGrade;
+import model.enums.StudentType;
 import model.grade.Grade;
-import model.student.HonorsStudent;
 import model.student.Student;
 import model.subject.Subject;
 
@@ -229,7 +229,7 @@ public class StatisticsCalculator {
         double regSum = 0, honSum = 0;
         int regCount = 0, honCount = 0;
         for (Student s : students) {
-            if (s instanceof HonorsStudent) {
+            if (s.getType() == StudentType.HONORS) {
                 honSum += s.calculateAverageGrade();
                 honCount++;
             } else {

@@ -31,8 +31,8 @@ public class RegularStudent extends Student {
     }
 
     @Override
-    public String getStudentType() {
-        return studentType.name();
+    public StudentType getType() {
+        return studentType;
     }
 
     @Override

@@ -19,6 +19,7 @@ import manager.StudentManager;
 import manager.StudentSearcher;
 import mapper.StudentMapper;
 import model.enums.Role;
+import model.enums.StudentType;
 import model.enums.SubjectType;
 import model.grade.Grade;
 import model.student.HonorsStudent;
@@ -680,7 +681,7 @@ public class Main {
                     System.out.println("2. Honors");
                     System.out.print("Select (1-2): ");
                     rawInput = scanner.nextLine().trim();
-                    results = studentSearcher.searchByType(rawInput.equals("2"));
+                    results = studentSearcher.searchByType(rawInput.equals("2") ? StudentType.HONORS : StudentType.REGULAR);
                 }
                 default -> {
                     System.out.println("Invalid option.");

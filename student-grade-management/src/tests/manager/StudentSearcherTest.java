@@ -3,6 +3,7 @@ package tests.manager;
 import manager.GradeManager;
 import manager.StudentManager;
 import manager.StudentSearcher;
+import model.enums.StudentType;
 import model.grade.Grade;
 import model.student.Student;
 import model.subject.CoreSubject;
@@ -101,8 +102,8 @@ class StudentSearcherTest {
         StudentSearcher searcher = newSearcher(students, gradeManager);
 
         // Seeded: 3 Regular, 2 Honors (StudentRepositoryImpl's constructor).
-        assertEquals(3, searcher.searchByType(false).size());
-        assertEquals(2, searcher.searchByType(true).size());
+        assertEquals(3, searcher.searchByType(StudentType.REGULAR).size());
+        assertEquals(2, searcher.searchByType(StudentType.HONORS).size());
     }
 
     @Test

@@ -2,6 +2,7 @@ package tests.manager;
 
 import manager.StudentManager;
 import manager.StudentSearcher;
+import model.enums.StudentType;
 import model.student.HonorsStudent;
 import model.student.RegularStudent;
 import model.student.Student;
@@ -58,7 +59,7 @@ class StudentSearcherMockitoTest {
         Student honors = new HonorsStudent("Honors Student", 17, "h@school.edu", "1234567890");
         when(studentManager.getAllStudents()).thenReturn(List.of(regular, honors));
 
-        assertEquals(1, searcher.searchByType(true).size());
-        assertEquals(1, searcher.searchByType(false).size());
+        assertEquals(1, searcher.searchByType(StudentType.HONORS).size());
+        assertEquals(1, searcher.searchByType(StudentType.REGULAR).size());
     }
 }

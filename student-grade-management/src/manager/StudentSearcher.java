@@ -2,7 +2,7 @@ package manager;
 
 import interfaces.Searchable;
 import logging.Logger;
-import model.student.HonorsStudent;
+import model.enums.StudentType;
 import model.student.Student;
 
 import java.util.ArrayList;
@@ -54,13 +54,11 @@ public class StudentSearcher implements Searchable {
     }
 
     @Override
-    public List<Student> searchByType(boolean isHonors) {
-        Logger.debug("Searching students by type: " + (isHonors ? "Honors" : "Regular"));
+    public List<Student> searchByType(StudentType studentType) {
+        Logger.debug("Searching students by type: " + studentType);
         List<Student> results = new ArrayList<>();
         for (Student s : studentManager.getAllStudents()) {
-            if (isHonors && s instanceof HonorsStudent) {
-                results.add(s);
-            } else if (!isHonors && !(s instanceof HonorsStudent)) {
+            if (s.getType() == studentType) {
                 results.add(s);
             }
         }
