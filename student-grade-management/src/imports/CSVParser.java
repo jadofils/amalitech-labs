@@ -1,6 +1,8 @@
 package imports;
 
-import exceptions.InvalidFileFormatException;
+import exceptions.CSVImportException;
+import logging.Logger;
+import model.enums.SubjectType;
 import model.subject.Subject;
 import repository.subject.SubjectRepository;
 
@@ -10,14 +12,31 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
+/**
+ * Parses a bulk-import CSV ({@code StudentID,SubjectName,SubjectType,Grade})
+ * into valid rows plus a list of per-row error messages - an invalid row is
+ * skipped and recorded as an error, never thrown, so one bad row doesn't
+ * abort the whole file (per US-4/PBI-4's "skip invalid rows but continue
+ * processing").
+ */
 public class CSVParser {
+    private static final int EXPECTED_COLUMN_COUNT = 4;
+    private static final double MIN_GRADE = 0;
+    private static final double MAX_GRADE = 100;
+
     private final SubjectRepository subjectRepository;
 
     public CSVParser(SubjectRepository subjectRepository) {
         this.subjectRepository = subjectRepository;
     }
 
+    /**
+     * @throws CSVImportException if the file itself cannot be read (missing,
+     *                             permissions, ...) - unlike a malformed row,
+     *                             which is collected in the result instead
+     */
     public CSVParseResult parse(File file) {
+        Logger.debug("Parsing CSV file: " + file.getPath());
         List<CSVRow> rows = new ArrayList<>();
         int lineNum = 0;
         List<String> errors = new ArrayList<>();
@@ -37,8 +56,9 @@ public class CSVParser {
                 }
 
                 String[] parts = line.split(",");
-                if (parts.length != 4) {
-                    errors.add("Row " + lineNum + ": Invalid format (expected 4 columns, got " + parts.length + ")");
+                if (parts.length != EXPECTED_COLUMN_COUNT) {
+                    errors.add("Row " + lineNum + ": Invalid format (expected "
+                            + EXPECTED_COLUMN_COUNT + " columns, got " + parts.length + ")");
                     continue;
                 }
 
@@ -60,7 +80,7 @@ public class CSVParser {
                     continue;
                 }
 
-                if (gradeVal < 0 || gradeVal > 100) {
+                if (gradeVal < MIN_GRADE || gradeVal > MAX_GRADE) {
                     errors.add("Row " + lineNum + ": Grade out of range (" + (int) gradeVal + ")");
                     continue;
                 }
@@ -78,13 +98,37 @@ public class CSVParser {
                     continue;
                 }
 
+                // The CSV's own SubjectType column was previously read and
+                // discarded - a row could claim "Elective" for a Core
+                // subject and still import silently (CHANGELOG.md KI-10).
+                SubjectType declaredType = parseSubjectType(subjTypeStr);
+                if (declaredType == null) {
+                    errors.add("Row " + lineNum + ": Unknown subject type (" + subjTypeStr + ")");
+                    continue;
+                }
+                if (declaredType != matchedSubject.getSubjectType()) {
+                    errors.add("Row " + lineNum + ": Subject type mismatch - " + subjName + " is "
+                            + matchedSubject.getSubjectType() + ", not " + declaredType);
+                    continue;
+                }
+
                 rows.add(new CSVRow(sid, subjName, matchedSubject, gradeVal, lineNum));
             }
         } catch (IOException e) {
-            throw new InvalidFileFormatException("Failed to read CSV file: " + e.getMessage());
+            Logger.error("Failed to read CSV file: " + file.getPath(), e);
+            throw new CSVImportException("Failed to read CSV file: " + e.getMessage(), e);
         }
 
+        Logger.info("Parsed " + file.getPath() + ": " + rows.size() + " valid row(s), " + errors.size() + " error(s)");
         return new CSVParseResult(rows, errors);
+    }
+
+    private SubjectType parseSubjectType(String raw) {
+        try {
+            return SubjectType.valueOf(raw.trim().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 
     public static class CSVRow {

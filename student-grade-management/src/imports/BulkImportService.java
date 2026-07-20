@@ -3,6 +3,7 @@ package imports;
 import exceptions.ImportException;
 import imports.CSVParser.CSVParseResult;
 import imports.CSVParser.CSVRow;
+import logging.Logger;
 import manager.GradeManager;
 import manager.StudentManager;
 import model.grade.Grade;
@@ -17,6 +18,10 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * Imports grades in bulk from a CSV file under {@code imports/}, skipping
+ * (not aborting on) invalid rows, and writes a log file summarizing the run.
+ */
 public class BulkImportService {
     private final CSVParser csvParser;
     private final StudentManager studentManager;
@@ -35,6 +40,7 @@ public class BulkImportService {
         File file = new File(path);
 
         if (!file.exists()) {
+            Logger.warn("Bulk import requested but file does not exist: " + path);
             throw new ImportException("File not found: " + path, path, null);
         }
 
@@ -58,6 +64,7 @@ public class BulkImportService {
         }
 
         String logFilename = writeImportLog(filename, success, failed, success + failed, failReasons);
+        Logger.info("Bulk import of " + path + " complete: " + success + " succeeded, " + failed + " failed");
 
         return new ImportResult(parseResult.getValidCount(), success, failed, failReasons, logFilename);
     }
@@ -85,7 +92,10 @@ public class BulkImportService {
                 }
             }
         } catch (IOException e) {
-            // Log write failure is non-critical
+            // The import itself already succeeded/failed by this point, so
+            // a log-write failure doesn't roll anything back - but it must
+            // not vanish silently either (CHANGELOG.md KI-3).
+            Logger.error("Failed to write import log file: " + logPath, e);
         }
 
         return logFilename;
