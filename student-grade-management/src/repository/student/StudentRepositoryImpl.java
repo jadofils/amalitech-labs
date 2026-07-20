@@ -1,6 +1,7 @@
 package repository.student;
 
 import exceptions.StudentNotFoundException;
+import logging.Logger;
 import model.student.HonorsStudent;
 import model.student.RegularStudent;
 import model.student.Student;
@@ -29,6 +30,7 @@ public class StudentRepositoryImpl implements StudentRepository {
     @Override
     public void addStudent(Student student) {
         if (studentCount >= students.length) {
+            Logger.error("Student storage full at capacity " + students.length + "; rejected " + student.getName());
             throw new RuntimeException("Cannot add more students. Storage is full.");
         }
         students[studentCount++] = student;

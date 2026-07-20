@@ -2,6 +2,7 @@ package service.serviceimpl;
 
 import exceptions.grades.GradeException;
 import exceptions.subjects.SubjectNotFoundException;
+import logging.Logger;
 import model.grade.Grade;
 import model.subject.Subject;
 import repository.grade.GradeRepository;
@@ -37,11 +38,25 @@ public class GradeServiceImpl implements GradeService {
 
     @Override
     public void recordGrade(Grade grade) {
+        Logger.debug("Recording grade for student " + grade.getStudentId()
+                + " in subject " + grade.getSubject().getSubjectCode());
+
         // Validate student exists (throws StudentNotFoundException if not)
-        studentRepository.findStudentById(grade.getStudentId());
+        try {
+            studentRepository.findStudentById(grade.getStudentId());
+        } catch (RuntimeException e) {
+            Logger.warn("recordGrade rejected: unknown student " + grade.getStudentId());
+            throw e;
+        }
 
         // Validate subject exists
-        Subject subject = subjectRepository.findSubjectByCode(grade.getSubject().getSubjectCode());
+        Subject subject;
+        try {
+            subject = subjectRepository.findSubjectByCode(grade.getSubject().getSubjectCode());
+        } catch (RuntimeException e) {
+            Logger.warn("recordGrade rejected: unknown subject " + grade.getSubject().getSubjectCode());
+            throw e;
+        }
         if (subject == null) {
             throw new SubjectNotFoundException("Subject with code " + grade.getSubject().getSubjectCode() + " not found.");
         }
@@ -50,12 +65,14 @@ public class GradeServiceImpl implements GradeService {
 
         // Save grade
         gradeRepository.addGrade(grade);
+        Logger.info("Grade recorded: " + grade.getGradeId() + " (" + grade.getGrade() + ") for student " + grade.getStudentId());
     }
 
     @Override
     public Grade getGradeById(String gradeId) {
         Grade grade = gradeRepository.findGradeById(gradeId);
         if (grade == null) {
+            Logger.error("Grade lookup returned null unexpectedly for id: " + gradeId);
             throw new GradeException("Grade with ID " + gradeId + " not found.");
         }
         return grade;
@@ -74,5 +91,6 @@ public class GradeServiceImpl implements GradeService {
     @Override
     public void deleteGrade(String gradeId) {
         gradeRepository.deleteGrade(gradeId);
+        Logger.info("Grade deleted: " + gradeId);
     }
 }

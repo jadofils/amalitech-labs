@@ -3,6 +3,7 @@ import exceptions.StudentValidationException;
 import exceptions.grades.GradeException;
 import exceptions.subjects.SubjectNotFoundException;
 import exceptions.subjects.SubjectValidationException;
+import logging.Logger;
 import manager.GradeManager;
 import manager.StudentManager;
 import model.enums.SubjectType;
@@ -70,8 +71,10 @@ public class Main {
                 }
             } catch (StudentValidationException | StudentNotFoundException | GradeException
                      | SubjectNotFoundException | SubjectValidationException e) {
+                Logger.warn("Menu action " + choice + " rejected: " + e.getMessage());
                 System.out.println("Error: " + e.getMessage());
             } catch (Exception e) {
+                Logger.error("Unexpected error handling menu action " + choice, e);
                 System.out.println("An unexpected error occurred: " + e.getMessage());
             }
         }

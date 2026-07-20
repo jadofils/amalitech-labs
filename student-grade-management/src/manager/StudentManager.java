@@ -1,6 +1,7 @@
 package manager;
 
 import exceptions.StudentNotFoundException;
+import logging.Logger;
 import model.grade.Grade;
 import model.student.HonorsStudent;
 import model.student.Student;
@@ -101,7 +102,9 @@ public class StudentManager {
     // transient grade list (and honors eligibility) refreshed from GradeManager.
     private void hydrateGrades(Student student) {
         student.getGrades().clear();
-        for (Grade grade : gradeManager.getGradesForStudent(student.getStudentId())) {
+        List<Grade> grades = gradeManager.getGradesForStudent(student.getStudentId());
+        Logger.debug("Hydrating " + grades.size() + " grade(s) for student " + student.getStudentId());
+        for (Grade grade : grades) {
             student.addGrade(grade.getGrade());
         }
         if (student instanceof HonorsStudent honorsStudent) {
