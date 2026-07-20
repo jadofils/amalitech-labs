@@ -4,12 +4,13 @@ import exceptions.StudentValidationException;
 import model.enums.StudentStatus;
 import model.student.RegularStudent;
 import model.student.Student;
+import utils.validators.StudentValidator;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
-import validation.StudentValidator;
 
 import static org.junit.jupiter.api.Assertions.*;
 

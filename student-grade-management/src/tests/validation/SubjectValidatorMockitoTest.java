@@ -2,9 +2,10 @@ package tests.validation;
 
 import exceptions.SubjectValidationException;
 import model.subject.Subject;
+import utils.validators.SubjectValidator;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import validation.SubjectValidator;
 
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;

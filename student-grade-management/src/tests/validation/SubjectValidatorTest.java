@@ -3,11 +3,12 @@ package tests.validation;
 import exceptions.SubjectValidationException;
 import model.subject.CoreSubject;
 import model.subject.Subject;
+import utils.validators.SubjectValidator;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import validation.SubjectValidator;
 
 import static org.junit.jupiter.api.Assertions.*;
 

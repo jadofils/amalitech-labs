@@ -1,4 +1,4 @@
-package validation;
+package utils.validators;
 
 import exceptions.StudentValidationException;
 import model.student.Student;

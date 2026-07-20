@@ -3,9 +3,10 @@ package tests.validation;
 import exceptions.StudentValidationException;
 import model.enums.StudentStatus;
 import model.student.Student;
+import utils.validators.StudentValidator;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import validation.StudentValidator;
 
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;

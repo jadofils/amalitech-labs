@@ -1,4 +1,4 @@
-package validation;
+package utils.validators;
 
 import exceptions.SubjectValidationException;
 import model.subject.Subject;

@@ -3,7 +3,7 @@ package service;
 import logging.Logger;
 import model.student.Student;
 import repository.student.StudentRepository;
-import validation.StudentValidator;
+import utils.validators.StudentValidator;
 
 import java.util.List;
 

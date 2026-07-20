@@ -3,9 +3,9 @@ package repository.subject;
 import exceptions.SubjectNotFoundException;
 import logging.Logger;
 import model.subject.Subject;
+import utils.validators.SubjectValidator;
 import model.subject.CoreSubject;
 import model.subject.ElectiveSubject;
-import validation.SubjectValidator;
 
 import java.util.ArrayList;
 import java.util.List;
