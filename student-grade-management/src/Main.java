@@ -43,7 +43,7 @@ public class Main {
     private static final GradeManager gradeManager = new GradeManager(gradeService, subjectRepository);
     private static final StudentService studentService = new StudentServiceImpl(studentRepository);
     private static final StudentManager studentManager = new StudentManager(studentService, gradeManager);
-    private static final ReportGenerator reportGenerator = new ReportGenerator(gradeManager);
+    private static final ReportGenerator reportGenerator = new ReportGenerator(gradeManager, studentManager);
     private static final FileExporter fileExporter = new FileExporter();
     private static final GPACalculator gpaCalculator = new GPACalculator(gradeManager, studentManager);
     private static final BulkImportService bulkImportService = new BulkImportService(subjectRepository, studentManager, gradeManager);

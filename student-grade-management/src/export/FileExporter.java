@@ -1,11 +1,13 @@
 package export;
 
 import exceptions.ExportException;
+import logging.Logger;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
+/** Writes report text content to a file under a configurable directory (default {@code reports/}). */
 public class FileExporter {
     private final String reportsDir;
 
@@ -17,6 +19,12 @@ public class FileExporter {
         this.reportsDir = reportsDir;
     }
 
+    /**
+     * Writes {@code content} to {@code <reportsDir>/<filename>}, creating the
+     * directory if it doesn't exist yet.
+     *
+     * @throws ExportException if the write fails
+     */
     public FileExportResult exportToFile(String filename, String content) {
         ensureDirectoryExists();
         String path = reportsDir + "/" + filename;
@@ -26,9 +34,11 @@ public class FileExporter {
             writer.write(content);
             writer.flush();
         } catch (IOException e) {
+            Logger.error("Failed to export report to " + path, e);
             throw new ExportException("Failed to export report: " + e.getMessage(), path, e);
         }
 
+        Logger.info("Report exported: " + path + " (" + file.length() + " bytes)");
         return new FileExportResult(path, file.length());
     }
 
