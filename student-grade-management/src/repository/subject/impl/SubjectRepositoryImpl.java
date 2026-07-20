@@ -1,6 +1,7 @@
 package repository.subject.impl;
 
 import exceptions.subjects.SubjectNotFoundException;
+import logging.Logger;
 import model.subject.Subject;
 import model.subject.CoreSubject;
 import model.subject.ElectiveSubject;
@@ -35,6 +36,7 @@ public class SubjectRepositoryImpl implements SubjectRepository {
     public void addSubject(Subject subject) {
         SubjectValidator.validateSubject(subject);
         if (subjectCount >= subjects.length) {
+            Logger.error("Subject storage full at capacity " + subjects.length + "; rejected " + subject.getSubjectCode());
             throw new RuntimeException("Cannot add more subjects. Storage is full.");
         }
         subjects[subjectCount++] = subject;

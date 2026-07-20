@@ -1,6 +1,6 @@
 package tests.grade;
 
-import exceptions.grades.GradeException;
+import exceptions.InvalidGradeException;
 import model.enums.LetterGrade;
 import model.enums.SubjectType;
 import model.grade.Grade;
@@ -30,18 +30,24 @@ class GradeTest {
         assertTrue(grade.getDate().matches("^\\d{2}-\\d{2}-\\d{4}$"));
     }
 
+    // NOTE: this codebase's Grade constructor throws InvalidGradeException
+    // (not GradeException) on an out-of-range value - InvalidGradeException
+    // carries the attempted value, which Main's recordGrade/bulkImportGrades
+    // flows use to offer a retry.
     @Test
     @DisplayName("Grade above 100 is rejected")
     void gradeAboveMaxThrowsTest() {
-        GradeException ex = assertThrows(GradeException.class, () -> new Grade("STU001", math, 100.1));
-        assertEquals("Grade must be between 0 and 100.", ex.getMessage());
+        InvalidGradeException ex = assertThrows(InvalidGradeException.class, () -> new Grade("STU001", math, 100.1));
+        assertTrue(ex.getMessage().startsWith("Grade must be between 0 and 100."));
+        assertEquals(100.1, ex.getAttemptedGrade());
     }
 
     @Test
     @DisplayName("Negative grade is rejected")
     void negativeGradeThrowsTest() {
-        GradeException ex = assertThrows(GradeException.class, () -> new Grade("STU001", math, -0.1));
-        assertEquals("Grade must be between 0 and 100.", ex.getMessage());
+        InvalidGradeException ex = assertThrows(InvalidGradeException.class, () -> new Grade("STU001", math, -0.1));
+        assertTrue(ex.getMessage().startsWith("Grade must be between 0 and 100."));
+        assertEquals(-0.1, ex.getAttemptedGrade());
     }
 
     @Test

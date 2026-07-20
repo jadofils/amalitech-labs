@@ -11,6 +11,7 @@ import exceptions.subjects.SubjectValidationException;
 import export.FileExporter;
 import export.ReportGenerator;
 import imports.BulkImportService;
+import logging.Logger;
 import manager.GradeManager;
 import manager.StudentManager;
 import manager.StudentSearcher;
@@ -115,9 +116,11 @@ public class Main {
                 }
             } catch (StudentValidationException | GradeException
                      | SubjectNotFoundException | SubjectValidationException e) {
+                Logger.warn("Menu action " + choice + " rejected: " + e.getMessage());
                 System.out.println("\n\u2717 ERROR: " + e.getClass().getSimpleName());
                 System.out.println("  " + e.getMessage());
             } catch (Exception e) {
+                Logger.error("Unexpected error handling menu action " + choice, e);
                 System.out.println("An unexpected error occurred: " + e.getMessage());
             }
         }

@@ -1,6 +1,7 @@
 package repository.grade.impl;
 
 import exceptions.grades.GradeException;
+import logging.Logger;
 import model.grade.Grade;
 import repository.grade.GradeRepository;
 
@@ -15,6 +16,7 @@ public class GradeRepositoryImpl implements GradeRepository {
     @Override
     public void addGrade(Grade grade) {
         if (gradeCount >= grades.length) {
+            Logger.error("Grade storage full at capacity " + grades.length + "; rejected grade for student " + grade.getStudentId());
             throw new GradeException("Cannot add more grades. Storage is full.");
         }
         grades[gradeCount++] = grade;
