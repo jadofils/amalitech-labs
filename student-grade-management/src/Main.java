@@ -16,6 +16,7 @@ import logging.Logger;
 import manager.GradeManager;
 import manager.StudentManager;
 import manager.StudentSearcher;
+import model.enums.Role;
 import model.enums.SubjectType;
 import model.grade.Grade;
 import model.student.HonorsStudent;
@@ -51,7 +52,7 @@ public class Main {
     private static final StudentSearcher studentSearcher = new StudentSearcher(studentManager);
 
     private static boolean useRoleBased = false;
-    private static boolean isTeacher = true;
+    private static Role currentRole = Role.TEACHER;
 
     public static void main(String[] args) {
         askRoleBased();
@@ -146,10 +147,10 @@ public class Main {
             System.out.print("Choose (1-2): ");
             String roleInput = scanner.nextLine().trim();
             if (roleInput.equals("1")) {
-                isTeacher = true;
+                currentRole = Role.TEACHER;
                 return;
             } else if (roleInput.equals("2")) {
-                isTeacher = false;
+                currentRole = Role.STUDENT;
                 return;
             }
             System.out.println("Invalid choice. Please select 1 or 2.");
@@ -172,19 +173,19 @@ public class Main {
         System.out.println("9. Search Students");
         System.out.println("10. Exit");
         if (useRoleBased) {
-            System.out.println("Role: " + (isTeacher ? "Teacher" : "Student"));
+            System.out.println("Role: " + (currentRole == Role.TEACHER ? "Teacher" : "Student"));
         }
         System.out.println();
         System.out.print("Enter choice: ");
     }
 
     private static boolean isAuthorized(int choice) {
-        if (isTeacher) return true;
+        if (currentRole == Role.TEACHER) return true;
         return choice >= 4 && choice <= 10;
     }
 
     private static void addStudent() {
-        if (useRoleBased && !isTeacher) {
+        if (useRoleBased && currentRole != Role.TEACHER) {
             System.out.println("Access denied.");
             return;
         }
@@ -282,7 +283,7 @@ public class Main {
     }
 
     private static void recordGrade() {
-        if (useRoleBased && !isTeacher) {
+        if (useRoleBased && currentRole != Role.TEACHER) {
             System.out.println("Access denied.");
             return;
         }
