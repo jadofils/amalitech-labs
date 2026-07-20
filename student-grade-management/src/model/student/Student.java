@@ -1,6 +1,7 @@
 package model.student;
 
 import model.enums.StudentStatus;
+import model.enums.StudentType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -91,8 +92,15 @@ public abstract class Student {
 
     // Abstract methods
     public abstract void displayStudentDetails();
-    public abstract String getStudentType();
+    public abstract StudentType getType();
     public abstract double getPassingGrade();
+
+    // Concrete, delegating to getType() - lets callers that only need the
+    // classification compare model.enums.StudentType directly instead of
+    // string-matching or instanceof-checking this class's own subclasses.
+    public final String getStudentType() {
+        return getType().name();
+    }
 
     public void setStudentId(String studentId) {
         this.studentId = studentId;
