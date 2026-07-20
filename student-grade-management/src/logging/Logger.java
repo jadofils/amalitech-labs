@@ -1,7 +1,6 @@
 package logging;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import utils.DateFormats;
 
 // Minimal dependency-free logger - this project has no Maven/Gradle to pull in
 // a real logging framework (see docs/PROJECT_GUIDE.md), so this is a small
@@ -68,6 +67,6 @@ public final class Logger {
     }
 
     private static String timestamp() {
-        return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+        return DateFormats.now(DateFormats.LOG_TIMESTAMP);
     }
 }

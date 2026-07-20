@@ -6,9 +6,8 @@ import manager.GradeManager;
 import manager.StudentManager;
 import model.grade.Grade;
 import model.student.Student;
+import utils.DateFormats;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -108,6 +107,6 @@ public class ReportGenerator implements Exportable {
     }
 
     private String timestamp() {
-        return new SimpleDateFormat("dd-MM-yyyy HH:mm").format(new Date());
+        return DateFormats.now(DateFormats.DISPLAY_DATE_SHORT_TIME);
     }
 }

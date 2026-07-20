@@ -31,6 +31,7 @@ import service.GradeService;
 import service.StudentService;
 import service.GradeServiceImpl;
 import service.StudentServiceImpl;
+import utils.InputSanitizer;
 
 import java.util.List;
 import java.util.Scanner;
@@ -194,7 +195,7 @@ public class Main {
         System.out.println("\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500");
 
         System.out.print("Enter student name: ");
-        String name = scanner.nextLine();
+        String name = InputSanitizer.sanitize(scanner.nextLine());
 
         System.out.print("Enter student age: ");
         int age;
@@ -206,10 +207,10 @@ public class Main {
         }
 
         System.out.print("Enter student email: ");
-        String email = scanner.nextLine();
+        String email = InputSanitizer.sanitize(scanner.nextLine());
 
         System.out.print("Enter student phone: ");
-        String phone = scanner.nextLine();
+        String phone = InputSanitizer.sanitize(scanner.nextLine());
 
         System.out.println("\nStudent type:");
         System.out.println("1. Regular Student (Passing grade: 50%)");
@@ -292,7 +293,7 @@ public class Main {
         System.out.println("\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500");
 
         System.out.print("Enter Student ID: ");
-        String studentId = scanner.nextLine();
+        String studentId = InputSanitizer.sanitize(scanner.nextLine());
 
         Student student = studentManager.findStudent(studentId);
         if (student == null) {
@@ -374,7 +375,7 @@ public class Main {
         System.out.println("\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500");
 
         System.out.print("Enter Student ID: ");
-        String studentId = scanner.nextLine();
+        String studentId = InputSanitizer.sanitize(scanner.nextLine());
 
         Student student = studentManager.findStudent(studentId);
         if (student == null) {
@@ -396,7 +397,7 @@ public class Main {
         System.out.println("\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500");
 
         System.out.print("Enter Student ID: ");
-        String studentId = scanner.nextLine();
+        String studentId = InputSanitizer.sanitize(scanner.nextLine());
 
         Student student = studentManager.findStudent(studentId);
         if (student == null) {
@@ -460,7 +461,7 @@ public class Main {
         System.out.println("\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500");
 
         System.out.print("Enter Student ID: ");
-        String studentId = scanner.nextLine();
+        String studentId = InputSanitizer.sanitize(scanner.nextLine());
 
         Student student = studentManager.findStudent(studentId);
         if (student == null) {
@@ -649,12 +650,12 @@ public class Main {
             switch (option) {
                 case "1" -> {
                     System.out.print("Enter Student ID: ");
-                    rawInput = scanner.nextLine().trim();
+                    rawInput = InputSanitizer.sanitize(scanner.nextLine());
                     results = studentSearcher.searchById(rawInput);
                 }
                 case "2" -> {
                     System.out.print("Enter name (partial or full): ");
-                    rawInput = scanner.nextLine().trim();
+                    rawInput = InputSanitizer.sanitize(scanner.nextLine());
                     results = studentSearcher.searchByName(rawInput);
                 }
                 case "3" -> {
@@ -705,7 +706,7 @@ public class Main {
 
             if (action.equals("1")) {
                 System.out.print("Enter Student ID to view: ");
-                String viewId = scanner.nextLine().trim();
+                String viewId = InputSanitizer.sanitize(scanner.nextLine());
                 Student viewS = studentManager.findStudent(viewId);
                 if (viewS != null) {
                     viewS.displayStudentDetails();
