@@ -1,6 +1,4 @@
-package exceptions.subjects;
-
-import exceptions.ApplicationException;
+package exceptions;
 
 public class SubjectNotFoundException extends ApplicationException {
     public SubjectNotFoundException(String message) {

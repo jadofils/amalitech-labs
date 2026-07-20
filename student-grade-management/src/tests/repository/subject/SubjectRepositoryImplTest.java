@@ -1,14 +1,14 @@
 package tests.repository.subject;
 
-import exceptions.subjects.SubjectNotFoundException;
-import exceptions.subjects.SubjectValidationException;
+import exceptions.SubjectNotFoundException;
+import exceptions.SubjectValidationException;
 import model.enums.SubjectType;
 import model.subject.CoreSubject;
 import model.subject.ElectiveSubject;
 import model.subject.Subject;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import repository.subject.impl.SubjectRepositoryImpl;
+import repository.subject.SubjectRepositoryImpl;
 
 import java.util.List;
 

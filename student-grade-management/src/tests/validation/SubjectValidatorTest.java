@@ -1,6 +1,6 @@
 package tests.validation;
 
-import exceptions.subjects.SubjectValidationException;
+import exceptions.SubjectValidationException;
 import model.subject.CoreSubject;
 import model.subject.Subject;
 import org.junit.jupiter.api.DisplayName;

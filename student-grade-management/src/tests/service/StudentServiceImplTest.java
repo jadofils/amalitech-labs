@@ -8,7 +8,7 @@ import model.student.Student;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import repository.student.StudentRepositoryImpl;
-import service.serviceimpl.StudentServiceImpl;
+import service.StudentServiceImpl;
 
 import static org.junit.jupiter.api.Assertions.*;
 

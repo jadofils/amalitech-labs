@@ -1,10 +1,10 @@
 package tests.repository.subject;
 
-import exceptions.subjects.SubjectNotFoundException;
+import exceptions.SubjectNotFoundException;
 import model.subject.Subject;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import repository.subject.impl.SubjectRepositoryImpl;
+import repository.subject.SubjectRepositoryImpl;
 
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;

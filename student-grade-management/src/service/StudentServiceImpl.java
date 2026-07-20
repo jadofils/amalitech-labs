@@ -1,9 +1,8 @@
-package service.serviceimpl;
+package service;
 
 import logging.Logger;
 import model.student.Student;
 import repository.student.StudentRepository;
-import service.StudentService;
 import validation.StudentValidator;
 
 import java.util.List;

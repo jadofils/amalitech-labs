@@ -1,12 +1,12 @@
 package tests.repository.grade;
 
-import exceptions.grades.GradeException;
+import exceptions.GradeException;
 import model.grade.Grade;
 import model.subject.CoreSubject;
 import model.subject.Subject;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import repository.grade.impl.GradeRepositoryImpl;
+import repository.grade.GradeRepositoryImpl;
 
 import java.util.List;
 

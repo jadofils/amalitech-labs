@@ -10,9 +10,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import repository.student.StudentRepositoryImpl;
-import repository.subject.impl.SubjectRepositoryImpl;
+import repository.subject.SubjectRepositoryImpl;
 import service.GradeService;
-import service.serviceimpl.GradeServiceImpl;
+import service.GradeServiceImpl;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;

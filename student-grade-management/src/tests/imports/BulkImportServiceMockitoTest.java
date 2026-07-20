@@ -9,7 +9,7 @@ import model.student.Student;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import repository.subject.impl.SubjectRepositoryImpl;
+import repository.subject.SubjectRepositoryImpl;
 
 import java.io.FileWriter;
 import java.io.IOException;
