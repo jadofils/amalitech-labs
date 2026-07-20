@@ -1,32 +1,50 @@
 # Project Guide — Student Grade Management System
 
-This is the "how it actually works" reference for the codebase as it stands
-today. `architecturer.md` and `Plan.md` in this same folder capture the
-*original* design plan (which assumed PostgreSQL, Maven, and a
+This is the "how it actually works" reference for the codebase as it
+stands today on `develop`. `architecturer.md` and `Plan.md` in this same
+folder capture the *original* design plan (which assumed PostgreSQL and a
 `controller/` package); this document describes what was actually built,
-which diverged from that plan in a few places (noted below).
+which diverged from that plan in a few places (noted below), and has
+since gone through a professional-structure and SOLID-principles pass —
+see [../CHANGELOG.md](../CHANGELOG.md) for the full history of both.
 
 ---
 
 ## 1. What the app does
 
-A console (terminal) application for managing students and their grades:
+A console (terminal) application for managing students and their grades,
+via a 10-option menu:
 
-- Add / view students (Regular or Honors)
-- Record a grade for a student in a Core or Elective subject
-- View a student's full grade report (per-subject averages, overall average,
-  passing status)
+1. Add Student
+2. View Students
+3. Record Grade
+4. View Grade Report
+5. Export Grade Report
+6. Calculate Student GPA
+7. Bulk Import Grades
+8. View Class Statistics
+9. Search Students
+10. Exit
 
-It's backed by an in-memory array storage layer — no external database
-required.
+It's backed by an in-memory, fixed-size array storage layer — no external
+database required, and nothing persists once the process exits.
 
 ---
 
 ## 2. What this project does NOT use
 
-- **No Maven / Gradle** — pure plain-Java compilation (`javac` or any IDE).
-- **No database driver** — no JDBC, no PostgreSQL, no external `.jar` dependencies.
-- **No `.env` file** — credentials are irrelevant because there is no external database.
+- **No database driver** — no JDBC, no PostgreSQL, no external `.jar`
+  dependencies for persistence.
+- **No `.env` file** — credentials are irrelevant because there is no
+  external database.
+- **No `src/main/java` + `src/test/java` split** — main and test code
+  share one `src/` tree (see §3); `pom.xml` excludes `tests/**` from the
+  main compile step specifically to keep this layout working with Maven.
+
+It **does** use Maven (`pom.xml` at the project root) to manage the
+JUnit 5 + Mockito test dependencies and run the suite via `mvn test` —
+this was added after the project started (see CHANGELOG.md, KI-12), so
+don't assume "plain `javac`, no build tool" from the original plan below.
 
 ---
 
@@ -34,86 +52,127 @@ required.
 
 ```
 src/
-├── Main.java                     composition root + console menu loop
+├── Main.java                     composition root: builds the dependency graph
+│                                  and a List<MenuAction>, then dispatches
+├── console/                      one MenuAction implementation per menu feature
+│   ├── MenuAction.java            interface: getOptionNumber, getLabel, execute,
+│   │                               isAuthorizedFor(Role), terminatesLoop
+│   ├── AddStudentAction.java      ...RecordGradeAction, ViewGradeReportAction,
+│   │                               ExportGradeReportAction, CalculateGpaAction,
+│   │                               BulkImportAction, ClassStatisticsAction,
+│   │                               SearchStudentsAction, ExitAction
+│   └── ConsoleUtils.java          promptEnter(), getAvailableStudentIds() - shared
+│                                  by more than one action
 ├── model/
 │   ├── student/                  Student (abstract), RegularStudent, HonorsStudent
 │   ├── subject/                  Subject (abstract), CoreSubject, ElectiveSubject
 │   ├── grade/                    Grade, Gradable (interface)
-│   └── enums/                    StudentType, StudentStatus, SubjectType, LetterGrade
+│   └── enums/                    Role, StudentType, StudentStatus, SubjectType,
+│                                  LetterGrade, GpaLetterGrade
 ├── manager/
-│   ├── StudentManager.java       facade over StudentService/GradeManager; the class Main actually talks to for students
-│   └── GradeManager.java         facade over GradeService/SubjectRepository; the class Main actually talks to for grades
-├── service/                      business-logic interfaces (StudentService, GradeService)
-├── service/serviceimpl/          business-logic implementations (GradeServiceImpl, StudentServiceImpl)
-├── repository/                   persistence interfaces (StudentRepository, SubjectRepository, GradeRepository)
-│   ├── impl/                     StudentRepositoryImpl (in-memory Student[50] array)
-│   ├── subject/impl/             SubjectRepositoryImpl (in-memory Subject[50] array)
-│   └── grade/impl/               GradeRepositoryImpl (in-memory Grade[200] array)
-├── validation/                   StudentValidator, SubjectValidator, GradeValidator — plain static range/format checks
-└── exceptions/                   StudentNotFoundException, StudentValidationException,
-                                   exceptions/grades/GradeException,
-                                   exceptions/subjects/{SubjectNotFoundException, SubjectValidationException}
+│   ├── StudentManager.java       facade over StudentService/GradeManager
+│   ├── GradeManager.java         facade over GradeService/SubjectRepository
+│   ├── StudentSearcher.java      implements Searchable (colocated, same package)
+│   └── Searchable.java
+├── service/                      StudentService + StudentServiceImpl,
+│                                  GradeService + GradeServiceImpl -
+│                                  interface and Impl colocated in one package
+├── repository/
+│   ├── student/                  StudentRepository + StudentRepositoryImpl
+│   │                               (Student[50] array)
+│   ├── grade/                    GradeRepository + GradeRepositoryImpl
+│   │                               (Grade[200] array)
+│   └── subject/                  SubjectRepository + SubjectRepositoryImpl
+│                                   (Subject[50] array)
+├── calculators/                  GPACalculator + Calculable (colocated),
+│                                  StatisticsCalculator
+├── export/                       ReportGenerator + Exportable (colocated),
+│                                  FileExporter
+├── imports/                      CSVParser, BulkImportService
+├── dto/ + mapper/                StudentDTO/StudentMapper, GradeDTO/GradeMapper -
+│                                  used only by Search Students and the exported
+│                                  detailed report; Add Student/Record Grade still
+│                                  use real model/ objects
+├── utils/                        InputSanitizer, DateFormats
+│   └── validators/               StudentValidator, SubjectValidator
+├── logging/                      Logger (DEBUG/INFO/WARN/ERROR, no dependency)
+└── exceptions/                   ApplicationException (common abstract root) +
+                                   nine custom exceptions extending it
 ```
+
+No `interfaces/`, `validation/`, `service/serviceimpl/`, or
+`repository/*/impl/` package exists anymore — see CHANGELOG.md's
+"Professional structure & SOLID refactor" section for why each of those
+was folded into the layout above.
 
 ---
 
 ## 4. How the folders interact
 
-Request flow for any menu action, e.g. **Record Grade**:
+Request flow for a menu action, e.g. **Record Grade** (option 3):
 
 ```
-Main (menu loop, Scanner I/O)
-  -> manager.GradeManager           "what the app-level feature needs"
-       -> service.GradeService (interface)
-            -> serviceimpl.GradeServiceImpl   business rules: student exists?
-                 subject exists? grade in range?
-                 -> repository.StudentRepository / SubjectRepository (existence checks)
-                 -> validation.GradeValidator  (0-100 range check)
-                 -> repository.GradeRepository (interface)
-                      -> repository.grade.impl.GradeRepositoryImpl (in-memory HashMap)
+Main (builds the dependency graph, holds List<MenuAction>)
+  -> console.RecordGradeAction.execute()   the only class doing Scanner I/O
+       -> manager.GradeManager               "what the app-level feature needs"
+            -> service.GradeService (interface)
+                 -> service.GradeServiceImpl   business rules: student exists?
+                      subject exists? grade in range?
+                      -> repository.StudentRepository / SubjectRepository (existence checks)
+                      -> model.grade.Grade constructor (0-100 range check, via Gradable)
+                      -> repository.GradeRepository (interface)
+                           -> repository.grade.GradeRepositoryImpl (Grade[200] array)
 ```
 
 Rules of the layering:
 
-- **`Main`** is the only class allowed to `new` up concrete implementations
-  (`StudentRepositoryImpl`, `GradeServiceImpl`, etc.) and wire them together.
-  It never contains SQL and never touches a repository directly — it only
-  calls `StudentManager` / `GradeManager`.
-- **`manager/`** is the layer Main actually depends on. `StudentManager`
-  wraps `StudentService` and, on every read, asks `GradeManager` to
-  "hydrate" a `Student` object's transient grade list (grades live in a
-  separate `GradeRepository` — see [Section 6](#6-why-studentgetgrades-is-hydrated-on-read))
-  so `calculateAverageGrade()` / `isPassing()` / honors eligibility are
+- **`Main`** is the only class allowed to `new` up concrete
+  implementations (`StudentRepositoryImpl`, `GradeServiceImpl`, etc.) and
+  wire them together. It has no business logic and no console formatting
+  of its own — it builds one `console/*Action` instance per menu option
+  and dispatches a chosen number to the matching one.
+- **`console/`** is the only layer that touches `Scanner`/`System.out`.
+  Each `MenuAction` owns exactly one menu feature end-to-end (I/O,
+  calling the right manager/calculator, printing the result), so adding,
+  removing, or reordering a menu option never requires touching `Main`.
+- **`manager/`** is the layer `console/` actually depends on.
+  `StudentManager` wraps `StudentService` and, on every read, asks
+  `GradeManager` to "hydrate" a `Student` object's transient grade list
+  (grades live in a separate `GradeRepository` — see
+  [Section 6](#6-why-studentgetgrades-is-hydrated-on-read)) so
+  `calculateAverageGrade()` / `isPassing()` / honors eligibility are
   correct without the caller having to know that.
-- **`service` / `serviceimpl`** hold the actual business rules (does the
-  student/subject exist, is the grade in range) and are the only callers of
-  `validation/`.
-- **`repository` (interfaces) / `repository/*/impl` (HashMap)** are the only
-  place data-access logic lives.
-- **`model/`** (`Student`, `Subject`, `Grade`, the enums) has no dependency
-  on anything else — it's pure data + the domain rules that don't need any
-  storage layer (e.g. `Student.isPassing()`, `Grade.getLetterGrade()`).
+- **`service/`** holds the actual business rules (does the
+  student/subject exist, is the grade in range) and is the only caller of
+  `utils.validators`. Its interface and `Impl` live in the same package.
+- **`repository/{student,grade,subject}/`** are the only place
+  data-access logic lives — each subpackage colocates its interface with
+  its one `Impl`, which is backed by a fixed-size array, not a `HashMap`.
+- **`model/`** (`Student`, `Subject`, `Grade`, the enums) has no
+  dependency on anything else — it's pure data plus the domain rules that
+  don't need any storage layer (e.g. `Student.isPassing()`,
+  `Grade.getLetterGrade()`).
 
 ---
 
 ## 5. Data Mapping & Integrity
 
-### Three independent stores (normalized)
+### Three independent stores (normalized), each a fixed-size array
 
-Data is split across three separate `HashMap` repositories — each owns one
-entity type and has no knowledge of the others' internals:
+Data is split across three separate array-backed repositories — each
+owns one entity type and has no knowledge of the others' internals:
 
 ```
 StudentRepositoryImpl          SubjectRepositoryImpl          GradeRepositoryImpl
-  HashMap<String, Student>       HashMap<String, Subject>       HashMap<String, Grade>
-  key: student_id                key: subject_code              key: grade_id
+  Student[50]                    Subject[50]                    Grade[200]
+  matched by student_id           matched by subject_code         matched by grade_id
   e.g. "STU001" -> Student       e.g. "MATH01" -> CoreSubject   e.g. "GRD001" -> Grade
 ```
 
 ### How a Grade connects a Student to a Subject
 
-A `Grade` object carries two references that link it back to its student and
-subject:
+A `Grade` object carries two references that link it back to its student
+and subject:
 
 ```
 Grade
@@ -123,136 +182,153 @@ Grade
 │   ├── subjectCode: "MATH01"
 │   └── subjectName: "Mathematics"
 ├── gradeValue:  85.0
-└── date:        "2026-07-07"
+└── date:        "07-07-2026"      ← dd-MM-yyyy, via utils.DateFormats.DISPLAY_DATE
 ```
 
-The `studentId` is a `String` that must match a key in `StudentRepositoryImpl`.
-The `subject` field holds a direct object reference to the `Subject` from
-`SubjectRepositoryImpl` — so `grade.getSubject().getSubjectName()` works
-without any lookup.
+The `studentId` is a `String` that must match a key already stored in
+`StudentRepositoryImpl`. The `subject` field holds a direct object
+reference to the `Subject` from `SubjectRepositoryImpl` — so
+`grade.getSubject().getSubjectName()` works without any lookup.
 
 ### Querying: retrieving a specific student's grades
 
-Since all grades share one `HashMap`, filtering is done by stream:
+`GradeRepositoryImpl.findGradesByStudentId(studentId)` scans its array
+and filters:
 
 ```
 GradeRepositoryImpl
   .findGradesByStudentId(studentId)
-    → gradesMap.values().stream()
-        .filter(g -> g.getStudentId().equals(studentId))
-        .collect(toList())
+    → for each non-null slot in the Grade[200] array
+        keep only grades where g.getStudentId().equals(studentId)
 ```
 
-This returns only the grades whose `studentId` matches the requested student.
-No other student's grades can leak in — the filter guarantees isolation.
+This returns only the grades whose `studentId` matches the requested
+student. No other student's grades can leak in — the filter guarantees
+isolation.
 
 ### Data integrity (no overlapping, no orphans)
 
 | Concern | How it's enforced |
 |---|---|
-| **No duplicate keys** | Each entity type uses its own ID namespace (`STU001`, `SUB001`, `GRD001`) stored as `HashMap` keys — by definition unique. |
-| **No overlapping IDs** | Prefixes are hard-coded per type (`STU` / `GRD`), so a student ID and a grade ID can never collide even though they share a counter-like pattern. |
+| **No duplicate keys** | Each entity type generates its own ID prefix (`STU`/`GRD`) plus a zero-padded sequence number (`Student.studentCounter`, `Grade.gradeCounter`) — unique by construction. |
+| **No overlapping IDs** | Prefixes are hard-coded per type, so a student ID and a grade ID can never collide even though both are `PREFIX###`. |
 | **Referential integrity (student exists)** | `GradeServiceImpl.recordGrade()` calls `studentRepository.findStudentById(id)` *before* persisting the grade — throws `StudentNotFoundException` if the student doesn't exist. |
-| **Referential integrity (subject exists)** | Same check against `subjectRepository.findByCode(code)` before persisting. |
-| **Grade value integrity** | `Grade.recordGrade()` delegates to `validateGrade()` (the `Gradable` contract) which enforces `0 <= value <= 100`. |
+| **Referential integrity (subject exists)** | Same check against `subjectRepository.findSubjectByCode(code)` before persisting. |
+| **Grade value integrity** | `Grade`'s constructor delegates to `recordGrade()`/`validateGrade()` (the `Gradable` contract), which enforces `0 <= value <= 100` before the object even gets an ID or date. |
 | **Transient grade list** | `Student.grades` is a `List<Double>` hydrated on read (see §6 below). The source of truth is always `GradeRepositoryImpl` — the list is a denormalized snapshot for computing averages, not the canonical store. |
 
-### Why three maps instead of embedding grades in Student
+### Why three arrays instead of embedding grades in Student
 
-If each `Student` owned its own `List<Grade>`, queries like "find all students
-who scored above 90 in Mathematics" would require scanning every student's
-list. By keeping grades in their own `HashMap`, the data is *normalized*:
-grades are queryable by student, subject, value range, or date without
-touching any other data structure. The transient `List<Double>` on `Student`
-is a read-time convenience copy (see §6 below).
+If each `Student` owned its own `List<Grade>`, queries like "find all
+students who scored above 90 in Mathematics" would require scanning
+every student's list. By keeping grades in their own array, the data is
+*normalized*: grades are queryable by student, subject, value range, or
+date without touching any other data structure. The transient
+`List<Double>` on `Student` is a read-time convenience copy (see §6
+below).
 
 ---
 
 ## 6. Why `Student.getGrades()` is hydrated on read
 
 `Student` keeps a transient `List<Double> grades` in memory (used by
-`calculateAverageGrade()` / `isPassing()` / `HonorsStudent.checkHonorsEligibility()`),
-but grades are stored in a separate `GradeRepository` (its own `HashMap`),
-not on the `Student` object directly. A newly loaded `Student` therefore
-starts with an *empty* grade list.
+`calculateAverageGrade()` / `isPassing()` /
+`HonorsStudent.checkHonorsEligibility()`), but grades are stored in a
+separate `GradeRepository` (its own array), not on the `Student` object
+directly. A newly loaded `Student` therefore starts with an *empty*
+grade list.
 
 `StudentManager` fixes this: every time it hands back a `Student` (from
-`findStudent`, `viewAllStudents`, `getAverageClassGrade`), it first clears
-and re-populates that list from `GradeManager.getGradesForStudent(id)` and
-re-runs `checkHonorsEligibility()` for `HonorsStudent`s. Any code path that
-gets a `Student` from `StudentManager` sees an accurate average — no caller
+`findStudent`, `getAllStudents`), it first clears and re-populates that
+list from `GradeManager.getGradesForStudent(id)` and re-runs
+`checkHonorsEligibility()` for `HonorsStudent`s. Any code path that gets
+a `Student` from `StudentManager` sees an accurate average — no caller
 has to remember to do this manually.
 
 ---
 
 ## 7. Deviations from the original plan
 
-`Plan.md` in this folder planned for PostgreSQL, a `controller/` package,
-Maven, and a `config/` package. What actually shipped instead:
+`Plan.md` in this folder planned for PostgreSQL, a `controller/`
+package, and a `config/` package. What actually shipped instead:
 
 | Planned | Actual | Why |
 |---|---|---|
-| PostgreSQL persistence | In-memory `HashMap` storage in `repository/*/impl` | The assessment brief required in-memory storage. No external DB needed. |
+| PostgreSQL persistence | In-memory, fixed-size arrays in `repository/*` | The assessment brief required in-memory, array-based storage. No external DB needed. |
 | `config/DatabaseConfig` / `ConnectionManager` | Not created | No database to configure. |
-| Maven build (`pom.xml`) | Plain `.java` files, compile with `javac` or any IDE | No external dependencies to manage. |
-| `StudentManager` / `GradeManager` backed by **arrays** (the original lab spec's requirement) | Backed by **arrays** (`Student[50]`, `Grade[200]`) in repository layer | Uses primitive arrays for storage as required by the README spec. |
-| `controller/StudentController`, `controller/GradeController` | `Main.java` does menu I/O directly, delegating straight to `manager/` | The controller layer was folded into `Main` — one less indirection for a console app this size. |
-| Role-based access always enabled | Optional role-based access control prompted on startup | Defaults to simple 5-option menu; user can opt into role-based mode. |
-| 9 required classes (arrays) | ~20 classes with layered architecture | Kept the layered architecture but switched repositories from HashMap to arrays. |
+| `HashMap` storage (an earlier interim step) | `Student[50]` / `Grade[200]` / `Subject[50]` arrays | Switched from `HashMap` to arrays to match the assessment brief's array-based storage requirement exactly. |
+| `controller/StudentController`, `controller/GradeController` | `console/*Action` classes, one per menu feature | Functionally the same role as a controller layer, but named/organized around "one class per menu option" rather than "one controller per entity" — see CHANGELOG.md's SRP fix for why `Main` itself stopped doing this directly. |
+| Role-based access always enabled | Optional role-based access control prompted on startup | Defaults to the full menu; user can opt into role-based mode. |
+| 9 required classes | ~40 classes across a layered architecture | Kept (and later tightened) the layered architecture rather than the original spec's flat 9-class design. |
 
 ---
 
 ## 8. ID generation
 
 `Student` and `Grade` each keep a `private static int` counter
-(`studentCounter`, `gradeCounter`) that generates `STU001`, `GRD001`, etc.
-On startup, `StudentManager` and `GradeManager` call
-`Student.initializeCounter(...)` / `Grade.initializeCounter(...)`, scanning
-the existing in-memory entries for the highest sequence number already in
-use. Since data is not persisted across restarts, this is primarily useful
-when seed data has been pre-loaded.
+(`studentCounter`, `gradeCounter`) that generates `STU001`, `GRD001`,
+etc. On startup, `StudentManager` and `GradeManager` call
+`Student.initializeCounter(...)` / `Grade.initializeCounter(...)`,
+scanning the existing in-memory entries for the highest sequence number
+already in use. Since data is not persisted across restarts, this is
+primarily useful when seed data has been pre-loaded.
 
 ---
 
 ## 9. Role-Based Access (Optional)
 
 On startup, the app asks whether to enable role-based access control. If
-the user answers `N` (default), the simple 5-option menu is shown with no
-restrictions — matching the README specification exactly.
+the user answers `N` (default), the full 10-option menu is shown with no
+restrictions.
 
 If the user answers `Y`, a role prompt appears, and the selected role
-(`TEACHER` or `STUDENT`) is preserved for the session. Menu rendering and
-action authorization both depend on it.
+(`TEACHER` or `STUDENT`, `model.enums.Role`) is preserved for the
+session. Menu rendering and action authorization both depend on it.
 
-| Action | TEACHER | STUDENT |
-|---|---|---|
-| Add Student | ✓ | ✗ |
-| View Students | ✓ | ✓ |
-| Record Grade | ✓ | ✗ |
-| View Grade Report | ✓ | ✓ |
-| Exit | ✓ | ✓ |
+| Option | Action | TEACHER | STUDENT |
+|---|---|---|---|
+| 1 | Add Student | ✓ | ✗ |
+| 2 | View Students | ✓ | ✗ |
+| 3 | Record Grade | ✓ | ✗ |
+| 4 | View Grade Report | ✓ | ✓ |
+| 5 | Export Grade Report | ✓ | ✓ |
+| 6 | Calculate Student GPA | ✓ | ✓ |
+| 7 | Bulk Import Grades | ✓ | ✓ |
+| 8 | View Class Statistics | ✓ | ✓ |
+| 9 | Search Students | ✓ | ✓ |
+| 10 | Exit | ✓ | ✓ |
 
-Authorization is enforced at two points:
-- **Menu rendering** (`printMenu`) — only authorized options are printed.
-- **Action gate** (`isAuthorized`) — if a STUDENT enters an unauthorized
-  option number directly, the request is rejected before any action runs.
+Authorization is enforced at two points, both in `Main`'s loop — never
+inside an action itself:
 
-This keeps the switch statement in `Main` unchanged (all 8 cases) while
-the role logic stays in two small helper methods — no permissions leak
-into any service or repository layer.
+- **Menu is unfiltered, action dispatch is gated** — `printMenu()` always
+  lists all 10 options (matching the original console output), but before
+  calling `action.execute()`, `Main` checks
+  `useRoleBased && !action.isAuthorizedFor(currentRole)`. A STUDENT
+  choosing an unauthorized option sees "Access denied..." and the loop
+  continues without ever calling that action.
+- **Per-action, not per-number** — each `MenuAction` overrides
+  `isAuthorizedFor(Role)` itself (`AddStudentAction`, `ViewStudentsAction`,
+  and `RecordGradeAction` return `role == Role.TEACHER`; every other
+  action accepts the interface's default `true`). Adding a new menu
+  option never requires touching a shared "if choice is between X and Y"
+  check, since there isn't one anymore.
 
 ---
 
 ## 10. Running it
 
-1. Open the project in any Java IDE (IntelliJ, VS Code, Eclipse, etc.).
-2. Compile and run `Main.java` — no special classpath or external setup
-   required.
-3. Optionally enable **role-based access** — if you answer `Y` at the prompt,
-   you choose `TEACHER` or `STUDENT`, which determines available menu options.
-   Answer `N` to skip and access all features.
-4. As a **Teacher** you have full access: add students, view students, record
-   grades, view grade reports.
-5. As a **Student** you can only view students and grade reports (options 2, 4).
-6. 5 sample students (3 Regular, 2 Honors) and 6 subjects are pre-loaded on
-   every start.
+1. **Via Maven:** `mvn test` from `student-grade-management/` runs the
+   full suite. To run the app itself, compile and run `Main` (e.g. from
+   an IDE, or `java -cp target/classes Main` after `mvn compile`).
+2. Optionally enable **role-based access** — if you answer `Y` at the
+   prompt, you choose `TEACHER` or `STUDENT`, which determines available
+   menu options per the table in §9. Answer `N` to skip and access all
+   ten features.
+3. As a **Teacher** you have full access: add students, view students,
+   record grades, plus everything a Student can do.
+4. As a **Student** you can view/export/report/search/statistics/import
+   (options 4–9) and exit, but cannot add students, view the full
+   listing, or record grades (options 1–3).
+5. 5 sample students (3 Regular, 2 Honors) and 6 subjects (3 Core, 3
+   Elective) are pre-loaded on every start.

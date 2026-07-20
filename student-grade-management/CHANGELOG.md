@@ -54,7 +54,11 @@ Commit hashes refer to `develop`.
 - Storage backing switched from `HashMap` to fixed-size arrays across all
   three repositories (`047cd2d`, `2556911`, `8452e2f`), per the assessment's
   array-based storage requirement.
-- Service implementations moved into `service.serviceimpl` (`6a0329e`).
+- Service implementations moved into `service.serviceimpl` (`6a0329e`) —
+  **later undone** by the package-flattening pass described in
+  ["Professional structure & SOLID refactor"](#professional-structure--solid-refactor)
+  below, once `serviceimpl` turned out to be an inconsistent, one-off split
+  not used anywhere else in the codebase.
 - Grade date format corrected to `dd-MM-yyyy` (`6b29fba`).
 
 ### Fixed
@@ -292,3 +296,158 @@ with named constant arrays (`PERCENTAGE_THRESHOLDS`/`GPA_POINTS`/
   even before this review's fix commits).
 - The GPA **points** table (percentage → 4.0-scale number) was always
   correct - only the subsequent points → letter conversion was broken (KI-1).
+
+---
+
+## Professional structure & SOLID refactor
+
+Requested as a follow-up once all 14 requirements-review issues above were
+resolved: make the package structure more professional (clear folders, a
+DTO/Mapper layer, enum-backed static data, a `utils` package for
+validators/sanitizers), then separately, a full SOLID-principles audit of
+the result. Three feature branches, each verified with the full suite and
+a green CI run before merging to `develop` — never straight to `main`.
+
+### `feature/BugFix-professional-structure` (merged `40309b5`)
+
+**Package flattening** (`bb3da93`) — collapsed a set of one-off
+`impl`/`serviceimpl` subpackages that existed for no consistent reason,
+7 files moved via `git mv`, imports fixed up across 20 files:
+
+| Before | After |
+| --- | --- |
+| `exceptions.grades.GradeException` | `exceptions.GradeException` |
+| `exceptions.subjects.SubjectNotFoundException` / `SubjectValidationException` | `exceptions.SubjectNotFoundException` / `SubjectValidationException` |
+| `repository.subject.impl.SubjectRepositoryImpl` | `repository.subject.SubjectRepositoryImpl` |
+| `repository.grade.impl.GradeRepositoryImpl` | `repository.grade.GradeRepositoryImpl` |
+| `service.serviceimpl.StudentServiceImpl` / `GradeServiceImpl` | `service.StudentServiceImpl` / `GradeServiceImpl` |
+
+Verified 304/304 passing before this commit — no behavior changed, only
+where each class lives.
+
+**Enum-backed static data**, replacing booleans and parallel arrays
+(`60e36a8`):
+
+- New `model.enums.Role` (`TEACHER`, `STUDENT`) replaces `Main`'s
+  `boolean isTeacher` flag.
+- `LetterGrade` now carries its own `minPercentage` per constant, so
+  `fromNumeric()` derives from the enum itself instead of a separately
+  hand-maintained if-chain.
+- New `model.enums.GpaLetterGrade` — an 11-constant enum carrying
+  percentage threshold, GPA points, and display label together on one
+  object, replacing `GPACalculator`'s three parallel arrays
+  (`PERCENTAGE_THRESHOLDS`/`GPA_POINTS`/`LETTER_GRADES`, added for the
+  KI-1 fix above) with a single source of truth for the grading table.
+- `StatisticsCalculator`'s grade-distribution labels are now derived from
+  `LetterGrade.values()` instead of a second, independently hardcoded
+  string array — closing off a KI-5-style regression permanently, not
+  just fixing the one instance that had already surfaced.
+- Added `GpaLetterGradeTest` (34 parameterized cases covering every
+  documented percentage and GPA value in `ReadMe-v2.md`'s grading table).
+
+**New `utils` package** (`d44d825`):
+
+- `InputSanitizer.sanitize()` trims and strips control characters from
+  raw console input; wired into every raw name/email/phone/studentId/
+  search-input read in `Main`.
+- `DateFormats` centralizes the five `SimpleDateFormat` patterns that
+  were previously copy-pasted independently into `Logger`, `Grade`,
+  `ReportGenerator`, and `BulkImportService`.
+- `StudentValidator`/`SubjectValidator` later moved into
+  `utils.validators` (`c725026`, committed directly to `develop`) to sit
+  under the same `utils` package, replacing the standalone `validation`
+  package they used to live in.
+
+**DTO/Mapper layer** (`0a9127e`), deliberately scoped to read-only
+display paths only — Add Student and Record Grade keep using real domain
+objects, since they need the full validation/business-rule surface a DTO
+doesn't carry:
+
+- `dto.StudentDTO` + `mapper.StudentMapper` — wired into Search Students'
+  results table and its exported-search-results file.
+- `dto.GradeDTO` + `mapper.GradeMapper` — wired into
+  `ReportGenerator.exportDetailed()`'s grade-history table.
+
+Full suite green (350/350) after all four pieces above.
+
+### `feature/BugFix-solid-principles` (merged `e7d9cbb`)
+
+A full SOLID audit of the result above found Liskov and Interface
+Segregation already clean, and Dependency Inversion already correct via
+constructor injection — but two real gaps:
+
+**OCP fix** (`3c752e5`): `StudentSearcher.searchByType()` took a
+`boolean isHonors`, and `StatisticsCalculator.compareStudentTypes()`
+branched on `instanceof HonorsStudent`, even though every `Student`
+already carried a `StudentType` enum internally — it just was never
+exposed. Adding a third student type later would have meant reworking a
+boolean parameter and every `instanceof` check by hand instead of adding
+one enum constant and one subclass.
+
+**Fix:** `Student` now exposes `abstract StudentType getType()`;
+`getStudentType()` becomes a `final` method delegating to it, removing a
+duplicated `return studentType.name()` override that existed identically
+in both `RegularStudent` and `HonorsStudent`. `Searchable.searchByType()`
+now takes a `StudentType` directly, and both call sites compare
+`getType()` instead of an `instanceof` check. (Deliberately left the
+`instanceof HonorsStudent` checks in `Main` and
+`StudentManager.hydrateGrades()` alone — those call
+`checkHonorsEligibility()`, a genuinely Honors-specific method with no
+equivalent on the base `Student` contract, so there's no enum comparison
+that could replace them.)
+
+**SRP fix** (`3fab1b4`): `Main.java` had grown into a 760-line God
+Class — composition root, console I/O, business orchestration for all 9
+menu features, role authorization, and exception-to-message translation,
+all in one file.
+
+**Fix:** extracted each feature into its own class under a new `console`
+package, implementing a `MenuAction` interface (`getOptionNumber`,
+`getLabel`, `execute`, `isAuthorizedFor(Role)`, `terminatesLoop`):
+`AddStudentAction`, `ViewStudentsAction`, `RecordGradeAction`,
+`ViewGradeReportAction`, `ExportGradeReportAction`, `CalculateGpaAction`,
+`BulkImportAction`, `ClassStatisticsAction`, `SearchStudentsAction`,
+`ExitAction`. `Main` is now only a composition root: it builds the
+dependency graph, holds a `List<MenuAction>`, prints the menu by
+iterating it, and dispatches a chosen number to the matching action —
+adding, removing, or reordering a menu option no longer touches `Main`'s
+own code (this also closes the OCP smell in the old numeric-range
+`isAuthorized(choice)` check, now expressed per action via
+`isAuthorizedFor(Role)`). Also dropped two now-provably-dead "Access
+denied" checks inside the old `addStudent()`/`recordGrade()` bodies:
+`Main`'s outer role gate already blocked those two menu numbers for
+students before either method could ever run, so the checks never
+executed.
+
+`Main` itself has no automated test coverage (it's a console entry point
+reading `stdin`), so this one was verified by hand: full suite green
+(350/350) for every other class, plus manual smoke runs of the compiled
+jar covering add student, search by student ID, role-based access
+denial/allowal, and a clean exit — all byte-for-byte the same prompts and
+output as before the split.
+
+### `feature/BugFix-package-structure` (merged `d46330e`)
+
+A follow-up question about the resulting structure — "why is `calculators`
+not a subfolder of `interfaces`, if `GPACalculator` implements
+`Calculable`?" — surfaced a real inconsistency once traced through: `service`
+and `repository` already colocate each interface with its `Impl` in the
+same package (`service/StudentService.java` +
+`service/StudentServiceImpl.java`), but `Calculable`, `Exportable`, and
+`Searchable` — each with exactly one implementer — were split out into a
+standalone `interfaces` package instead, a second, different convention
+for the identical relationship.
+
+**Fix** (`7c450fd`): moved each interface into its implementer's package
+to match the convention already used elsewhere — `Calculable` →
+`calculators` (implementer: `GPACalculator`), `Exportable` → `export`
+(implementer: `ReportGenerator`), `Searchable` → `manager` (implementer:
+`StudentSearcher`) — and deleted the now-empty `interfaces` package.
+
+Also renamed `tests/Students` → `tests/student`: the only test package in
+capitalized/plural form, breaking both standard Java package naming
+(lowercase) and `tests/README.md`'s own documented rule that test
+packages mirror their source package (the source package is
+`model/student`, singular and lowercase).
+
+No behavior changed; full suite green (350/350) after both fixes.

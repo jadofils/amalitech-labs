@@ -1,7 +1,10 @@
 # Architecture — Student Grade Management System
 
-This document explains how the folders/layers relate and call each other.
-For the phased build order, see [PLAN.md](PLAN.md).
+This document explains how the folders/layers relate and call each other,
+as the code actually stands on `develop` today. For the original,
+pre-implementation plan (PostgreSQL, `controller/`, Maven from day one),
+see [Plan.md](Plan.md); for the full history of how the two diverged, see
+[../CHANGELOG.md](../CHANGELOG.md).
 
 ---
 
@@ -13,38 +16,53 @@ never calls a manager).
 
 ```
                          ┌─────────────┐
-                         │   Main.java │   composition root: builds every
+                         │   Main.java │   composition root only: builds every
                          └──────┬──────┘   object below and wires them together
-                                │ constructs & calls
+                                │ constructs, then dispatches to
                                 ▼
                          ┌─────────────┐
-                         │  manager/   │   facades: hydrates grades, computes
-                         └──────┬──────┘   averages, formats output for Main
-                                │ calls (through the service INTERFACE)
+                         │  console/   │   one MenuAction implementation per
+                         └──────┬──────┘   menu feature — the only console I/O
+                                │ calls (through the manager/calculator/... APIs)
                                 ▼
-                         ┌─────────────┐
-                         │  service/   │   interfaces only — the business contract
-                         └──────┬──────┘   (StudentService, GradeService)
-                                │ implemented by
-                                ▼
-                         ┌─────────────┐
-              ┌──────────┤ serviceimpl/│──────────┐   the real business logic:
-              │          └──────┬──────┘          │   rules, orchestration
-              │ uses            │ uses             │ uses
-              ▼                 ▼                  ▼
-       ┌────────────┐   ┌─────────────┐    ┌───────────────┐
-       │ validation/ │   │ repository/ │    │  exceptions/  │
-       └──────┬──────┘   └──────┬──────┘    └───────────────┘
-              │ throws          │ implemented by
-              ▼                 ▼
-       ┌───────────────┐ ┌──────────────────┐
-        │  exceptions/  │ │ repository/impl/  │  array-backed in-memory
-       └───────────────┘ └──────────────────┘  storage — Student[50], Grade[200], Subject[50] arrays — no DB, no config
+                 ┌──────────────┴───────────────┐
+                 ▼                               ▼
+          ┌─────────────┐                ┌───────────────┐
+          │  manager/   │                │  calculators/  │  GPACalculator,
+          └──────┬──────┘                │  export/       │  ReportGenerator,
+                 │ calls (service         │  imports/      │  BulkImportService -
+                 │ INTERFACE)             └───────┬────────┘  each owns one interface
+                 ▼                                │            colocated with its
+          ┌─────────────┐                         │            sole implementer
+          │  service/   │  interface + Impl                    (Calculable, Exportable)
+          └──────┬──────┘  colocated in the
+                 │ implemented by         same package
+                 ▼
+          ┌─────────────┐
+          │  ...Impl    │   the real business logic: rules, orchestration
+          └──────┬──────┘
+                  │ uses
+        ┌─────────┼───────────┐
+        ▼         ▼           ▼
+ ┌────────────┐ ┌───────────┐ ┌───────────────┐
+ │ utils/     │ │repository/│ │  exceptions/  │
+ │validators/ │ └─────┬─────┘ └───────────────┘
+ └────────────┘       │ implemented by
+                       ▼
+                ┌──────────────────┐
+                │ ...Impl          │  array-backed in-memory storage —
+                └──────────────────┘  Student[50], Grade[200], Subject[50] — no DB, no config
 
        ┌───────────────────────────────────────────────────────
-       │  model/  — Student, Subject, Grade, Gradable
+       │  model/  — Student, Subject, Grade, Gradable, enums/
        │  Referenced by EVERY layer above (method params/return types),
        │  but model/ itself depends on nothing else in the app.
+       └───────────────────────────────────────────────────────
+
+       ┌───────────────────────────────────────────────────────
+       │  dto/ + mapper/  — read-only projections for two display paths
+       │  only (Search Students results, exported detailed report).
+       │  Everywhere else in the app still passes real model/ objects.
        └───────────────────────────────────────────────────────
 ```
 
@@ -54,17 +72,34 @@ never calls a manager).
 
 | Folder | Depends on | Never does |
 |---|---|---|
-| `model/` | nothing (pure domain classes) | no `Scanner`, no `System.out` |
-| `exceptions/` | nothing | no business logic |
-| `validation/` | `model`, `exceptions` | never calls a repository |
-| `repository/` (interfaces) | `model`, `exceptions` | defines *what* persistence can do, not *how* |
-| `repository/impl/` | `model`, `exceptions` | never contains business rules (no "is this Honors-eligible" logic here) |
-| `service/` (interfaces) | `model`, `exceptions` | defines *what* the business layer can do |
-| `serviceimpl/` | `model`, `exceptions`, `validation`, `repository` (interfaces only) | never imports `repository.impl` directly, never touches `Scanner`/`System.out` |
-| `manager/` | `service` (interfaces only), `repository` (interfaces), `model`, `exceptions` | never contains business rules itself — delegates to services, hydrates data |
-| `Main.java` | everything (it's the only class allowed to `new` up every concrete impl) | no business logic, no data-access logic, no console formatting itself |
+| `model/` (incl. `model/enums/`) | nothing (pure domain classes + enums) | no `Scanner`, no `System.out` |
+| `exceptions/` | nothing (all extend the common `ApplicationException`) | no business logic |
+| `utils/`, `utils/validators/` | `model`, `exceptions` | never calls a repository; pure functions only |
+| `repository/{student,grade,subject}/` | `model`, `exceptions` | interface defines *what* persistence can do; `Impl` (same package) defines *how* — array-backed, never a `HashMap` |
+| `service/` | `model`, `exceptions`, `utils.validators`, `repository` (interfaces only) | interface + `Impl` colocated in the same package; `Impl` never imports a repository's `Impl` class directly, only its interface |
+| `manager/` | `service` (interfaces only), `repository` (interfaces), `model` | never contains business rules itself — delegates to services, hydrates data for display |
+| `calculators/`, `export/`, `imports/` | `manager`, `model`, `utils` | each owns one small interface (`Calculable`, `Exportable`) colocated with its one implementer in the same package — no separate `interfaces/` package exists |
+| `dto/`, `mapper/` | `model` | never used by Add Student / Record Grade — those keep working with real domain objects |
+| `console/` | `manager`, `calculators`, `export`, `imports`, `dto`, `mapper`, `utils`, `model.enums.Role` | the only layer that touches `Scanner`/`System.out`; each `MenuAction` owns exactly one menu feature |
+| `Main.java` | everything (it's the only class allowed to `new` up every concrete impl) | no business logic, no data-access logic, no console formatting of its own — it only builds the `console/*Action` instances and dispatches to them |
 
-**The one rule that matters most:** `serviceimpl` depends on the `repository` *interface*, never on `repository.impl` directly. `manager` depends on the `service` *interface*, never on `serviceimpl` directly. Only `Main.java` is allowed to know about concrete implementations — everywhere else, layers talk to interfaces. This is what makes it possible to swap `StudentRepositoryImpl` for a different storage engine later without touching `serviceimpl` at all.
+**The one rule that matters most:** every `...Impl` class depends on the
+*interface* one layer down, never on another layer's `Impl` directly.
+`service.StudentServiceImpl` depends on `repository.StudentRepository`
+(the interface), never on `StudentRepositoryImpl`. Only `Main.java` is
+allowed to know about concrete implementations — everywhere else, layers
+talk to interfaces. This is what makes it possible to swap
+`StudentRepositoryImpl` for a different storage engine later without
+touching `StudentServiceImpl` at all.
+
+**Why interfaces sit next to their implementer instead of in one shared
+`interfaces/` folder:** `StudentService`/`StudentServiceImpl`,
+`StudentRepository`/`StudentRepositoryImpl`, `Calculable`/`GPACalculator`,
+`Exportable`/`ReportGenerator`, and `Searchable`/`StudentSearcher` are all
+colocated this way — a single, consistent convention across the whole
+codebase (this used to be split two ways; see CHANGELOG.md's "Professional
+structure & SOLID refactor" section for why it was unified). The `console`
+package's own `MenuAction` interface follows the same pattern.
 
 ---
 
@@ -73,30 +108,67 @@ never calls a manager).
 Tracing the recording of a Mathematics grade for STU001 through the
 folders, to make the diagram concrete:
 
-1. **`Main`** already built one `GradeManager`, wired to a `GradeService` (backed by `GradeServiceImpl`).
-2. User picks menu option 6 → **`Main`** reads student ID, subject type, subject choice, and grade value via `Scanner`.
-3. `Main` calls `gradeManager.addGrade(grade)` — it only knows the `manager/GradeManager` facade.
-4. **`manager/GradeManager.addGrade(...)`** delegates to `gradeService.recordGrade(...)`.
-5. **`serviceimpl/GradeServiceImpl.recordGrade(...)`** runs:
-   a. Calls **`validation/GradeValidator`** to check `0 <= grade <= 100` — throws **`exceptions/GradeException`** if not.
-   b. Calls **`repository/StudentRepository.findStudentById(studentId)`** (interface) — runs through **`repository/impl/StudentRepositoryImpl`** (in-memory `HashMap`). Throws **`exceptions/StudentNotFoundException`** if missing.
-   c. Calls **`repository/SubjectRepository.findByCode(subjectCode)`** the same way.
-   d. Builds a **`model/Grade`** object, calls **`repository/GradeRepository.addGrade(grade)`**.
-   e. Recomputes the student's average via existing grades (fetched through `GradeRepository`), updates `honorsEligible` if the student is a **`model/HonorsStudent`**, and updates through `StudentRepository`.
-6. Control returns to `Main`, which prints the `GRADE CONFIRMATION` block.
+1. **`Main`** already built one `GradeManager`, wired to a `GradeService`
+   (backed by `GradeServiceImpl`), and one `RecordGradeAction` holding
+   references to both.
+2. User picks menu option 3 → **`console/RecordGradeAction.execute()`**
+   reads student ID, subject type, subject choice, and grade value via
+   `Scanner`, sanitizing free-text input through `utils.InputSanitizer`.
+3. `RecordGradeAction` calls `gradeManager.addGrade(grade)` — it only
+   knows the `manager/GradeManager` facade, never a service or repository
+   directly.
+4. **`manager/GradeManager.addGrade(...)`** delegates to
+   `gradeService.recordGrade(...)`.
+5. **`service/GradeServiceImpl.recordGrade(...)`** runs:
+   a. Calls **`repository/StudentRepository.findStudentById(studentId)`**
+      (interface) — runs through **`repository/student/StudentRepositoryImpl`**
+      (a `Student[50]` array, not a `HashMap`). Throws
+      **`exceptions/StudentNotFoundException`** if missing.
+   b. Calls **`repository/SubjectRepository.findSubjectByCode(subjectCode)`**
+      the same way.
+   c. Builds a **`model/grade/Grade`** object — its constructor itself
+      validates `0 <= grade <= 100` via the `Gradable` contract, throwing
+      **`exceptions/InvalidGradeException`** if not.
+   d. Calls **`repository/GradeRepository.addGrade(grade)`**
+      (interface) → **`repository/grade/GradeRepositoryImpl`** (a
+      `Grade[200]` array).
+6. Control returns to `RecordGradeAction`, which prints the
+   `GRADE CONFIRMATION` block; `Main`'s loop reads the next menu choice.
 
-Every arrow in that trace matches an arrow in the diagram above — nothing skips a layer.
+Every arrow in that trace matches an arrow in the diagram above — nothing
+skips a layer.
 
 ---
 
 ## 4. Why This Shape (for when it feels like overkill)
 
-Nine classes in the original spec becomes ~20 here. That's not accidental
-complexity — each split maps to one question:
-
-- **`model` vs `repository`** — "what is a Student" vs "how do I save one." A `Student` object should be usable in a unit test with zero storage involved.
-- **`repository` interface vs `repository/impl`** — "what can I ask the data layer for" vs "how it's actually fetched." Lets `serviceimpl` be written and reasoned about before `repository/impl` even compiles.
-- **`service` vs `serviceimpl`** — same split, one level up: "what can the app do" vs "how it does it."
-- **`validation` and `exceptions` as their own folders** — keeps `serviceimpl` readable; business logic shouldn't be interleaved with a wall of `if (grade < 0) throw ...` checks.
-- **`manager`** — the layer that Main actually depends on, providing a higher-level API (hydrate grades, compute averages, format reports) without Main needing to orchestrate multiple services itself.
-- **No `controller` package** — Main handles menu I/O directly, since the app is small enough that a separate controller layer adds indirection without benefit.
+- **`model` vs `repository`** — "what is a Student" vs "how do I save
+  one." A `Student` object should be usable in a unit test with zero
+  storage involved.
+- **`repository` interface vs `Impl` (same package)** — "what can I ask
+  the data layer for" vs "how it's actually fetched." Lets
+  `service.*Impl` be written and reasoned about before a given `Impl`
+  even compiles.
+- **`service` interface vs `Impl` (same package)** — same split, one
+  level up: "what can the app do" vs "how it does it."
+- **`utils.validators` and `exceptions` as their own packages** — keeps
+  `service.*Impl` readable; business-rule validation shouldn't be
+  interleaved with a wall of `if (grade < 0) throw ...` checks, and every
+  custom exception shares one root (`ApplicationException`) so `Main`
+  never needs a generic `catch (Exception e)`.
+- **`manager`** — the layer most of `console/` actually depends on,
+  providing a higher-level API (hydrate grades, compute averages, format
+  reports) without each `MenuAction` needing to orchestrate multiple
+  services itself.
+- **`console/` (not a `controller` package)** — one class per menu
+  feature, all implementing `MenuAction`. This replaced a single
+  760-line `Main` that mixed console I/O, orchestration, and
+  authorization for every feature in one file — see CHANGELOG.md's SRP
+  fix for the full reasoning. The app is still small enough that this is
+  the only "controller-shaped" layer it needs; there's no separate
+  `service`-facing controller on top of it.
+- **`dto`/`mapper`, scoped narrowly** — only Search Students' results and
+  the exported detailed report go through a DTO. Add Student and Record
+  Grade intentionally keep using real domain objects, because they still
+  need the full validation surface (`utils.validators`) that a
+  display-only DTO has no reason to carry.
