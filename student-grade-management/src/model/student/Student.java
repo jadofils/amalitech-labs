@@ -68,6 +68,12 @@ public abstract class Student {
         grades.add(grade);
     }
 
+    // Replace all grades with a single grade
+    public void setGrade(double grade) {
+        this.grades.clear();
+        this.grades.add(grade);
+    }
+
     // Calculate average grade
     public double calculateAverageGrade() {
         if (grades.isEmpty()) return 0.0;

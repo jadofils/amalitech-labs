@@ -47,7 +47,7 @@ public class HonorsStudent extends Student {
 
     // Method to check honors eligibility
     public boolean checkHonorsEligibility() {
-        honorsEligible = calculateAverageGrade() >= 85.0;
+        honorsEligible = calculateAverageGrade() >= getPassingGrade();
         return honorsEligible;
     }
 }
