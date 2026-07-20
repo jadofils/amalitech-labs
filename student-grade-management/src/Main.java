@@ -605,6 +605,7 @@ public class Main {
         System.out.println("\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500");
         System.out.printf("Mean (Average):      %.1f%%%n", stats.getMean());
         System.out.printf("Median:              %.1f%%%n", stats.getMedian());
+        System.out.printf("Mode:                %.1f%%%n", stats.getMode());
         System.out.printf("Standard Deviation:  %.1f%%%n", stats.getStdDev());
         System.out.printf("Range:               %.1f%% (%.0f%% - %.0f%%)%n", stats.getRange(), stats.getMin(), stats.getMax());
 
