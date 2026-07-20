@@ -45,7 +45,7 @@ public class Main {
     private static final StudentManager studentManager = new StudentManager(studentService, gradeManager);
     private static final ReportGenerator reportGenerator = new ReportGenerator(gradeManager);
     private static final FileExporter fileExporter = new FileExporter();
-    private static final GPACalculator gpaCalculator = new GPACalculator();
+    private static final GPACalculator gpaCalculator = new GPACalculator(gradeManager, studentManager);
     private static final BulkImportService bulkImportService = new BulkImportService(subjectRepository, studentManager, gradeManager);
     private static final StatisticsCalculator statisticsCalculator = new StatisticsCalculator();
     private static final StudentSearcher studentSearcher = new StudentSearcher(studentManager);
@@ -477,7 +477,7 @@ public class Main {
         System.out.println("\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500");
 
         List<Grade> grades = gradeManager.getGradesForStudent(studentId);
-        double cumulativeGPA = gpaCalculator.cumulativeGPA(grades);
+        double cumulativeGPA = gpaCalculator.cumulativeGPA(studentId);
 
         for (Grade g : grades) {
             double gpa = gpaCalculator.percentageToGPA(g.getGrade());
@@ -490,10 +490,7 @@ public class Main {
         System.out.println("Letter Grade: " + gpaCalculator.gpaToLetter(cumulativeGPA));
 
         List<Student> allStudents = studentManager.getAllStudents();
-        List<Double> classAverages = allStudents.stream()
-                .map(Student::calculateAverageGrade)
-                .collect(java.util.stream.Collectors.toList());
-        int rank = gpaCalculator.classRank(studentId, student.calculateAverageGrade(), classAverages);
+        int rank = gpaCalculator.classRank(studentId);
         System.out.println("Class Rank: " + rank + " of " + allStudents.size());
 
         System.out.println("\nPerformance Analysis:");
