@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, develop, 'feature/**']
   pull_request:
-    branches: [main]
+    branches: [main, develop]
 
 jobs:
   build-and-test-contacts:
@@ -20,3 +20,18 @@ jobs:
           java-version: '21'
       - name: Compile and run tests
         run: bash scripts/test.sh
+
+  build-and-test-student-grade-management:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: student-grade-management
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+      - name: Build and run tests (Maven)
+        run: mvn -B test

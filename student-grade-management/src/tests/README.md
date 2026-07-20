@@ -1,7 +1,9 @@
 # Test Suite
 
-JUnit 5 (Jupiter) + Mockito tests for the backend. There is no Maven/Gradle in
-this project (see `docs/PROJECT_GUIDE.md`), so dependencies are plain jars.
+JUnit 5 (Jupiter) + Mockito tests for the backend. `pom.xml` at the project
+root now manages these dependencies (`mvn test` is the simplest way to run
+the suite - see below); the plain-jar setup further down still works too and
+is what CI used before the Maven build existed.
 
 ## Layout and naming convention
 
@@ -30,6 +32,18 @@ matters, compare freshly-generated IDs against each other rather than against
 a literal.
 
 ## Running
+
+### Maven
+
+```
+mvn test
+```
+
+That's it - `pom.xml` pulls JUnit 5 and Mockito from Maven Central, compiles
+`src` (excluding `tests/**`) as main code and all of `src` as test code, and
+runs everything via Surefire. This is also what CI runs on every push to a
+`feature/**` branch and on PRs into `develop`/`main`
+(`.github/workflows/ci.yml`, job `build-and-test-student-grade-management`).
 
 ### IntelliJ
 
