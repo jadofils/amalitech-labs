@@ -18,9 +18,17 @@ under `tests/`:
   repository returning `null`) that the real implementation can never
   actually produce but that defensive code still guards against.
 
-`LetterGradeTest` is the one exception - `LetterGrade.fromNumeric()` is a pure
-static function with no collaborators, so there's nothing meaningful to mock
-and no `LetterGradeMockitoTest` exists for it.
+A few classes are the exception to the two-file rule, because they have no
+collaborators to mock in the first place - each just verifies a pure
+function or a mapping over a real domain object, so no `*MockitoTest`
+exists for it:
+
+- `LetterGradeTest`, `GpaLetterGradeTest` - pure enum lookup functions
+- `InputSanitizerTest`, `DateFormatsTest` - pure static utility functions
+- `StudentMapperTest`, `GradeMapperTest` - pure mapping functions over a real
+  domain object (nothing to mock; there's no branching to verify in isolation)
+- `FileExporterTest` - wraps `java.io.FileWriter` directly, with no
+  injected collaborator of its own to mock
 
 ## A note on shared static counters
 

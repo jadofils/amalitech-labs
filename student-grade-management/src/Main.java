@@ -1,5 +1,6 @@
 import calculators.GPACalculator;
 import calculators.StatisticsCalculator;
+import dto.StudentDTO;
 import exceptions.ApplicationException;
 import exceptions.ExportException;
 import exceptions.ImportException;
@@ -16,6 +17,7 @@ import logging.Logger;
 import manager.GradeManager;
 import manager.StudentManager;
 import manager.StudentSearcher;
+import mapper.StudentMapper;
 import model.enums.Role;
 import model.enums.SubjectType;
 import model.grade.Grade;
@@ -35,6 +37,7 @@ import utils.InputSanitizer;
 
 import java.util.List;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 
 public class Main {
     private static final Scanner scanner = new Scanner(System.in);
@@ -687,13 +690,15 @@ public class Main {
 
             searchDesc = studentSearcher.getSearchDescription(option, rawInput);
 
-            System.out.println("\nSEARCH RESULTS (" + results.size() + " found)");
+            List<StudentDTO> resultDtos = results.stream().map(StudentMapper::toDto).collect(Collectors.toList());
+
+            System.out.println("\nSEARCH RESULTS (" + resultDtos.size() + " found)");
             System.out.println("\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500");
             System.out.printf("%-8s | %-18s | %-9s | %s%n", "STU ID", "NAME", "TYPE", "AVG");
             System.out.println("\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500");
-            for (Student s : results) {
+            for (StudentDTO s : resultDtos) {
                 System.out.printf("%-8s | %-18s | %-9s | %.1f%%%n",
-                        s.getStudentId(), s.getName(), s.getStudentType(), s.calculateAverageGrade());
+                        s.getStudentId(), s.getName(), s.getStudentType(), s.getAverageGrade());
             }
 
             System.out.println("\nActions:");
@@ -718,9 +723,9 @@ public class Main {
                 String expName = scanner.nextLine().trim();
                 if (!expName.isEmpty()) {
                     try {
-                        String content = "Search Results: " + searchDesc + "\nFound: " + results.size() + " students\n\n";
-                        for (Student s : results) {
-                            content += s.getStudentId() + " | " + s.getName() + " | " + s.getStudentType() + " | " + String.format("%.1f%%", s.calculateAverageGrade()) + "\n";
+                        String content = "Search Results: " + searchDesc + "\nFound: " + resultDtos.size() + " students\n\n";
+                        for (StudentDTO s : resultDtos) {
+                            content += s.getStudentId() + " | " + s.getName() + " | " + s.getStudentType() + " | " + String.format("%.1f%%", s.getAverageGrade()) + "\n";
                         }
                         fileExporter.exportToFile("search_" + expName + ".txt", content);
                         System.out.println("Results exported to reports/search_" + expName + ".txt");
