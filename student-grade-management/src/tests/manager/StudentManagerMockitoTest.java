@@ -33,7 +33,12 @@ class StudentManagerMockitoTest {
         StudentService studentService = mock(StudentService.class);
         GradeManager gradeManager = mock(GradeManager.class);
         StudentManager manager = new StudentManager(studentService, gradeManager);
-        Student student = new RegularStudent("Musa Nkusi", 17, "musa@school.edu", "1234567890");
+        // Explicit-ID constructor - deliberately not the auto-ID one, since
+        // that ID is shared/static across the whole test run and must never
+        // be assumed to equal a hardcoded literal like "STU001" (see
+        // src/tests/README.md).
+        Student student = new RegularStudent("STU001", "Musa Nkusi", 17, "musa@school.edu",
+                "1234567890", model.enums.StudentStatus.ACTIVE);
         when(studentService.getStudentById("STU001")).thenReturn(student);
         when(gradeManager.getGradesForStudent("STU001")).thenReturn(
                 List.of(new Grade("STU001", subject, 80.0), new Grade("STU001", subject, 90.0)));
