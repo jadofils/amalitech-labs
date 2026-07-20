@@ -1,7 +1,6 @@
 package export;
 
 import dto.GradeDTO;
-import interfaces.Exportable;
 import logging.Logger;
 import manager.GradeManager;
 import manager.StudentManager;

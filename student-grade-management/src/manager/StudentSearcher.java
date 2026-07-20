@@ -1,6 +1,5 @@
 package manager;
 
-import interfaces.Searchable;
 import logging.Logger;
 import model.enums.StudentType;
 import model.student.Student;

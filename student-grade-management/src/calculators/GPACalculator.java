@@ -1,6 +1,5 @@
 package calculators;
 
-import interfaces.Calculable;
 import manager.GradeManager;
 import manager.StudentManager;
 import model.enums.GpaLetterGrade;
