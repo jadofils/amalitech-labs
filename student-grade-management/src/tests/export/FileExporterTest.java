@@ -1,5 +1,6 @@
 package tests.export;
 
+import exceptions.ExportException;
 import export.FileExporter;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -54,5 +55,21 @@ class FileExporterTest {
         assertEquals("report.txt", result.getFileName());
         assertEquals(content.getBytes().length, result.getSize());
         assertEquals(content, Files.readString(Path.of(result.getFilePath())));
+    }
+
+    @Test
+    @DisplayName("exportToFile() wraps a real write failure as ExportException, carrying the file path")
+    void wrapsWriteFailureAsExportExceptionTest() {
+        FileExporter exporter = new FileExporter(testDir);
+        // FileWriter cannot open a directory as if it were a regular file -
+        // a real, reproducible IOException, not a simulated one.
+        new File(testDir, "already_a_directory.txt").mkdirs();
+
+        ExportException ex = assertThrows(ExportException.class,
+                () -> exporter.exportToFile("already_a_directory.txt", "content"));
+
+        assertEquals(testDir + "/already_a_directory.txt", ex.getFilePath());
+        assertTrue(ex.getMessage().contains("Failed to export report"));
+        assertNotNull(ex.getCause());
     }
 }

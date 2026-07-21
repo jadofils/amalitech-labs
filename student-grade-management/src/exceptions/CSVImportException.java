@@ -5,7 +5,7 @@ package exceptions;
  * row being invalid, which {@code imports.CSVParser} collects as a per-row
  * error message instead of throwing. This is the class
  * {@code docs/v2-backlog.md}'s PBI-4 names explicitly; the parser previously
- * reused {@link InvalidFileFormatException} for this instead.
+ * reused a since-removed {@code InvalidFileFormatException} for this instead.
  */
 public class CSVImportException extends ApplicationException {
 
