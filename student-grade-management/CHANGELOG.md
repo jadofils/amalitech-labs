@@ -451,3 +451,123 @@ packages mirror their source package (the source package is
 `model/student`, singular and lowercase).
 
 No behavior changed; full suite green (350/350) after both fixes.
+
+---
+
+## Role enforcement, build tooling, and console testability
+
+### `feature/BugFix-student-read-only` (merged `54a1943`)
+
+Auditing every menu action for read vs. write found that `BulkImportAction`
+(option 7) never overrode `isAuthorizedFor(Role)`, defaulting to the
+`MenuAction` interface's `true` — the one write path (CSV import creates
+new `Grade` records) still reachable by the Student role after the earlier
+OCP/SRP pass.
+
+**Fix** (`e4f6589`): `BulkImportAction.isAuthorizedFor()` now requires
+`Role.TEACHER`, matching Add Student, View Students, and Record Grade —
+every write action is teacher-only; every action a Student can still
+reach is read-only.
+
+### `feature/BugFix-menu-role-filter` (merged `1462f0c`)
+
+Even after the fix above, a Student's menu still *listed* "7. Bulk Import
+Grades" (and the other teacher-only options) — role gating only rejected
+the choice after it was picked, so unauthorized options were visible,
+just non-functional.
+
+**Fix** (`91492a1`): `printMenu()` now skips any option where
+`useRoleBased && !action.isAuthorizedFor(currentRole)`, so a Student's
+menu simply never lists options 1, 2, 3, or 7. Dispatch-time gating stays
+in place too, since a user can still type a number that isn't on their
+filtered menu directly. Verified by hand across Student/Teacher/role-off
+modes. `docs/PROJECT_GUIDE.md`'s role table updated to match (`3691162`).
+
+### Bulk-import CSV fixtures (`147c55f`)
+
+Added three CSV files under `imports/`, built against the real seed data,
+for manual runs of Bulk Import Grades and as reference data for further
+tests: `bulk_import_valid.csv` (7 all-valid rows), `bulk_import_mixed_errors.csv`
+(1 valid row plus one row for every distinct rejection `CSVParser`/
+`BulkImportService` can produce — unknown student, unknown subject,
+subject-type mismatch, out-of-range grade, non-numeric grade, wrong
+column count, unknown subject-type string), and `bulk_import_empty.csv`
+(header only). Each verified by actually running Bulk Import Grades
+against it through the compiled app.
+
+### `feature/BugFix-pom-jacoco-placement` (merged `2a9e6d8`)
+
+An in-progress, uncommitted edit had added the JaCoCo plugin as a
+`<plugin>` element directly inside `<dependencies>` — not a valid
+location; Maven rejected the whole POM as malformed
+("Unrecognised tag: 'plugin'"), breaking every Maven goal, not just a
+specific one.
+
+**Fix** (`cd8d608`): moved it into `<build><plugins>`, alongside the
+existing compiler/surefire plugins. `mvn verify` now succeeds end-to-end
+— 350/350 tests, jar built, JaCoCo report generated for all 69 classes.
+Measured coverage at that point: **92.2%** on business logic (everything
+except the `console`/`Main` UI layer), **98.9%** on `calculators` alone —
+both comfortably clearing the assignment brief's 80%/95% targets.
+
+### `feature/BugFix-sonar-plugin` (merged `afde6e6`)
+
+Registered `sonar-maven-plugin` (3.9.1.2184) in `<build><plugins>`,
+matching the JaCoCo pattern. Not bound to any lifecycle phase, so
+`mvn test`/`mvn verify` are unaffected either way — this only makes
+`mvn sonar:sonar` available once a SonarQube host and token are
+configured. See `docs/PROJECT_GUIDE.md` §11 for how to start a local
+SonarQube server (`StartSonar.bat`) and run the analysis.
+
+### `feature/BugFix-console-testability` (in progress)
+
+Digging into the JaCoCo numbers above surfaced two more findings:
+
+**Dead code removed:** `exceptions.InvalidFileFormatException` was
+referenced nowhere in `src` except its own file and a Javadoc mention in
+`CSVImportException` — it was superseded by `CSVImportException` during
+the KI-10 fix and never deleted. Removed; the stale `@link` reference in
+`CSVImportException`'s Javadoc updated to plain text.
+
+**Exception coverage gaps closed:** added
+`tests/exceptions/ApplicationExceptionHierarchyTest.java`, directly
+exercising every constructor/getter on `StudentNotFoundException`,
+`StudentValidationException`, `SubjectNotFoundException`,
+`SubjectValidationException`, `GradeException`, `InvalidGradeException`,
+`ImportException` (all three constructors), and `CSVImportException`
+(both constructors) — the `exceptions` package's own instruction coverage
+went from 39.7% to 95.6%. Added a `FileExporterTest` case that forces a
+*real* `IOException` (writing to a path that's actually an existing
+directory) to verify `ExportException` wraps it correctly with the file
+path attached, rather than only being reachable in theory.
+
+**`Main` split into `app.Main` (composition root) + `app.ConsoleApp` (the
+menu loop):** the old `Main` bound its `Scanner` to `System.in` in a
+`static final` field, and lived in the default (unnamed) package — no
+test in a named `tests.*` package could ever reference it even if it
+were otherwise testable, since Java doesn't allow importing a class from
+the unnamed package into a named one. `ConsoleApp` is now an ordinary
+instance class in the named `app` package, taking its `Scanner` via
+constructor exactly like every `console.*Action` already did; `Main`
+shrank to composition-root wiring plus `new ConsoleApp(scanner, actions).run()`,
+too thin to need a test of its own. Added `tests/app/ConsoleAppTest.java`
+(scripted `Scanner` input, captured `System.out`, real `MenuAction` test
+doubles) and `tests/app/ConsoleAppMockitoTest.java` (mocked `MenuAction`s,
+verifying dispatch/authorization/retry interactions) — 17 new tests,
+all passing, exercising every exception-translation branch, the
+role-based menu filter, the invalid-input paths, and the
+retry-on-`InvalidGradeException` flow.
+
+Entry point changed from `java -cp target/classes Main` to
+`java -cp target/classes app.Main` — updated in `docs/PROJECT_GUIDE.md`.
+
+**Known, deliberately scoped-out gap:** the 10 individual `console/*Action`
+classes still have no automated tests of their own (0% in JaCoCo) — each
+already takes its `Scanner` via constructor, so the exact same technique
+used for `ConsoleAppTest` would work for each of them; it just hasn't
+been done yet. Documented explicitly in `docs/PROJECT_GUIDE.md` §12
+rather than left implicit.
+
+Full suite: 377/377 passing (up from 350). Overall JaCoCo instruction
+coverage: 65.3% (up from 60.0%); excluding only `console/` (the
+remaining, explicitly-scoped-out gap): 92.3%.

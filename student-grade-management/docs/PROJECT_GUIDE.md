@@ -52,8 +52,12 @@ don't assume "plain `javac`, no build tool" from the original plan below.
 
 ```
 src/
-├── Main.java                     composition root: builds the dependency graph
-│                                  and a List<MenuAction>, then dispatches
+├── app/
+│   ├── Main.java                  composition root: builds the dependency graph
+│   │                               and a List<MenuAction>, hands both to ConsoleApp
+│   └── ConsoleApp.java            the menu loop itself - constructed with a Scanner,
+│                                   so a test can hand it scripted input instead of
+│                                   the real System.in (see §11)
 ├── console/                      one MenuAction implementation per menu feature
 │   ├── MenuAction.java            interface: getOptionNumber, getLabel, execute,
 │   │                               isAuthorizedFor(Role), terminatesLoop
@@ -98,6 +102,8 @@ src/
 ├── logging/                      Logger (DEBUG/INFO/WARN/ERROR, no dependency)
 └── exceptions/                   ApplicationException (common abstract root) +
                                    nine custom exceptions extending it
+                                   (InvalidFileFormatException was removed - dead
+                                   code, superseded by CSVImportException)
 ```
 
 No `interfaces/`, `validation/`, `service/serviceimpl/`, or
@@ -112,8 +118,11 @@ was folded into the layout above.
 Request flow for a menu action, e.g. **Record Grade** (option 3):
 
 ```
-Main (builds the dependency graph, holds List<MenuAction>)
-  -> console.RecordGradeAction.execute()   the only class doing Scanner I/O
+app.Main (builds the dependency graph, exactly once)
+  -> app.ConsoleApp.run()                  the menu loop: print, read, dispatch,
+  |                                         translate exceptions - constructed
+  |                                         with a Scanner, so it's unit-testable
+  -> console.RecordGradeAction.execute()   the only *Action doing Scanner I/O
        -> manager.GradeManager               "what the app-level feature needs"
             -> service.GradeService (interface)
                  -> service.GradeServiceImpl   business rules: student exists?
@@ -126,15 +135,29 @@ Main (builds the dependency graph, holds List<MenuAction>)
 
 Rules of the layering:
 
-- **`Main`** is the only class allowed to `new` up concrete
+- **`app.Main`** is the only class allowed to `new` up concrete
   implementations (`StudentRepositoryImpl`, `GradeServiceImpl`, etc.) and
   wire them together. It has no business logic and no console formatting
-  of its own — it builds one `console/*Action` instance per menu option
-  and dispatches a chosen number to the matching one.
-- **`console/`** is the only layer that touches `Scanner`/`System.out`.
-  Each `MenuAction` owns exactly one menu feature end-to-end (I/O,
-  calling the right manager/calculator, printing the result), so adding,
-  removing, or reordering a menu option never requires touching `Main`.
+  of its own — it builds the `List<MenuAction>` and one `ConsoleApp`, then
+  calls `run()`, and does nothing else.
+- **`app.ConsoleApp`** owns the menu loop itself: printing the (role-filtered)
+  menu, reading a choice, finding the matching action, checking
+  authorization, calling `execute()`, and translating a thrown exception
+  into a console message. It used to be inlined directly into `Main` as
+  `static` fields bound to `System.in` - which made it untestable, since a
+  test has no way to swap out a `static final Scanner` after the class has
+  already loaded. Pulling it out into an ordinary instance class that takes
+  its `Scanner` as a constructor argument means a test can hand it a
+  `Scanner` wrapping scripted input and capture `System.out` to assert on
+  the exact output (see `tests/app/ConsoleAppTest.java` /
+  `ConsoleAppMockitoTest.java`).
+- **`console/`** is the layer that actually touches `Scanner`/`System.out`
+  for each individual feature. Each `MenuAction` owns exactly one menu
+  feature end-to-end (I/O, calling the right manager/calculator, printing
+  the result), so adding, removing, or reordering a menu option never
+  requires touching `Main` or `ConsoleApp`. Unlike `ConsoleApp`, the
+  individual `*Action` classes are not yet covered by automated tests -
+  a known, deliberately scoped-out next step (see §12).
 - **`manager/`** is the layer `console/` actually depends on.
   `StudentManager` wraps `StudentService` and, on every read, asks
   `GradeManager` to "hydrate" a `Student` object's transient grade list
@@ -306,8 +329,8 @@ originally had no `isAuthorizedFor` override, defaulting to the
 interface's `true`, which let a Student import grades — a write path —
 until it was caught and fixed (`feature/BugFix-student-read-only`).
 
-Authorization is enforced at two points, both in `Main`'s loop — never
-inside an action itself:
+Authorization is enforced at two points, both in `ConsoleApp`'s loop —
+never inside an action itself:
 
 - **Menu is filtered** — `printMenu()` only lists an option when
   `!useRoleBased || action.isAuthorizedFor(currentRole)`, so a STUDENT
@@ -316,7 +339,7 @@ inside an action itself:
   denial after picking one. With role-based access off (the default),
   every option is shown, same as before.
 - **Dispatch is still gated too** — even though unauthorized options
-  aren't listed, `Main` still checks
+  aren't listed, `ConsoleApp` still checks
   `useRoleBased && !action.isAuthorizedFor(currentRole)` before calling
   `action.execute()`. This matters because nothing stops a user from
   typing a number that isn't on their filtered menu (e.g. a STUDENT
@@ -336,8 +359,9 @@ inside an action itself:
 ## 10. Running it
 
 1. **Via Maven:** `mvn test` from `student-grade-management/` runs the
-   full suite. To run the app itself, compile and run `Main` (e.g. from
-   an IDE, or `java -cp target/classes Main` after `mvn compile`).
+   full suite. To run the app itself, compile and run `app.Main` (e.g.
+   from an IDE, or `java -cp target/classes app.Main` after
+   `mvn compile`).
 2. Optionally enable **role-based access** — if you answer `Y` at the
    prompt, you choose `TEACHER` or `STUDENT`, which determines available
    menu options per the table in §9. Answer `N` to skip and access all
@@ -350,3 +374,88 @@ inside an action itself:
    (options 1, 2, 3, 7) — every write action is teacher-only.
 5. 5 sample students (3 Regular, 2 Honors) and 6 subjects (3 Core, 3
    Elective) are pre-loaded on every start.
+
+---
+
+## 11. Code Coverage (JaCoCo) and Static Analysis (SonarQube)
+
+`pom.xml` registers two additional plugins, alongside the compiler/
+surefire plugins already covered above.
+
+### JaCoCo — code coverage
+
+No separate setup: JaCoCo attaches to the JVM automatically as a Java
+agent during `mvn test`/`mvn verify` (the `prepare-agent` execution) and
+writes a coverage report once the build reaches the `verify` phase (the
+`report` execution, bound to `phase=verify`).
+
+```
+mvn clean verify
+```
+
+- `target/site/jacoco/index.html` — a browsable, per-package/per-class
+  HTML report (open it directly in a browser).
+- `target/site/jacoco/jacoco.csv` — the same data as CSV, useful for
+  scripting a quick coverage summary.
+- `target/jacoco.exec` — the raw binary execution data JaCoCo itself
+  reads to build the report above; not meant to be read directly.
+
+Current numbers (see CHANGELOG.md for the full package-by-package
+breakdown): ~65% overall instruction coverage, ~92% excluding the 10
+individual `console/*Action` classes (the one remaining, deliberately
+scoped-out gap — see §12).
+
+### SonarQube — static analysis
+
+The `sonar-maven-plugin` is registered but not bound to any lifecycle
+phase, so `mvn test`/`mvn verify` behave exactly as before regardless of
+whether SonarQube is even installed. Running an actual analysis needs a
+SonarQube server to send results to - locally, that means:
+
+**1. Start a local SonarQube server (one-time setup, then start/stop as needed):**
+
+Download the free Community Edition from
+[sonarsource.com](https://www.sonarsource.com/), unzip it, then, **on
+Windows**:
+
+```
+bin\windows-x86-64\StartSonar.bat
+```
+
+Wait for it to log `SonarQube is operational` (first run takes longer -
+it's initializing its own embedded database), then open
+`http://localhost:9000` in a browser (default login `admin` / `admin`,
+which it will immediately ask you to change). Create a local project and
+generate an analysis token from the UI - you'll pass that token on the
+command line, never commit it to `pom.xml` or source control.
+
+**2. Run the analysis from this project:**
+
+```
+mvn clean verify sonar:sonar -Dsonar.projectKey=<your-project-key> -Dsonar.token=<your-token>
+```
+
+`clean verify` first, in the same command, matters: Sonar's Java analyzer
+reads JaCoCo's `target/jacoco.exec` to attribute *coverage* to its
+findings (not just style/bug findings), so JaCoCo has to have already run
+in this same build. Once it finishes, refresh the SonarQube UI - the
+project now shows code smells, potential bugs, security hotspots, and
+coverage, all in one dashboard.
+
+To stop the local server afterward: `bin\windows-x86-64\StopSonar.bat`
+(or just close the terminal window `StartSonar.bat` is running in).
+
+---
+
+## 12. Known, Deliberately Scoped-Out Gap
+
+The 10 classes under `console/` (`AddStudentAction`, `RecordGradeAction`,
+etc.) each still read `Scanner` input and write `System.out` directly,
+and have no automated tests of their own yet - they sit at 0% in the
+JaCoCo report. This is *not* the same untestability problem `Main` used
+to have: each action already takes its `Scanner` via constructor
+injection, so testing one the same way `ConsoleAppTest` tests `ConsoleApp`
+(a fake `Scanner` plus a captured `System.out`) would work today, with no
+further refactor required. It simply hasn't been done yet - a natural,
+bounded next step, one test file per action, following the exact pattern
+already proven out in `tests/app/ConsoleAppTest.java`.

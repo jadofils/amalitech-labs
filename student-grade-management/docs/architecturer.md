@@ -16,13 +16,19 @@ never calls a manager).
 
 ```
                          ┌─────────────┐
-                         │   Main.java │   composition root only: builds every
+                         │  app.Main   │   composition root only: builds every
                          └──────┬──────┘   object below and wires them together
-                                │ constructs, then dispatches to
+                                │ constructs, then hands off to
+                                ▼
+                         ┌─────────────┐
+                         │app.ConsoleApp│  the menu loop: print, read, dispatch,
+                         └──────┬──────┘  translate exceptions - takes its Scanner
+                                │ calls    via constructor, so a test can swap in
+                                │          scripted input instead of System.in
                                 ▼
                          ┌─────────────┐
                          │  console/   │   one MenuAction implementation per
-                         └──────┬──────┘   menu feature — the only console I/O
+                         └──────┬──────┘   menu feature — the only *Action I/O
                                 │ calls (through the manager/calculator/... APIs)
                                 ▼
                  ┌──────────────┴───────────────┐
@@ -80,8 +86,9 @@ never calls a manager).
 | `manager/` | `service` (interfaces only), `repository` (interfaces), `model` | never contains business rules itself — delegates to services, hydrates data for display |
 | `calculators/`, `export/`, `imports/` | `manager`, `model`, `utils` | each owns one small interface (`Calculable`, `Exportable`) colocated with its one implementer in the same package — no separate `interfaces/` package exists |
 | `dto/`, `mapper/` | `model` | never used by Add Student / Record Grade — those keep working with real domain objects |
-| `console/` | `manager`, `calculators`, `export`, `imports`, `dto`, `mapper`, `utils`, `model.enums.Role` | the only layer that touches `Scanner`/`System.out`; each `MenuAction` owns exactly one menu feature |
-| `Main.java` | everything (it's the only class allowed to `new` up every concrete impl) | no business logic, no data-access logic, no console formatting of its own — it only builds the `console/*Action` instances and dispatches to them |
+| `console/` | `manager`, `calculators`, `export`, `imports`, `dto`, `mapper`, `utils`, `model.enums.Role` | the layer that touches `Scanner`/`System.out` for each individual feature; each `MenuAction` owns exactly one menu feature |
+| `app.ConsoleApp` | `console` (`MenuAction`), `model.enums.Role` | the menu loop itself (print, read, dispatch, authorize, translate exceptions) — takes its `Scanner` via constructor rather than binding to `System.in`, which is what makes it unit-testable (`tests/app/ConsoleAppTest.java`) |
+| `app.Main` | everything (it's the only class allowed to `new` up every concrete impl) | no business logic, no data-access logic, no console formatting of its own — it only builds the `console/*Action` instances and one `ConsoleApp`, then calls `run()` |
 
 **The one rule that matters most:** every `...Impl` class depends on the
 *interface* one layer down, never on another layer's `Impl` directly.
@@ -108,9 +115,10 @@ package's own `MenuAction` interface follows the same pattern.
 Tracing the recording of a Mathematics grade for STU001 through the
 folders, to make the diagram concrete:
 
-1. **`Main`** already built one `GradeManager`, wired to a `GradeService`
+1. **`app.Main`** already built one `GradeManager`, wired to a `GradeService`
    (backed by `GradeServiceImpl`), and one `RecordGradeAction` holding
-   references to both.
+   references to both, then handed the full action list to an
+   **`app.ConsoleApp`** and called `run()`.
 2. User picks menu option 3 → **`console/RecordGradeAction.execute()`**
    reads student ID, subject type, subject choice, and grade value via
    `Scanner`, sanitizing free-text input through `utils.InputSanitizer`.
@@ -133,7 +141,7 @@ folders, to make the diagram concrete:
       (interface) → **`repository/grade/GradeRepositoryImpl`** (a
       `Grade[200]` array).
 6. Control returns to `RecordGradeAction`, which prints the
-   `GRADE CONFIRMATION` block; `Main`'s loop reads the next menu choice.
+   `GRADE CONFIRMATION` block; `ConsoleApp`'s loop reads the next menu choice.
 
 Every arrow in that trace matches an arrow in the diagram above — nothing
 skips a layer.
@@ -167,6 +175,16 @@ skips a layer.
   fix for the full reasoning. The app is still small enough that this is
   the only "controller-shaped" layer it needs; there's no separate
   `service`-facing controller on top of it.
+- **`app.Main` vs `app.ConsoleApp`** — a second, smaller SRP split on top
+  of the first one: even after extracting `console/*Action` classes,
+  `Main` still mixed "build the dependency graph" with "run the
+  interactive loop," and the loop was bound to `System.in` in a
+  `static final Scanner` field, which made it untestable no matter how
+  the rest of the app was refactored. Splitting the loop out into
+  `ConsoleApp` - an ordinary instance class taking its `Scanner` as a
+  constructor argument - means `Main` is now too thin to need its own
+  test, and `ConsoleApp` is fully unit-testable with a fake `Scanner` and
+  a captured `System.out` (see `tests/app/ConsoleAppTest.java`).
 - **`dto`/`mapper`, scoped narrowly** — only Search Students' results and
   the exported detailed report go through a DTO. Add Student and Record
   Grade intentionally keep using real domain objects, because they still
