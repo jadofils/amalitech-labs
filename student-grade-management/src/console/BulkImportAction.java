@@ -2,6 +2,7 @@ package console;
 
 import exceptions.ImportException;
 import imports.BulkImportService;
+import model.enums.Role;
 
 import java.util.Scanner;
 
@@ -24,6 +25,13 @@ public class BulkImportAction implements MenuAction {
     @Override
     public String getLabel() {
         return "Bulk Import Grades";
+    }
+
+    @Override
+    public boolean isAuthorizedFor(Role role) {
+        // Bulk import writes new Grade records - a Student must never reach a
+        // write path, so this is teacher-only exactly like Record Grade.
+        return role == Role.TEACHER;
     }
 
     @Override
