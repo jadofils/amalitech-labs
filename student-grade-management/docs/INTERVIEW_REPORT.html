@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Student Grade Management System — Engineering Report</title>
+<style>
+  @page { size: A4; margin: 20mm 18mm 20mm 18mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Segoe UI", Calibri, Arial, sans-serif;
+    color: #1a1a1a;
+    line-height: 1.5;
+    font-size: 11pt;
+  }
+  h1, h2, h3, h4 { font-family: "Segoe UI", Calibri, Arial, sans-serif; color: #0b2e4f; }
+  h1 { font-size: 22pt; border-bottom: 3px solid #0b2e4f; padding-bottom: 6px; margin-top: 0; page-break-before: always; }
+  h1.no-break { page-break-before: auto; }
+  h2 { font-size: 15pt; margin-top: 26px; color: #14395e; border-bottom: 1px solid #ccd6e0; padding-bottom: 3px; }
+  h3 { font-size: 12.5pt; margin-top: 18px; color: #1c4a73; }
+  h4 { font-size: 11pt; margin-top: 12px; color: #2b5a86; }
+  p { margin: 8px 0; text-align: justify; }
+  code { font-family: "Consolas", "Courier New", monospace; background: #f0f2f5; padding: 1px 4px; border-radius: 3px; font-size: 9.7pt; }
+  pre { background: #1e2530; color: #e6e6e6; padding: 10px 12px; border-radius: 6px; overflow-x: auto; font-size: 9pt; line-height: 1.4; page-break-inside: avoid; }
+  pre code { background: none; color: inherit; padding: 0; }
+  .kw { color: #ff9d5c; } .str { color: #a5d6a7; } .cm { color: #8fa1b3; font-style: italic; } .tp { color: #82c8ff; }
+  table { border-collapse: collapse; width: 100%; margin: 10px 0 16px 0; font-size: 9.5pt; page-break-inside: avoid; }
+  th, td { border: 1px solid #c7d0da; padding: 5px 8px; text-align: left; vertical-align: top; }
+  th { background: #0b2e4f; color: white; }
+  tr:nth-child(even) { background: #f4f7fa; }
+  .box { background: #eef4fb; border-left: 4px solid #0b2e4f; padding: 10px 14px; margin: 12px 0; border-radius: 0 4px 4px 0; }
+  .box.warn { background: #fdf3e8; border-left-color: #b5651d; }
+  .box.tip { background: #eefaf0; border-left-color: #1e7d32; }
+  .qa { background: #f7f5ff; border: 1px solid #d8d0f0; border-radius: 6px; padding: 10px 14px; margin: 10px 0; page-break-inside: avoid; }
+  .qa .q { font-weight: 600; color: #4a2c8f; }
+  .toc a { text-decoration: none; color: #14395e; }
+  .toc-line { display: flex; justify-content: space-between; border-bottom: 1px dotted #b8c4d0; padding: 3px 0; }
+  .cover { text-align: center; padding-top: 20%; page-break-after: always; }
+  .cover h1 { border: none; font-size: 30pt; page-break-before: auto; }
+  .cover .sub { font-size: 14pt; color: #45577a; margin-top: 10px; }
+  .cover .meta { margin-top: 60px; font-size: 11pt; color: #555; }
+  .badge { display: inline-block; background: #0b2e4f; color: white; border-radius: 10px; padding: 2px 10px; font-size: 9pt; margin: 2px 4px 2px 0; }
+  .small { font-size: 9.3pt; color: #444; }
+  .center { text-align: center; }
+  ul, ol { margin: 6px 0 6px 0; padding-left: 22px; }
+  li { margin: 3px 0; }
+  .method { border-left: 3px solid #82c8ff; padding-left: 10px; margin: 8px 0; }
+  .method .sig { font-family: Consolas, monospace; font-weight: 600; font-size: 9.7pt; color: #0b2e4f; }
+  .classcard { border: 1px solid #d3dbe4; border-radius: 6px; padding: 10px 14px; margin: 14px 0; page-break-inside: avoid; }
+  .classcard h4 { margin-top: 0; }
+  .pkgpath { font-family: Consolas, monospace; font-size: 9pt; color: #6a7c93; }
+  hr { border: none; border-top: 1px solid #d3dbe4; margin: 18px 0; }
+</style>
+</head>
+<body>
+
+<!-- COVER PAGE -->
+<div class="cover">
+  <div class="badge">AmaliTech — Backend Engineering Track</div>
+  <h1>Student Grade Management System</h1>
+  <div class="sub">Engineering Deep-Dive &amp; Interview Preparation Report</div>
+  <div class="sub small">develop branch — v2.0.0</div>
+  <div class="meta">
+    Console-based Java 17 application &middot; Layered architecture &middot; SOLID principles<br>
+    Maven build &middot; JUnit 5 + Mockito (377 tests) &middot; JaCoCo + SonarQube &middot; GitHub Actions CI/CD<br><br>
+    Prepared for supervisor / engineering review
+  </div>
+</div>
+
+<!-- TABLE OF CONTENTS -->
+<h1 class="no-break">Table of Contents</h1>
+<div class="toc">
+<div class="toc-line"><span>Part I — Project Overview, Objectives &amp; Features</span><span>3</span></div>
+<div class="toc-line"><span>Part II — Project Structure &amp; Rationale</span><span>—</span></div>
+<div class="toc-line"><span>Part III — Object-Oriented Programming Concepts Applied</span><span>—</span></div>
+<div class="toc-line"><span>Part IV — SOLID Principles: Where and How</span><span>—</span></div>
+<div class="toc-line"><span>Part V — Java Language Mechanics (Behind the JVM Curtain)</span><span>—</span></div>
+<div class="toc-line"><span>Part VI — Logging Architecture</span><span>—</span></div>
+<div class="toc-line"><span>Part VII — Exception Handling Architecture</span><span>—</span></div>
+<div class="toc-line"><span>Part VIII — Class-by-Class Reference (all packages, all methods)</span><span>—</span></div>
+<div class="toc-line"><span>Part IX — Testing Strategy: JUnit 5, Mockito, and Alternatives</span><span>—</span></div>
+<div class="toc-line"><span>Part X — Git &amp; GitHub Workflow</span><span>—</span></div>
+<div class="toc-line"><span>Part XI — Design Patterns Identified</span><span>—</span></div>
+<div class="toc-line"><span>Part XII — Known Limitations &amp; Honest Discussion Points</span><span>—</span></div>
+<div class="toc-line"><span>Part XIII — Anticipated Interview Questions (from the assignment rubric)</span><span>—</span></div>
+<div class="toc-line"><span>Part XIV — Conclusion</span><span>—</span></div>
+</div>
+<p class="small center">(Page numbers are approximate — this document paginates naturally when printed/exported to PDF.)</p>
+
+<!-- ============================================================ -->
+<h1>Part I — Project Overview, Objectives &amp; Features</h1>
+
+<h2>1.1 What This Project Is</h2>
+<p>The Student Grade Management System is a console (terminal) Java application that lets a school manage students, subjects, and grades, and derive reports and analytics from that data: GPA on a 4.0 scale, class-wide statistics, bulk CSV grade import, exported text reports, and student search. It began as a smaller Lab 1 exercise (a flat, 9-class in-memory design) and was extended for this assessment ("v2") into a layered, testable, SOLID-compliant application with a real build (Maven), a real test suite (JUnit 5 + Mockito, 377 tests), a code-coverage and static-analysis toolchain (JaCoCo + SonarQube), and a real CI/CD pipeline (GitHub Actions).</p>
+<p>There is no external database and no network layer. All data — students, subjects, grades — lives in fixed-size in-memory arrays for the lifetime of the process and is lost when the program exits. This was a deliberate constraint of the assignment brief, not an oversight, and is discussed candidly in Part XII.</p>
+
+<h2>1.2 Objectives (from the assignment brief)</h2>
+<p>The brief this project answers to (<code>ReadMe-v2.md</code>) states five explicit learning objectives. Each maps directly onto something concrete in this codebase:</p>
+<table>
+<tr><th>Objective</th><th>Where it shows up in this codebase</th></tr>
+<tr><td>Robust exception handling, JUnit/Mockito tests, SOLID</td><td>9 custom exceptions under one <code>ApplicationException</code> root (a 10th, dead, was found and removed); 377 tests; SOLID audit (Part IV)</td></tr>
+<tr><td>Git workflows / branching strategies</td><td>16 feature branches merged into <code>develop</code>, never directly to <code>main</code> (Part X)</td></tr>
+<tr><td>Evaluate code quality (static analysis, coverage)</td><td>JaCoCo coverage plugin wired into the Maven build (Part IX)</td></tr>
+<tr><td>Debug complex bugs systematically</td><td>14 requirements-review issues found and fixed, each documented with root cause + fix in <code>CHANGELOG.md</code></td></tr>
+<tr><td>Comprehensive test suites with mocking, CI-integrated</td><td>Two-test-file-per-class convention (real + Mockito); GitHub Actions runs the suite on every push</td></tr>
+</table>
+
+<h2>1.3 The Menu &amp; What Each Feature Does</h2>
+<p>The application exposes exactly ten menu options. Each is implemented as its own class under the <code>console</code> package (Part VIII explains why), and each was one of the six required "new" user stories in the brief, plus the four carried over from Lab 1.</p>
+<table>
+<tr><th>#</th><th>Feature</th><th>What happens internally</th><th>Write or Read?</th></tr>
+<tr><td>1</td><td>Add Student</td><td>Reads name/age/email/phone/type, constructs a <code>RegularStudent</code> or <code>HonorsStudent</code>, validates via <code>StudentValidator</code>, stores via <code>StudentService</code> → <code>StudentRepository</code></td><td>Write</td></tr>
+<tr><td>2</td><td>View Students</td><td>Lists every student with type, average, pass/fail status; hydrates each student's grade list from <code>GradeManager</code> first</td><td>Read</td></tr>
+<tr><td>3</td><td>Record Grade</td><td>Picks a student, a subject (Core/Elective), a raw score 0–100; constructs a <code>Grade</code> (which self-validates in its constructor) and persists it</td><td>Write</td></tr>
+<tr><td>4</td><td>View Grade Report</td><td>Prints one student's full grade history plus Core/Elective/overall averages</td><td>Read</td></tr>
+<tr><td>5</td><td>Export Grade Report</td><td>Builds summary and/or detailed report text via <code>ReportGenerator</code>, writes it to <code>reports/*.txt</code> via <code>FileExporter</code></td><td>Read + file write (no domain mutation)</td></tr>
+<tr><td>6</td><td>Calculate Student GPA</td><td>Converts every grade to a 4.0-scale GPA point value and letter grade via <code>GPACalculator</code>/<code>GpaLetterGrade</code>, then computes cumulative GPA and class rank</td><td>Read</td></tr>
+<tr><td>7</td><td>Bulk Import Grades</td><td>Parses a CSV under <code>imports/</code> via <code>CSVParser</code>, skips invalid rows (never aborts the whole file), writes every accepted row as a new <code>Grade</code>, and writes a log file of the run</td><td>Write</td></tr>
+<tr><td>8</td><td>View Class Statistics</td><td>Grade distribution by letter, mean/median/mode/standard deviation, subject averages, Regular-vs-Honors comparison, all via <code>StatisticsCalculator</code></td><td>Read</td></tr>
+<tr><td>9</td><td>Search Students</td><td>By ID, partial name, grade range, or type, via <code>StudentSearcher</code>; results can be viewed in full or exported</td><td>Read</td></tr>
+<tr><td>10</td><td>Exit</td><td>Prints a goodbye message and terminates the menu loop</td><td>—</td></tr>
+</table>
+<div class="box tip"><strong>Role-based access (optional):</strong> on startup the user may enable role-based access and choose <code>TEACHER</code> or <code>STUDENT</code>. A Student can never reach options 1, 2, 3, or 7 — every write action is teacher-only, and as of the latest fix, those options don't even appear in a Student's menu (not just "denied after picking"). This is enforced twice: the menu itself filters by <code>MenuAction.isAuthorizedFor(Role)</code>, and the dispatch loop re-checks it before calling <code>execute()</code>, so typing an unlisted number directly still fails safely.</div>
+
+<!-- ============================================================ -->
+<h1>Part II — Project Structure &amp; Rationale</h1>
+
+<h2>2.1 The Package Layout</h2>
+<pre><code>src/
+├── app/
+│   ├── Main.java          <span class="cm">composition root: builds the object graph, hands off to ConsoleApp</span>
+│   └── ConsoleApp.java    <span class="cm">the menu loop itself - takes its Scanner via constructor, unlike the</span>
+│                           <span class="cm">old Main, so it's unit-testable with scripted input</span>
+├── console/              <span class="cm">one class per menu feature (10 classes) + MenuAction interface</span>
+├── model/
+│   ├── student/          <span class="cm">Student (abstract), RegularStudent, HonorsStudent</span>
+│   ├── subject/          <span class="cm">Subject (abstract), CoreSubject, ElectiveSubject</span>
+│   ├── grade/             <span class="cm">Grade, Gradable interface</span>
+│   └── enums/            <span class="cm">Role, StudentType, StudentStatus, SubjectType, LetterGrade, GpaLetterGrade</span>
+├── manager/              <span class="cm">StudentManager, GradeManager (facades), StudentSearcher + Searchable</span>
+├── service/              <span class="cm">StudentService/Impl, GradeService/Impl — business rules</span>
+├── repository/           <span class="cm">student/, grade/, subject/ — each: interface + Impl, array-backed</span>
+├── calculators/          <span class="cm">GPACalculator + Calculable, StatisticsCalculator</span>
+├── export/               <span class="cm">ReportGenerator + Exportable, FileExporter</span>
+├── imports/              <span class="cm">CSVParser, BulkImportService</span>
+├── dto/ + mapper/        <span class="cm">StudentDTO/Mapper, GradeDTO/Mapper — read-only display projections</span>
+├── utils/                <span class="cm">InputSanitizer, DateFormats, validators/ (StudentValidator, SubjectValidator)</span>
+├── logging/              <span class="cm">Logger — dependency-free DEBUG/INFO/WARN/ERROR logger</span>
+└── exceptions/           <span class="cm">ApplicationException (root) + 10 custom exceptions</span></code></pre>
+
+<h2>2.2 Why It's Organized This Way — Layer by Layer</h2>
+<p>This is a classic <strong>layered architecture</strong>: each layer only talks to the layer directly beneath it, and only through that layer's interface, never its concrete class. Requests flow strictly downward; nothing in a lower layer ever calls back up into a higher one.</p>
+<table>
+<tr><th>Layer</th><th>Depends on</th><th>Responsibility</th><th>Never does</th></tr>
+<tr><td><code>model</code></td><td>nothing</td><td>What a Student/Subject/Grade <em>is</em> — pure data + domain rules that need no storage (e.g. <code>isPassing()</code>)</td><td>No <code>Scanner</code>, no <code>System.out</code>, no persistence knowledge</td></tr>
+<tr><td><code>repository</code></td><td><code>model</code>, <code>exceptions</code></td><td>How an entity is stored/fetched (array-backed)</td><td>No business rules — a repository never asks "is this grade valid," only "does this ID exist"</td></tr>
+<tr><td><code>service</code></td><td><code>model</code>, <code>utils.validators</code>, <code>repository</code> (interfaces)</td><td>Business rules: does the student exist, is the grade in range, log the outcome</td><td>Never imports a repository's <code>Impl</code> class directly — only its interface</td></tr>
+<tr><td><code>manager</code></td><td><code>service</code> (interfaces)</td><td>Higher-level facade: hydrate a student's grades, compute class averages, format grade-history tables</td><td>No business rules of its own — delegates</td></tr>
+<tr><td><code>calculators</code>, <code>export</code>, <code>imports</code></td><td><code>manager</code>, <code>model</code></td><td>One focused computation/IO concern each (GPA math, statistics, report text, file writing, CSV parsing)</td><td>Never touches <code>Scanner</code>/console</td></tr>
+<tr><td><code>console</code></td><td>everything above</td><td>The only layer allowed to read <code>Scanner</code> input or print to <code>System.out</code></td><td>No business logic of its own</td></tr>
+<tr><td><code>Main</code></td><td>everything (composition root)</td><td><code>new</code>s every concrete implementation exactly once and wires the object graph together</td><td>No business logic, no I/O formatting of its own</td></tr>
+</table>
+
+<h3>2.3 A Design Decision Worth Explaining: Colocated Interfaces</h3>
+<p>Every interface in this codebase sits in the <em>same package</em> as its one implementer — <code>service/StudentService.java</code> next to <code>service/StudentServiceImpl.java</code>, <code>calculators/Calculable.java</code> next to <code>calculators/GPACalculator.java</code>, and so on. This wasn't always true: early on there was a separate <code>interfaces/</code> package holding <code>Calculable</code>, <code>Exportable</code>, and <code>Searchable</code> while <code>service</code>/<code>repository</code> already colocated theirs — two different conventions for the identical relationship. It was unified during a professional-structure review (see Part X's commit history) because a class implementing an interface isn't "a kind of interface" — it belongs with its own feature area, not filed away by which contract it happens to satisfy.</p>
+
+<h3>2.4 Why Fixed-Size Arrays, Not a HashMap or a Database</h3>
+<p>The assignment brief explicitly required in-memory, array-based storage (a carry-over constraint from the original Lab 1 spec). Each repository owns exactly one primitive array (<code>Student[50]</code>, <code>Grade[200]</code>, <code>Subject[50]</code>) plus a running count of how many slots are filled. A linear scan (<code>for</code> loop) is used for lookups — O(n), not O(1) like a <code>HashMap</code> would give — which is an accepted, deliberate trade-off given the array-size ceiling (at most 200 grades) makes the performance difference immaterial in practice.</p>
+
+<!-- ============================================================ -->
+<h1>Part III — Object-Oriented Programming Concepts Applied</h1>
+
+<h2>3.1 Encapsulation</h2>
+<p>Every field in every domain class is <code>private</code>; access is only through explicit getters/setters or behavior methods. <code>Student.grades</code> (a <code>List&lt;Double&gt;</code>) is never exposed for direct external mutation except through <code>addGrade(double)</code>/<code>setGrade(double)</code> — callers cannot reach in and corrupt the list's internal state without going through a method that owns the invariant.</p>
+<pre><code><span class="kw">public abstract class</span> Student {
+    <span class="kw">private</span> String studentId;         <span class="cm">// no caller can see or set this except through a method</span>
+    <span class="kw">private</span> List&lt;Double&gt; grades = <span class="kw">new</span> ArrayList&lt;&gt;();
+
+    <span class="kw">public</span> List&lt;Double&gt; getGrades() { <span class="kw">return</span> grades; }   <span class="cm">// read access</span>
+    <span class="kw">public void</span> addGrade(<span class="tp">double</span> grade) { grades.add(grade); } <span class="cm">// controlled write</span>
+}</code></pre>
+<div class="box warn"><strong>Honest caveat:</strong> <code>getGrades()</code> returns the live, mutable <code>List</code> reference rather than an unmodifiable copy — a determined caller <em>could</em> call <code>.clear()</code> on the returned list from outside the class. In practice only <code>StudentManager.hydrateGrades()</code> does this (deliberately, to refresh the transient list from the real source of truth in <code>GradeRepository</code>), but a stricter version of encapsulation would return <code>Collections.unmodifiableList(grades)</code> or a defensive copy. Good to know as a discussion point if asked "is this fully encapsulated?"</div>
+
+<h2>3.2 Inheritance</h2>
+<p>Two parallel class hierarchies model "is-a" relationships:</p>
+<table>
+<tr><th>Hierarchy</th><th>Base (abstract)</th><th>Subclasses</th><th>What differs per subclass</th></tr>
+<tr><td>Students</td><td><code>Student</code></td><td><code>RegularStudent</code>, <code>HonorsStudent</code></td><td>Passing grade threshold (50% vs 60%), extra <code>checkHonorsEligibility()</code> behavior, own <code>StudentType</code> value</td></tr>
+<tr><td>Subjects</td><td><code>Subject</code></td><td><code>CoreSubject</code>, <code>ElectiveSubject</code></td><td>Display text, <code>SubjectType</code> value, an <code>isMandatory()</code> flag</td></tr>
+</table>
+<p>Shared state and behavior (student ID, name, age, grade list, <code>calculateAverageGrade()</code>, <code>isPassing()</code>) live once in the abstract base class; only what genuinely differs is overridden. This is the textbook argument for inheritance: avoid duplicating the 90% that's identical across subtypes.</p>
+
+<h2>3.3 Polymorphism</h2>
+<p>Every place that holds a <code>Student</code> reference — <code>StudentRepositoryImpl</code>'s array, <code>List&lt;Student&gt;</code> returned by <code>getAllStudents()</code>, the parameter of <code>displayStudentDetails()</code> — never needs to know or check whether the actual object is a <code>RegularStudent</code> or <code>HonorsStudent</code>. Calling <code>student.getPassingGrade()</code> or <code>student.displayStudentDetails()</code> runs whichever subclass's override actually applies, decided at runtime by the object's real type — not by the reference's declared type. Under the hood (see Part V) this is <strong>dynamic dispatch</strong>: the JVM looks up the method in the object's actual class's method table at the moment the call executes, not at compile time.</p>
+<p>A second, narrower form of polymorphism used here is <strong>pattern-matching <code>instanceof</code></strong> (Java 16+), used sparingly and only where genuinely subclass-specific behavior is needed with no base-class equivalent:</p>
+<pre><code><span class="kw">if</span> (student <span class="kw">instanceof</span> HonorsStudent hs) {
+    hs.checkHonorsEligibility(); <span class="cm">// only HonorsStudent has this method</span>
+}</code></pre>
+<p>This is deliberately <em>not</em> used for classifying "which type is this student" (that would fight polymorphism) — see Part IV's OCP discussion for where that exact anti-pattern was found and fixed by introducing <code>Student.getType(): StudentType</code> instead.</p>
+
+<h2>3.4 Abstraction</h2>
+<p>Two abstraction mechanisms are used, deliberately for different purposes:</p>
+<ul>
+<li><strong>Abstract classes</strong> (<code>Student</code>, <code>Subject</code>) — used when subclasses share real, inherited <em>state</em> (fields) as well as behavior. A subclass can only extend one abstract class.</li>
+<li><strong>Interfaces</strong> (<code>Calculable</code>, <code>Exportable</code>, <code>Searchable</code>, <code>Gradable</code>, <code>MenuAction</code>, every <code>*Service</code>/<code>*Repository</code>) — used to describe a pure <em>contract</em> with no shared state, so a class can implement many of them at once and different, unrelated classes can satisfy the same contract (e.g. any future report format could implement <code>Exportable</code> without touching <code>ReportGenerator</code>).</li>
+</ul>
+
+<!-- ============================================================ -->
+<h1>Part IV — SOLID Principles: Where and How</h1>
+<p>The assignment brief names all five explicitly and even suggests example classes. What follows is where each principle is <em>actually</em> demonstrated in this codebase today, including two real violations that were found during a dedicated audit and fixed (not just theoretical box-ticking).</p>
+
+<h2>4.1 Single Responsibility Principle (SRP)</h2>
+<p><strong>Definition:</strong> a class should have exactly one reason to change.</p>
+<table>
+<tr><th>Class</th><th>Its one job</th></tr>
+<tr><td><code>GPACalculator</code></td><td>Percentage↔GPA↔letter conversion, cumulative GPA, class rank — nothing else</td></tr>
+<tr><td><code>StatisticsCalculator</code></td><td>Descriptive statistics over a grade list — nothing else</td></tr>
+<tr><td><code>ReportGenerator</code></td><td>Builds report <em>text</em> — knows nothing about files</td></tr>
+<tr><td><code>FileExporter</code></td><td>Writes a string to a file — knows nothing about report content</td></tr>
+<tr><td><code>CSVParser</code></td><td>Parses CSV text into valid rows + error messages — never persists anything</td></tr>
+<tr><td><code>BulkImportService</code></td><td>Orchestrates parse → persist → log for a bulk import — the actual parsing and persisting are delegated</td></tr>
+</table>
+<div class="box warn"><strong>SRP was violated, found, and fixed — twice:</strong> <code>Main.java</code> had grown to 760 lines doing composition-root wiring, console I/O, business orchestration for all 9 menu features, role authorization, and exception-to-message translation — five reasons to change in one file. Fixed by extracting one <code>console.*Action</code> class per feature, each implementing <code>MenuAction</code>. A second, smaller SRP violation then surfaced in what was left: <code>Main</code> still mixed "build the dependency graph" with "run the interactive menu loop," and the loop was bound to <code>System.in</code> in a <code>static final Scanner</code> field, which also made it untestable. Split again into <code>app.Main</code> (composition root only, ~65 lines) and <code>app.ConsoleApp</code> (the loop, taking its <code>Scanner</code> via constructor instead of a static field). This is a genuinely good interview talking point: it shows you can <em>find</em> an SRP violation in real code, not just recite the definition — and that fixing one can reveal a second, smaller one underneath.</div>
+
+<h2>4.2 Open/Closed Principle (OCP)</h2>
+<p><strong>Definition:</strong> open for extension, closed for modification — adding new behavior shouldn't require editing existing, working code.</p>
+<ul>
+<li>Adding a third <code>Subject</code> subtype requires only a new class implementing <code>displaySubjectDetails()</code>/<code>getSubjectType()</code> — no existing subject code changes.</li>
+<li><code>LetterGrade</code> and <code>GpaLetterGrade</code> are enums whose thresholds live as data on each constant; adding a new grading tier means adding one enum constant, not editing an if-chain.</li>
+</ul>
+<div class="box warn"><strong>OCP was violated, found, and fixed:</strong> <code>StudentSearcher.searchByType(boolean isHonors)</code> and <code>StatisticsCalculator.compareStudentTypes()</code> classified students via a <code>boolean</code> parameter and <code>instanceof HonorsStudent</code> checks — even though every <code>Student</code> already carried a <code>StudentType</code> enum internally, just never exposed publicly. Adding a third student type would have meant reworking a boolean parameter (which can only ever represent two states) and every <code>instanceof</code> check by hand. <strong>Fix:</strong> exposed <code>abstract StudentType Student.getType()</code>; both call sites now compare <code>getType()</code> against the enum instead. Adding a third type is now purely additive: one enum constant, one subclass.</div>
+
+<h2>4.3 Liskov Substitution Principle (LSP)</h2>
+<p><strong>Definition:</strong> anywhere a base type is expected, any subtype must work correctly as a drop-in replacement, without surprising callers (no strengthened preconditions, no weakened postconditions, no new exceptions the base didn't promise).</p>
+<p>Verified clean: <code>RegularStudent</code>/<code>HonorsStudent</code> and <code>CoreSubject</code>/<code>ElectiveSubject</code> both honor their base contracts exactly — no override throws an exception the base method doesn't declare, no override requires a caller to do anything extra first. Any code holding a <code>Student</code> or <code>Subject</code> reference works identically no matter which concrete subtype it actually holds.</p>
+
+<h2>4.4 Interface Segregation Principle (ISP)</h2>
+<p><strong>Definition:</strong> no client should be forced to depend on methods it doesn't use — prefer several small, focused interfaces over one fat one.</p>
+<p>Every interface here is small and single-purpose: <code>Calculable</code> (4 methods, all GPA-related), <code>Exportable</code> (2 methods), <code>Searchable</code> (4 methods, all search variants), <code>Gradable</code> (2 methods). No interface forces an implementer to stub out irrelevant methods.</p>
+
+<h2>4.5 Dependency Inversion Principle (DIP)</h2>
+<p><strong>Definition:</strong> high-level modules shouldn't depend on low-level modules directly — both should depend on abstractions.</p>
+<p>Every layer takes its collaborators as <strong>constructor-injected interfaces</strong>, never concrete classes:</p>
+<pre><code><span class="kw">public class</span> StudentServiceImpl <span class="kw">implements</span> StudentService {
+    <span class="kw">private final</span> StudentRepository studentRepository;  <span class="cm">// interface, not StudentRepositoryImpl</span>
+    <span class="kw">public</span> StudentServiceImpl(StudentRepository studentRepository) {
+        <span class="kw">this</span>.studentRepository = studentRepository;
+    }
+}</code></pre>
+<p><code>Main</code> is the single, intentional exception — the <strong>composition root</strong>. Something in the program has to <code>new</code> the concrete implementations at least once; that's <code>Main</code>'s entire job, and only <code>Main</code> does it. Every other class is unaware which concrete implementation it was handed.</p>
+
+<!-- ============================================================ -->
+<h1>Part V — Java Language Mechanics (Behind the JVM Curtain)</h1>
+<p>This section is written for an <em>engineer</em>, not just "what does this keyword do" — it explains what the JVM actually does with each construct, since that's what distinguishes someone who memorized definitions from someone who understands the runtime.</p>
+
+<h2>5.1 JVM Runtime Data Areas — Where Things Actually Live</h2>
+<table>
+<tr><th>Area</th><th>What lives there</th><th>In this codebase</th></tr>
+<tr><td>Method Area / Metaspace</td><td>Class metadata, method bytecode, <code>static</code> fields</td><td><code>Student.studentCounter</code>, <code>Grade.gradeCounter</code> — one copy total, shared by every instance</td></tr>
+<tr><td>Heap</td><td>Every object created with <code>new</code></td><td>Every <code>Student</code>, <code>Grade</code>, <code>Subject</code>, DTO, exception instance</td></tr>
+<tr><td>Stack (one per thread)</td><td>Local variables, method call frames, return addresses</td><td>Every local variable inside e.g. <code>GPACalculator.cumulativeGPA()</code></td></tr>
+<tr><td>PC Register</td><td>Address of the currently executing instruction, per thread</td><td>Irrelevant here — this app is single-threaded (one <code>main</code> thread only)</td></tr>
+</table>
+<p>This app never creates a second thread, so there is exactly one call stack and no concurrency concerns to reason about — which matters for the <code>volatile</code> discussion below.</p>
+
+<h2>5.2 <code>static</code> — Class-Level State</h2>
+<p>A <code>static</code> field belongs to the <em>class</em>, not to any instance — there is exactly one copy, allocated once when the class is first loaded by the classloader, living in the Method Area for the lifetime of the JVM process. This codebase uses it for two auto-incrementing ID counters:</p>
+<pre><code><span class="kw">public abstract class</span> Student {
+    <span class="kw">private static int</span> studentCounter = <span class="tp">0</span>;  <span class="cm">// ONE counter, shared by every Student ever created</span>
+
+    <span class="kw">private</span> String generateStudentId() {
+        studentCounter++;
+        <span class="kw">return</span> String.format(<span class="str">"STU%03d"</span>, studentCounter);
+    }
+}</code></pre>
+<p>Every <code>new RegularStudent(...)</code> and every <code>new HonorsStudent(...)</code> increments the <em>same</em> counter, because both subclasses inherit the one static field from <code>Student</code> — there's no per-subclass copy. This is exactly why the test suite's own README warns: never assert an exact ID like <code>"STU001"</code>, because the counter is shared across every test class in the same JVM run (Surefire may run test classes in any order) — assert the <em>format</em> instead.</p>
+<div class="box"><strong>Why not an instance field instead?</strong> If <code>studentCounter</code> were an instance field, every new <code>Student</code> would start its own counter at 0 — <code>generateStudentId()</code> would always produce <code>"STU001"</code>, guaranteeing ID collisions. The whole point of <code>static</code> here is <em>shared</em> state across every instance.</div>
+
+<h2>5.3 <code>final</code> — Three Different Meanings</h2>
+<table>
+<tr><th>Applied to</th><th>Meaning</th><th>Example in this codebase</th></tr>
+<tr><td>a variable/field</td><td>Can be assigned exactly once (reference cannot be reseated after that — though a mutable object it points to can still change internally)</td><td><code>private final StudentRepository studentRepository;</code> — every repository/service field is <code>final</code>, assigned once in the constructor, guaranteeing it's never accidentally reassigned later</td></tr>
+<tr><td>a method</td><td>Cannot be overridden by a subclass</td><td><code>Student.getStudentType()</code> is <code>final</code> — it always delegates to <code>getType().name()</code>, so no subclass can quietly reintroduce the duplicated-string-literal bug this replaced</td></tr>
+<tr><td>a class</td><td>Cannot be subclassed at all</td><td>None declared explicitly here, but every DTO/utility class (<code>StudentDTO</code>, <code>DateFormats</code>) is implicitly "final in spirit" — they hold no behavior worth extending</td></tr>
+</table>
+
+<h2>5.4 <code>volatile</code> — Not Used Here, and Why That's Correct</h2>
+<p>This keyword doesn't appear anywhere in this codebase, and an engineer should be able to explain <em>why that's the right call</em>, not just what the keyword means:</p>
+<div class="box">
+<p><code>volatile</code> solves a <strong>multi-threaded visibility</strong> problem: without it, one thread's write to a shared field might sit in that thread's CPU cache and never become visible to another thread reading the same field, because the compiler/CPU are free to reorder and cache reads/writes for performance under the Java Memory Model (JMM). Marking a field <code>volatile</code> forces every read to go to main memory and every write to flush to main memory immediately, establishing a happens-before relationship between threads.</p>
+<p>This application has exactly one thread — the JVM's <code>main</code> thread running the console loop. There is no second thread ever created (no <code>Thread</code>, no <code>ExecutorService</code>, no async callback), so there is no visibility problem to solve. Marking <code>studentCounter</code> or <code>useRoleBased</code> <code>volatile</code> would add a small runtime cost (bypassing CPU caching) with zero benefit. If this app ever became a multi-user server handling concurrent requests, that calculus would change immediately — at that point, unsynchronized shared mutable state like <code>Student.studentCounter</code> would become a real race condition, and the fix would likely be <code>AtomicInteger</code> rather than a bare <code>volatile int</code>, since incrementing (<code>counter++</code>) is a read-modify-write that <code>volatile</code> alone does not make atomic.</p>
+</div>
+
+<h2>5.5 <code>this</code> and <code>super</code></h2>
+<ul>
+<li><code>this</code> — a reference to the current object instance; used here mainly in constructors to disambiguate a parameter name from a field of the same name (<code>this.studentId = studentId;</code>), and via <code>this(...)</code> to chain constructor overloads, e.g. <code>GradeServiceImpl</code>'s no-arg constructor delegates to its 3-argument constructor with default <code>Impl</code>s.</li>
+<li><code>super</code> — refers to the parent class; used in every subclass constructor to initialize inherited fields (<code>super(name, age, email, phone);</code> in <code>RegularStudent</code>'s constructor calls <code>Student</code>'s constructor first, before any subclass-specific code runs). Constructor chaining via <code>super(...)</code> is mandatory — Java inserts an implicit <code>super()</code> call if you don't write one, and it must be the very first statement in a constructor.</li>
+</ul>
+
+<h2>5.6 <code>enum</code> — What the Compiler Actually Generates</h2>
+<p>Writing <code>public enum Role { TEACHER, STUDENT }</code> is syntactic sugar. The compiler generates a real class that implicitly <code>extends java.lang.Enum&lt;Role&gt;</code>, and each named constant becomes a <code>public static final Role</code> field — a genuine singleton instance, constructed exactly once when the class is first loaded, never again. That's why <code>==</code> is always safe (and preferred over <code>.equals()</code>) for comparing enum values — there is only ever one <code>Role.TEACHER</code> object in the entire JVM.</p>
+<pre><code><span class="kw">public enum</span> GpaLetterGrade {
+    A(<span class="tp">93</span>, <span class="tp">4.0</span>, <span class="str">"A"</span>), A_MINUS(<span class="tp">90</span>, <span class="tp">3.7</span>, <span class="str">"A-"</span>), <span class="cm">/* ... */</span> F(<span class="tp">0</span>, <span class="tp">0.0</span>, <span class="str">"F"</span>);
+
+    <span class="kw">private final double</span> minPercentage, gpaPoints;
+    <span class="kw">private final</span> String label;
+
+    GpaLetterGrade(<span class="tp">double</span> minPercentage, <span class="tp">double</span> gpaPoints, String label) { <span class="cm">// implicitly private</span>
+        <span class="kw">this</span>.minPercentage = minPercentage; <span class="kw">this</span>.gpaPoints = gpaPoints; <span class="kw">this</span>.label = label;
+    }
+}</code></pre>
+<p>Each enum constant can carry its own fields, exactly like an object — <code>GpaLetterGrade</code> uses this to keep percentage threshold, GPA points, and display label together as one source of truth, replacing three separately hand-maintained parallel arrays that had drifted apart from each other in an earlier version (the root cause of the project's headline bug, documented as KI-1 in <code>CHANGELOG.md</code>).</p>
+
+<h2>5.7 Interfaces, Dynamic Dispatch, and <code>invokevirtual</code></h2>
+<p>When code calls <code>calculable.percentageToGPA(85)</code> where <code>calculable</code> is declared as the <code>Calculable</code> interface type, the compiler doesn't know which class's method will actually run — only <code>GPACalculator implements Calculable</code> here, but in principle any class could. The JVM resolves this at runtime using the <code>invokeinterface</code> (or <code>invokevirtual</code> for abstract-class polymorphism) bytecode instruction: it looks up the object's actual runtime class, finds that class's method table (a per-class array of method pointers built at class-load time), and jumps to the correct method body. This lookup has a small, constant-time cost — noticeably more than a direct <code>invokestatic</code> call to a <code>static</code> method, but the JIT compiler can often inline it away once it observes the call site is monomorphic (always resolves to the same class) at runtime.</p>
+
+<h2>5.8 Exceptions — Stack Unwinding and <code>try</code>-with-resources</h2>
+<p>All 10 custom exceptions in this project extend <code>RuntimeException</code> (via the shared <code>ApplicationException</code> root) — they are <strong>unchecked</strong>, meaning the compiler does not force a caller to declare or catch them. When one is thrown (e.g. <code>new StudentNotFoundException(...)</code> inside <code>StudentRepositoryImpl.findStudentById()</code>), the JVM does not immediately search for a handler in that method — it <strong>unwinds the call stack</strong> frame by frame (repository → service → manager → console action → <code>ConsoleApp</code>'s loop), popping each method's local stack frame, running any <code>finally</code> blocks encountered along the way, until it finds a stack frame whose <code>try</code> block is covered by a matching <code>catch</code>. In this app that's always <code>ConsoleApp</code>'s central switch of <code>catch</code> clauses, ending in <code>catch (ApplicationException e)</code> — deliberately not <code>catch (Exception e)</code>, so a truly unexpected bug (a <code>NullPointerException</code>, say) is <em>not</em> silently swallowed and still crashes loudly, which is exactly what you want during development.</p>
+<p><code>try</code>-with-resources (used in <code>FileExporter</code>/<code>BulkImportService</code> for <code>FileWriter</code>, and in <code>CSVParser</code> for <code>Scanner</code>) compiles to an implicit <code>finally</code> block that calls <code>.close()</code> on the resource — guaranteed to run whether the <code>try</code> block completes normally, returns early, or throws. This requires the resource type to implement <code>java.lang.AutoCloseable</code>.</p>
+
+<h2>5.9 Generics and Type Erasure</h2>
+<p><code>List&lt;Student&gt;</code>, <code>List&lt;Grade&gt;</code>, <code>List&lt;String&gt;</code> are used throughout. At compile time, the generic type parameter enforces that only a <code>Student</code> can go into a <code>List&lt;Student&gt;</code> — but at runtime, due to <strong>type erasure</strong>, that information is gone: the compiled bytecode just sees <code>List</code>, and the compiler inserts an invisible cast at every read site. This is why you cannot do <code>new T[10]</code> or check <code>if (list instanceof List&lt;Student&gt;)</code> in Java — the generic type parameter simply isn't present at runtime to check against.</p>
+
+<h2>5.10 Streams</h2>
+<p>Used in a few display-mapping spots, e.g. converting a <code>List&lt;Student&gt;</code> search result to a <code>List&lt;StudentDTO&gt;</code>:</p>
+<pre><code>List&lt;StudentDTO&gt; resultDtos = results.stream().map(StudentMapper::toDto).collect(Collectors.toList());</code></pre>
+<p>This builds a lazy pipeline (<code>stream()</code> does no work by itself), applies <code>toDto</code> to each element only when the terminal operation (<code>collect</code>) is invoked, producing a new list without mutating the original. <code>StudentMapper::toDto</code> is a <strong>method reference</strong> — shorthand for the lambda <code>s -&gt; StudentMapper.toDto(s)</code>.</p>
+
+<h2>5.11 Garbage Collection — Why This App Never Frees Memory Manually</h2>
+<p>When <code>StudentRepositoryImpl.deleteStudent()</code> removes an entry by overwriting its array slot with <code>null</code> (after moving the last element into its place), the <code>Student</code> object that used to be there becomes <strong>unreachable</strong> — nothing in the program holds a reference to it anymore. The JVM's garbage collector will eventually reclaim that memory automatically; nothing in this codebase (or in Java generally, outside of rare off-heap scenarios) ever calls <code>free()</code> or manages memory by hand. This is a core reason Java was chosen for this kind of application over C/C++: no manual memory-management bugs (use-after-free, double-free) are possible.</p>
+
+<!-- ============================================================ -->
+<h1>Part VI — Logging Architecture</h1>
+<h2>6.1 The <code>Logger</code> Class</h2>
+<pre><code><span class="kw">public final class</span> Logger {
+    <span class="kw">public enum</span> Level { DEBUG, INFO, WARN, ERROR }
+    <span class="kw">private static volatile</span> Level threshold = resolveThreshold();
+
+    <span class="kw">public static void</span> debug(String message) { log(Level.DEBUG, message); }
+    <span class="kw">public static void</span> info(String message)  { log(Level.INFO, message); }
+    <span class="kw">public static void</span> warn(String message)  { log(Level.WARN, message); }
+    <span class="kw">public static void</span> error(String message) { log(Level.ERROR, message); }
+
+    <span class="kw">private static void</span> log(Level level, String message) {
+        <span class="kw">if</span> (level.ordinal() &lt; threshold.ordinal()) <span class="kw">return</span>;  <span class="cm">// below threshold — skip</span>
+        System.err.printf(<span class="str">"[%s] %-5s %s%n"</span>, timestamp(), level, message);
+    }
+}</code></pre>
+<div class="box tip"><strong>Here <code>volatile</code> IS used</strong> — on <code>Logger.threshold</code> — because <code>setLevel()</code> lets tests change the logging threshold at runtime, and while this app is single-threaded in practice, the field is written from test code and read from production code potentially across different execution contexts within the same JVM (parallel test execution is a real possibility with Surefire); marking it <code>volatile</code> is the cheap, correct insurance against that, unlike the counters in §5.4 which truly have no such exposure.</div>
+<p><strong>Level filtering:</strong> levels are ordered by their enum declaration order (<code>DEBUG</code> &lt; <code>INFO</code> &lt; <code>WARN</code> &lt; <code>ERROR</code>), so <code>level.ordinal() &lt; threshold.ordinal()</code> is a cheap integer comparison that skips building/printing a message below the configured threshold — default <code>INFO</code>, configurable via the JVM system property <code>-Dlog.level=DEBUG</code>, or programmatically via <code>Logger.setLevel(...)</code> in tests.</p>
+<p><strong>Why <code>System.err</code>, not <code>System.out</code>:</strong> the console menu's user-facing output (menus, results, confirmations) goes to <code>System.out</code>; every log line goes to <code>System.err</code>. This means a user (or a script) can redirect one stream without capturing the other — e.g. <code>java -cp target/classes Main 2&gt;debug.log</code> keeps the menu clean on the terminal while every log line still lands in a file.</p>
+<h2>6.2 Why a Hand-Rolled Logger, Not Log4j/SLF4J</h2>
+<p>A real framework (SLF4J + Logback, or Log4j2) offers structured logging, log rotation, multiple appenders (file, console, network), and MDC (per-request context). None of that is needed for a single-threaded console app with no persistence and no concurrent requests — pulling in a full framework would be a dependency for a problem this app doesn't have. The hand-rolled <code>Logger</code> gives exactly the four levels and one output stream this app actually uses, with zero external dependencies. If this evolved into a server application, migrating to SLF4J's facade would be the very next thing to do — its <code>Logger</code> interface has almost the same four-method shape already, which would make that migration mechanical.</p>
+
+<!-- ============================================================ -->
+<h1>Part VII — Exception Handling Architecture</h1>
+<h2>7.1 The Hierarchy</h2>
+<pre><code>RuntimeException  (java.lang)
+  └── ApplicationException  (abstract — the ONE common root for everything this app throws on purpose)
+        ├── StudentNotFoundException     (studentId, availableIds — lets Main suggest valid IDs)
+        ├── StudentValidationException
+        ├── SubjectNotFoundException
+        ├── SubjectValidationException
+        ├── GradeException                (gradeId)
+        ├── InvalidGradeException         (attemptedGrade — e.g. entered 150)
+        ├── ExportException               (filePath)
+        ├── ImportException                (filePath, successfulRows, failedRows)
+        ├── InvalidFileFormatException     (filename, lineNumber)
+        └── CSVImportException            (whole-file read failure, distinct from a single bad row)</code></pre>
+<h2>7.2 Why Everything Extends <code>RuntimeException</code> (Unchecked), Deliberately</h2>
+<p>Java offers <em>checked</em> exceptions (must be declared with <code>throws</code> or caught, enforced by the compiler) and <em>unchecked</em> ones (no such enforcement). This project chose unchecked deliberately: every custom exception here represents a business-rule violation (a bad student ID, an out-of-range grade) that the caller almost never wants to recover from locally — it wants to bubble all the way up to one central handler in <code>ConsoleApp</code>. Checked exceptions would force every intermediate layer (<code>StudentServiceImpl</code>, <code>StudentManager</code>, every <code>console.*Action</code>) to either declare <code>throws StudentNotFoundException</code> on every method signature or catch-and-rethrow pointlessly — pure boilerplate with no benefit, since there's nowhere useful to "handle" it before <code>ConsoleApp</code>.</p>
+<h2>7.3 No Generic <code>catch (Exception e)</code> — Why That Matters</h2>
+<p><code>ConsoleApp</code>'s central handler ends in <code>catch (ApplicationException e)</code>, never <code>catch (Exception e)</code>. This is a direct, explicit requirement in the assignment brief ("No generic Exception catching"), and the reasoning is sound independent of the brief: a generic catch would also swallow a genuine bug — a <code>NullPointerException</code> from a real coding mistake — printing a vague error message and continuing as if nothing happened, hiding the bug instead of surfacing it. Catching only the app's own exception family lets anything truly unexpected crash loudly and visibly, which is far easier to debug.</p>
+<h2>7.4 Recovery Data Riding Along With the Exception</h2>
+<p>Several exceptions carry structured data beyond a message string specifically so the top-level handler can be more helpful than "something went wrong":</p>
+<pre><code><span class="kw">throw new</span> StudentNotFoundException(
+    <span class="str">"Student with ID '"</span> + studentId + <span class="str">"' not found."</span>,
+    studentId,
+    getAvailableStudentIds()   <span class="cm">// caught in Main, printed as "Available student IDs: STU001, STU002, ..."</span>
+);</code></pre>
+
+<!-- ============================================================ -->
+<h1>Part VIII — Class-by-Class Reference</h1>
+<p class="small">Every class in the <code>src</code> tree (excluding <code>tests/</code>), grouped by package, with its purpose and every non-trivial method. Trivial one-line getters/setters are omitted from the method lists below for brevity — assume every private field has a corresponding public getter unless noted.</p>
+
+<h2>8.1 <code>model</code> — Domain Objects</h2>
+<div class="classcard"><h4>Student <span class="pkgpath">model.student.Student (abstract)</span></h4>
+<p>Base type for every student. Holds ID, name, age, email, phone, status, and a transient grade list.</p>
+<div class="method"><span class="sig">calculateAverageGrade(): double</span> — sums the transient <code>grades</code> list and divides by its size; returns 0.0 if empty (avoids division by zero).</div>
+<div class="method"><span class="sig">isPassing(): boolean</span> — <code>calculateAverageGrade() &gt;= getPassingGrade()</code>; delegates the threshold to the subclass.</div>
+<div class="method"><span class="sig">abstract getType(): StudentType</span> — the OCP fix from Part IV; each subclass returns its own enum constant.</div>
+<div class="method"><span class="sig">final getStudentType(): String</span> — <code>getType().name()</code>; cannot be overridden, so the two subclasses can no longer duplicate this logic independently.</div>
+<div class="method"><span class="sig">abstract getPassingGrade(): double / abstract displayStudentDetails(): void</span> — subclass-specific.</div>
+<div class="method"><span class="sig">static initializeCounter(int highestExistingSequence): void</span> — called once at startup by <code>StudentManager</code> to advance the static ID counter past whatever's already stored, so freshly-added students never collide with pre-seeded ones.</div>
+</div>
+<div class="classcard"><h4>RegularStudent / HonorsStudent <span class="pkgpath">model.student</span></h4>
+<p><code>RegularStudent</code>: passing grade 50% (<code>StudentType.REGULAR</code>). <code>HonorsStudent</code>: passing grade 60%, plus <code>checkHonorsEligibility(): boolean</code>, which recomputes (never caches) whether the student's current average clears their own passing threshold — recomputed on every call, not cached, so it's always current after a grade changes.</p>
+</div>
+<div class="classcard"><h4>Subject (abstract) / CoreSubject / ElectiveSubject <span class="pkgpath">model.subject</span></h4>
+<p>Mirrors the <code>Student</code> hierarchy: <code>Subject</code> holds name + code; each subclass supplies its own <code>displaySubjectDetails()</code>, <code>getSubjectType()</code>, and an <code>isMandatory()</code> flag (true for Core, false for Elective).</p>
+</div>
+<div class="classcard"><h4>Grade <span class="pkgpath">model.grade.Grade — implements Gradable</span></h4>
+<p>Immutable-in-spirit value once constructed: ID and date are auto-generated in the constructor and never change afterward.</p>
+<div class="method"><span class="sig">Grade(String studentId, Subject subject, double gradeValue)</span> — validates the value via <code>recordGrade()</code>/<code>validateGrade()</code> (the <code>Gradable</code> contract) <em>before</em> assigning an ID or date; throws <code>InvalidGradeException</code> if out of range 0–100, so an invalid grade never gets an ID at all.</div>
+<div class="method"><span class="sig">static reconstruct(gradeId, studentId, subject, gradeValue, date): Grade</span> — a private constructor exposed via a static factory, used only when rebuilding a grade already known-valid (e.g. from bulk import), skipping ID/date auto-generation.</div>
+<div class="method"><span class="sig">getLetterGrade(): LetterGrade</span> — delegates to <code>LetterGrade.fromNumeric(grade)</code>.</div>
+</div>
+<div class="classcard"><h4>Enums <span class="pkgpath">model.enums</span></h4>
+<ul>
+<li><code>Role { TEACHER, STUDENT }</code> — replaces a former raw <code>boolean isTeacher</code> flag.</li>
+<li><code>StudentType { REGULAR(50.0), HONORS(60.0) }</code> — carries its own passing-grade threshold.</li>
+<li><code>StudentStatus { ACTIVE, INACTIVE, SUSPENDED, GRADUATED }</code>.</li>
+<li><code>SubjectType { CORE, ELECTIVE }</code>.</li>
+<li><code>LetterGrade { A(85), B(70), C(55), D(40), F(0) }</code> with static <code>fromNumeric(double): LetterGrade</code> — iterates constants in declaration order, returns the first whose threshold the grade clears.</li>
+<li><code>GpaLetterGrade</code> — 11 constants (A through F), each carrying percentage threshold, GPA points, <em>and</em> display label together; <code>fromPercentage()</code> and <code>fromGpaPoints()</code> static factories.</li>
+</ul>
+</div>
+
+<h2>8.2 <code>repository</code> — Persistence Layer</h2>
+<div class="classcard"><h4>StudentRepository / GradeRepository / SubjectRepository (interfaces) + their *Impl</h4>
+<p>Each interface defines CRUD-shaped operations (<code>addX</code>, <code>findXById</code>/<code>findXByCode</code>, <code>getAllX</code>, <code>deleteX</code>, plus <code>updateStudent</code>). Each <code>Impl</code> is backed by exactly one fixed-size array (<code>Student[50]</code>, <code>Grade[200]</code>, <code>Subject[50]</code>) plus a running count field. <code>StudentRepositoryImpl</code> and <code>SubjectRepositoryImpl</code> seed themselves with demo data in their constructors (5 students: 3 Regular + 2 Honors; 6 subjects: 3 Core + 3 Elective). <code>deleteX</code> methods swap the last live element into the deleted slot and null out the vacated last slot — an O(1) removal that doesn't leave a gap, at the cost of not preserving insertion order after a delete.</p>
+</div>
+
+<h2>8.3 <code>service</code> — Business Rules</h2>
+<div class="classcard"><h4>StudentServiceImpl</h4>
+<div class="method"><span class="sig">addStudent(Student): void</span> — runs <code>StudentValidator.validateStudent()</code> first (name/age/email/phone/ID format), logging and rethrowing on rejection; only then persists.</div>
+<div class="method"><span class="sig">getStudentById(String): Student</span> — throws (a plain <code>RuntimeException</code>, notably <em>not</em> one of the custom hierarchy, if the repository somehow returns <code>null</code> — defensive code for a state the repository's own contract says can't happen, since <code>findStudentById</code> itself throws <code>StudentNotFoundException</code> on a miss).</div>
+</div>
+<div class="classcard"><h4>GradeServiceImpl</h4>
+<p>Three constructor overloads (telescoping pattern): no-arg (news its own default <code>Impl</code>s — a minor, isolated DIP compromise used only in one test), two-repository, and full three-repository. <code>recordGrade()</code> checks the student exists, then the subject exists, before persisting — the grade's own 0–100 range check already happened inside <code>Grade</code>'s constructor, so this method doesn't repeat it.</p>
+</div>
+
+<h2>8.4 <code>manager</code> — Facades</h2>
+<div class="classcard"><h4>StudentManager</h4>
+<div class="method"><span class="sig">findStudent(String): Student (nullable)</span> — catches <code>StudentNotFoundException</code> internally and returns <code>null</code> instead, giving callers a simple null-check API rather than forcing every caller to catch an exception just to check existence.</div>
+<div class="method"><span class="sig">hydrateGrades(Student): void (private)</span> — the most important private method in the app: clears the student's transient grade list and refills it from <code>GradeManager</code>, since grades live in their own repository, not on the <code>Student</code> object. Called before every read path that needs an accurate average.</div>
+</div>
+<div class="classcard"><h4>GradeManager</h4>
+<p>Wraps <code>GradeService</code> and <code>SubjectRepository</code>; adds grade-history formatting (<code>viewGradesByStudent</code>, sorted by date descending, ties broken by grade ID descending) and average calculations split by subject type (<code>calculateCoreAverage</code>, <code>calculateElectiveAverage</code>, <code>calculateOverallAverage</code>).</p>
+</div>
+<div class="classcard"><h4>StudentSearcher <span class="pkgpath">implements Searchable</span></h4>
+<p><code>searchById</code>, <code>searchByName</code> (case-insensitive substring match), <code>searchByGradeRange</code>, <code>searchByType(StudentType)</code> (fixed from a <code>boolean</code> — see Part IV). <code>getSearchDescription()</code> builds the human-readable label shown alongside results ("Name: \"John\"", "Type: Honors", etc.).</p>
+</div>
+
+<h2>8.5 <code>calculators</code></h2>
+<div class="classcard"><h4>GPACalculator <span class="pkgpath">implements Calculable</span></h4>
+<p>Every method delegates to <code>GpaLetterGrade</code> — no independent thresholds of its own anymore. <code>cumulativeGPA(studentId)</code> averages <code>percentageToGPA()</code> across every grade; <code>classRank(studentId)</code> counts how many other students have a strictly higher average, +1.</p>
+</div>
+<div class="classcard"><h4>StatisticsCalculator</h4>
+<p>The largest class in the project (253 lines). <code>calculateDistribution()</code> buckets every grade by <code>LetterGrade.ordinal()</code>. <code>calculateStats()</code> computes mean, median (average of the two middle values for an even count), mode (ties broken toward the lowest value via a <code>TreeMap</code>'s ascending iteration order), standard deviation, and range, plus which student/subject earned the single highest and lowest grade. <code>compareStudentTypes()</code> now compares <code>getType()</code> instead of <code>instanceof HonorsStudent</code> (the same OCP fix as <code>StudentSearcher</code>).</p>
+</div>
+
+<h2>8.6 <code>export</code> and <code>imports</code></h2>
+<div class="classcard"><h4>ReportGenerator <span class="pkgpath">implements Exportable</span></h4>
+<p><code>exportSummary(studentId)</code> and <code>exportDetailed(studentId)</code> build report text as a <code>StringBuilder</code>; the detailed report maps each <code>Grade</code> to a <code>GradeDTO</code> via <code>GradeMapper</code> before formatting its grade-history table (the one DTO usage on the export side).</p>
+</div>
+<div class="classcard"><h4>FileExporter</h4>
+<p>Wraps <code>java.io.FileWriter</code> directly — the one class in the project with no injected collaborator to mock, which is why it's the documented exception to the two-test-file convention (Part IX).</p>
+</div>
+<div class="classcard"><h4>CSVParser</h4>
+<p>Parses a CSV, skipping (never aborting on) an invalid row — collects human-readable error strings instead. Validates, per row: exactly 4 columns, no empty field, a numeric grade in [0,100], a subject name that actually exists, and — the KI-10 fix — that the CSV's own declared <code>SubjectType</code> column actually matches the real subject's type (a row claiming "Elective" for a Core subject is rejected, where it used to import silently).</p>
+</div>
+<div class="classcard"><h4>BulkImportService</h4>
+<p>Orchestrates: read file → <code>CSVParser.parse()</code> → for each valid row, look up the student (fail the row if unknown) → construct and persist a <code>Grade</code> → write a timestamped log file under <code>imports/</code> summarizing the whole run, success or partial failure. A log-write failure is caught and logged, never silently swallowed, and never rolls back grades already recorded (the import itself already happened by that point).</p>
+</div>
+
+<h2>8.7 <code>console</code> — Presentation Layer, and <code>app</code> — Entry Point</h2>
+<p>10 classes under <code>console</code>, one per menu option, all implementing <code>MenuAction</code> (<code>getOptionNumber</code>, <code>getLabel</code>, <code>execute</code>, <code>isAuthorizedFor(Role)</code> default <code>true</code>, <code>terminatesLoop</code> default <code>false</code>). <code>ConsoleUtils</code> holds the two behaviors more than one action needs: <code>promptEnter(Scanner)</code> and <code>getAvailableStudentIds(StudentManager)</code>. Only <code>AddStudentAction</code>, <code>ViewStudentsAction</code>, <code>RecordGradeAction</code>, and <code>BulkImportAction</code> override <code>isAuthorizedFor</code> to require <code>Role.TEACHER</code> — every other action is readable by any role. These 10 classes have no automated tests of their own yet (0% in JaCoCo) — a known, deliberately scoped-out gap (Part XII), though each already takes its <code>Scanner</code> via constructor, so the same technique used for <code>ConsoleApp</code> below would work for each of them without further refactoring.</p>
+<div class="classcard"><h4>app.Main</h4>
+<p>The composition root, and nothing else. Builds every repository/service/manager/calculator exactly once as local variables, builds the <code>List&lt;MenuAction&gt;</code> in menu order, then hands both to a new <code>ConsoleApp</code> and calls <code>run()</code>. About 65 lines; deliberately too thin to need a test of its own.</p>
+</div>
+<div class="classcard"><h4>app.ConsoleApp</h4>
+<p>The actual menu loop, extracted out of the old single-file <code>Main</code>: print menu (filtered by role) → read a number → find the matching action → check authorization → <code>execute()</code> inside a try/catch chain ending in <code>ApplicationException</code>. Takes its <code>Scanner</code> via constructor rather than binding to <code>System.in</code> in a <code>static final</code> field — that one change is what makes it unit-testable. Also had to move out of the default/unnamed package the old <code>Main</code> lived in: Java doesn't allow a class in a named package (like <code>tests.app</code>) to import a class from the unnamed package at all, so no test could ever have reached it there regardless of how testable its internals were. Covered by <code>tests/app/ConsoleAppTest.java</code> (scripted <code>Scanner</code> input, captured <code>System.out</code>, real <code>MenuAction</code> test doubles) and <code>tests/app/ConsoleAppMockitoTest.java</code> (mocked <code>MenuAction</code>s, verifying dispatch/authorization/retry interactions) — 17 tests covering every exception-translation branch, the role-based menu filter, invalid-input handling, and the retry-on-<code>InvalidGradeException</code> flow.</p>
+</div>
+
+<h2>8.8 <code>dto</code> / <code>mapper</code>, <code>utils</code></h2>
+<p><code>StudentDTO</code>/<code>GradeDTO</code> are plain immutable data holders (final fields, constructor, getters, no behavior) used only by Search Students and the exported detailed report — Add Student/Record Grade still use real domain objects, since they need the full validation surface a DTO intentionally doesn't carry. <code>StudentMapper.toDto(Student): StudentDTO</code> and <code>GradeMapper.toDto(Grade): GradeDTO</code> are the only two mapping methods in the project — one direction only (see Part VIII's earlier discussion on why there's no <code>RequestDTO</code>/<code>ResponseDTO</code> split: there's no HTTP request/response boundary in a console app).</p>
+<p><code>utils.InputSanitizer.sanitize(String)</code> trims and strips control characters from raw console input. <code>utils.DateFormats</code> centralizes five named <code>SimpleDateFormat</code> patterns that used to be copy-pasted independently into four different classes. <code>utils.validators.StudentValidator</code>/<code>SubjectValidator</code> are stateless static validators throwing the appropriate <code>*ValidationException</code> on the first rule broken.</p>
+
+<!-- ============================================================ -->
+<h1>Part IX — Testing Strategy: JUnit 5, Mockito, and Alternatives</h1>
+<h2>9.1 The Numbers</h2>
+<table>
+<tr><th>Metric</th><th>Value</th></tr>
+<tr><td>Total tests</td><td>377, across 49 test files</td></tr>
+<tr><td>JaCoCo instruction coverage, excluding only <code>console</code> (the 10 untested *Action classes)</td><td>92.3%</td></tr>
+<tr><td><code>calculators</code> package coverage</td><td>98.9% — clears the brief's "95%+ on critical business logic" bar</td></tr>
+<tr><td><code>exceptions</code> package coverage</td><td>95.6% (was 39.7% before a dedicated exception-hierarchy test pass — see Part VIII/CHANGELOG.md)</td></tr>
+<tr><td>Overall instruction coverage (incl. untested <code>console</code>)</td><td>65.3%</td></tr>
+</table>
+<div class="box"><strong>Why overall coverage still looks lower than the business-logic figure:</strong> the 10 individual <code>console/*Action</code> classes (2,169 instructions, 0% covered by JUnit) each still read <code>Scanner</code> input and write <code>System.out</code> directly. This used to also be true of <code>Main</code> itself, but <code>Main</code>'s own menu-loop logic was extracted into <code>app.ConsoleApp</code> (Part VIII, §8.7) specifically to make it testable - proven out by 17 new tests covering it completely. The remaining gap is narrower and better understood now: each <code>*Action</code> already takes its <code>Scanner</code> via constructor, so the identical technique would work for each of them; it simply hasn't been done yet (Part XII). Excluding that one layer, coverage is 92.3%, comfortably above the 80% target - and every business-logic package individually clears 86%, most well above 95%.</div>
+
+<h2>9.1.1 Running JaCoCo and SonarQube</h2>
+<p><strong>JaCoCo</strong> needs no separate setup — it attaches to the JVM automatically during the build:</p>
+<pre><code>mvn clean verify</code></pre>
+<p>Produces <code>target/site/jacoco/index.html</code> (a browsable per-package/per-class report) and <code>target/site/jacoco/jacoco.csv</code> (the same data, scriptable). The `report` execution is bound to Maven's `verify` phase, so `mvn test` alone does not regenerate it — `verify` (which runs `test` first anyway) does.</p>
+<p><strong>SonarQube</strong> needs a running server to send results to. Locally, on Windows, after downloading the free Community Edition:</p>
+<pre><code><span class="cm"># 1. Start the local server (first run initializes its own embedded DB - be patient)</span>
+bin\windows-x86-64\StartSonar.bat
+<span class="cm"># wait for "SonarQube is operational" in the log, then open http://localhost:9000</span>
+<span class="cm"># (default admin/admin, forces a password change; create a project + token in the UI)</span>
+
+<span class="cm"># 2. Run the analysis - clean verify first, in the SAME command, so Sonar's</span>
+<span class="cm"># Java analyzer can read the JaCoCo execution data it needs for coverage:</span>
+mvn clean verify sonar:sonar -Dsonar.projectKey=&lt;key&gt; -Dsonar.token=&lt;token&gt;
+
+<span class="cm"># 3. Stop the server when done:</span>
+bin\windows-x86-64\StopSonar.bat</code></pre>
+<p>The <code>sonar-maven-plugin</code> is registered in <code>pom.xml</code> but bound to no lifecycle phase, so its mere presence never changes what <code>mvn test</code>/<code>mvn verify</code> do — `sonar:sonar` only runs when explicitly invoked.</p>
+
+<h2>9.2 The Two-File-Per-Class Convention</h2>
+<p>Nearly every production class has <em>two</em> test files:</p>
+<ul>
+<li><code>&lt;Class&gt;Test.java</code> — behavioral tests using real collaborators (or, for service/manager layers, a hand-wired real dependency chain all the way down to the in-memory repositories). Answers: "does this produce the right output?"</li>
+<li><code>&lt;Class&gt;MockitoTest.java</code> — the same class verified through <em>mocked</em> collaborators: interaction verification (did it call the repository exactly once?), call-order verification, and edge cases the real implementation can never actually produce but defensive code still guards against (a repository somehow returning <code>null</code>). Answers: "does this call its collaborators correctly, in the right order, the right number of times?"</li>
+</ul>
+<p><strong>Documented exceptions</strong> (no Mockito pair, because there's genuinely nothing to mock): <code>LetterGradeTest</code>, <code>GpaLetterGradeTest</code> (pure enum lookup functions), <code>InputSanitizerTest</code>, <code>DateFormatsTest</code> (pure static utilities), <code>StudentMapperTest</code>, <code>GradeMapperTest</code> (pure mapping functions over a real object, no branching to isolate), <code>FileExporterTest</code> (wraps <code>java.io.FileWriter</code> directly with no injected collaborator of its own).</p>
+
+<h2>9.3 JUnit 5 Features Actually Used</h2>
+<table>
+<tr><th>Feature</th><th>Purpose</th><th>Example</th></tr>
+<tr><td><code>@Test</code></td><td>Marks a method as a test case</td><td>every test method</td></tr>
+<tr><td><code>@DisplayName</code></td><td>Human-readable test name in reports, independent of the method name</td><td><code>@DisplayName("fromPercentage() matches the ReadMe-v2.md grading table")</code></td></tr>
+<tr><td><code>@ParameterizedTest</code> + <code>@CsvSource</code></td><td>Runs the same test body once per row of inline CSV data — turns a whole grading table into one test method</td><td><code>GpaLetterGradeTest</code>'s 34 boundary cases</td></tr>
+<tr><td><code>@ParameterizedTest</code> + <code>@ValueSource</code></td><td>Same, for a single-parameter list of values</td><td>invalid-input sweeps in <code>StudentValidatorTest</code></td></tr>
+<tr><td><code>@AfterEach</code></td><td>Cleanup that must run after every test regardless of pass/fail (e.g. deleting a temp CSV file)</td><td><code>BulkImportServiceTest.cleanUp()</code></td></tr>
+<tr><td><code>assertEquals</code>, <code>assertTrue</code>, <code>assertThrows</code></td><td>Standard JUnit 5 assertions</td><td>everywhere</td></tr>
+</table>
+
+<h2>9.4 Mockito Concepts Actually Used, With Real Examples</h2>
+<table>
+<tr><th>API</th><th>What it does</th><th>Example from this codebase</th></tr>
+<tr><td><code>mock(Class)</code></td><td>Creates a fake implementation of an interface/class whose every method does nothing (returns <code>null</code>/0/false) unless stubbed</td><td><code>StudentManager studentManager = mock(StudentManager.class);</code></td></tr>
+<tr><td><code>when(...).thenReturn(...)</code></td><td>Stubs a specific call to return a specific value</td><td><code>when(studentManager.findStudent("STU001")).thenReturn(student);</code></td></tr>
+<tr><td><code>verify(mock, times(n))</code></td><td>Asserts a method was called exactly <code>n</code> times — proves <em>interaction</em>, not just outcome</td><td><code>verify(studentManager, times(1)).findStudent("STU001");</code> in <code>StudentSearcherMockitoTest</code></td></tr>
+<tr><td><code>spy(realObject)</code></td><td>Wraps a <em>real</em> object; every call runs the real method by default, but individual calls can be verified or overridden — used when you want real behavior <em>and</em> to confirm which internal methods it called</td><td><code>RegularStudentMockitoTest</code> spies on a real <code>RegularStudent</code> to confirm <code>isPassing()</code> genuinely delegates to <code>calculateAverageGrade()</code> and <code>getPassingGrade()</code> rather than duplicating that logic</td></tr>
+<tr><td><code>verify(mock, never())</code></td><td>Asserts a method was <em>never</em> called — a short-circuit check</td><td>used to confirm a rejected grade never reaches the repository</td></tr>
+<tr><td>Mockito's inline mock maker (implicit in 5.x)</td><td>Allows mocking/spying even <code>final</code> methods and classes, via bytecode manipulation at class-load time rather than the older proxy-subclass approach</td><td>relevant since <code>Student.getStudentType()</code> is now <code>final</code> — verified this doesn't break any existing spy-based test</td></tr>
+</table>
+<div class="box warn"><strong>A real version-compatibility bug hit during this project:</strong> <code>mockito-core:5.11.0</code> failed under JDK 25 with <em>"Could not modify all classes"</em> when mocking classes involving <code>Student</code>. Root cause: JDK 25 tightened restrictions on bytecode instrumentation that Mockito's inline mock maker relies on. Fixed by upgrading to <code>mockito-core:5.23.0</code>, a version with updated JDK-25 support. Good interview answer if asked "have you hit a real dependency/tooling bug?"</div>
+
+<h2>9.5 Alternatives Considered — Why Mockito</h2>
+<table>
+<tr><th>Alternative</th><th>Why not chosen</th></tr>
+<tr><td>EasyMock</td><td>Older, more verbose "record-replay" API (must call <code>replay()</code> before use); Mockito's <code>when/verify</code> style is more readable and is the de facto Java standard today</td></tr>
+<tr><td>PowerMock</td><td>Needed historically to mock <code>static</code>/<code>final</code>/private methods, but adds a custom classloader and is known to conflict with newer JDKs; Mockito's own inline mock maker (used here) now covers most of that need directly, without PowerMock's overhead</td></tr>
+<tr><td>JMockit</td><td>Powerful but less widely adopted; smaller community, steeper learning curve for the same coverage Mockito already provides here</td></tr>
+<tr><td>Hand-rolled fakes (no framework)</td><td>Possible, but reinvents <code>verify()</code>/call-counting/argument-matching by hand for every test — far more boilerplate for the same guarantee</td></tr>
+</table>
+
+<!-- ============================================================ -->
+<h1>Part X — Git &amp; GitHub Workflow</h1>
+<h2>10.1 Branching Strategy</h2>
+<p>Strict <code>main</code> / <code>develop</code> / <code>feature/*</code> flow, matching the brief's required strategy exactly:</p>
+<ul>
+<li><strong><code>main</code></strong> — production-ready, protected; never touched directly during this entire project. Every fix and feature landed on <code>develop</code> first, with <code>main</code> gated for a later, separate authorization.</li>
+<li><strong><code>develop</code></strong> — the integration branch; every feature branch merges here via <code>git merge --no-ff</code> (never a fast-forward, so the merge commit itself documents the feature as a discrete unit in history).</li>
+<li><strong><code>feature/*</code></strong> — one branch per unit of work: <code>feature/exception-handling</code>, <code>feature/export-report</code>, <code>feature/gpa-calculation</code>, <code>feature/bulk-import</code>, <code>feature/class-statistics</code>, <code>feature/search-students</code>, <code>feature/ci-cd</code>, plus later <code>feature/BugFix-professional-structure</code>, <code>feature/BugFix-solid-principles</code>, <code>feature/BugFix-package-structure</code>, <code>feature/BugFix-student-read-only</code>, <code>feature/BugFix-menu-role-filter</code>, <code>feature/BugFix-pom-jacoco-placement</code>, and others — 16+ feature branches total across the project's life.</li>
+</ul>
+<h2>10.2 Commit Convention</h2>
+<p>Conventional Commits format throughout the later half of the project: <code>feat(scope): ...</code>, <code>fix(scope): ...</code>, <code>refactor(scope): ...</code>, <code>test(scope): ...</code>, <code>docs(scope): ...</code>. This was itself one of the 14 issues found in a requirements review (only ~11% of early commits followed the convention) and explicitly fixed going forward — a good example to cite if asked "how do you handle discovering your own past mistakes."</p>
+<h2>10.3 The Required Workflow, As Actually Practiced</h2>
+<ol>
+<li>Branch from <code>develop</code></li>
+<li>Implement + commit incrementally, with tests added alongside the same commit or a following one</li>
+<li>Push the branch, let GitHub Actions CI run automatically</li>
+<li>Only once CI is green, merge (<code>--no-ff</code>) into <code>develop</code> locally</li>
+<li>Push <code>develop</code>, confirm CI is <em>also</em> green on <code>develop</code> post-merge (catches any merge-specific breakage a clean feature-branch CI run wouldn't)</li>
+<li><code>main</code> stays untouched pending separate, explicit authorization</li>
+</ol>
+<h2>10.4 CI/CD Pipeline</h2>
+<pre><code><span class="cm"># .github/workflows/ci.yml (student-grade-management job)</span>
+<span class="kw">on</span>:
+  push: {branches: [main, develop, <span class="str">'feature/**'</span>]}
+  pull_request: {branches: [main, develop]}
+jobs:
+  build-and-test-student-grade-management:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4  <span class="cm"># Temurin JDK 17, Maven dependency cache</span>
+      - run: mvn -B test</code></pre>
+<p>Every push to any <code>feature/**</code> branch, and every push to <code>develop</code>/<code>main</code>, triggers an automatic full-suite run on a clean Ubuntu runner — meaning "works on my machine" is never enough; the suite must pass from a fresh checkout with no local state.</p>
+
+<!-- ============================================================ -->
+<h1>Part XI — Design Patterns Identified</h1>
+<table>
+<tr><th>Pattern</th><th>Where</th><th>Why it fits</th></tr>
+<tr><td><strong>Facade</strong></td><td><code>manager.StudentManager</code>, <code>manager.GradeManager</code></td><td>Present one simple, higher-level API over several underlying services/repositories, hiding the coordination (hydrate grades, compute averages) from every caller above them</td></tr>
+<tr><td><strong>Strategy</strong></td><td><code>Calculable</code> (implemented by <code>GPACalculator</code>)</td><td>The GPA-conversion algorithm is swappable behind one interface — a different grading scale could be substituted without touching any caller</td></tr>
+<tr><td><strong>Composition Root</strong></td><td><code>Main</code></td><td>All object construction and wiring happens in exactly one place, at startup — the pattern that makes constructor-based DIP (Part IV) practical without a DI framework like Spring</td></tr>
+<tr><td><strong>Data Transfer Object (DTO)</strong></td><td><code>dto.StudentDTO</code>, <code>dto.GradeDTO</code></td><td>Projects a domain object down to only the fields a specific display path needs, decoupling console formatting from the full domain model</td></tr>
+<tr><td><strong>Repository</strong></td><td><code>repository.*</code></td><td>Abstracts persistence behind a collection-like interface (<code>add</code>/<code>find</code>/<code>getAll</code>/<code>delete</code>), so the storage mechanism (arrays today) could change without touching any service</td></tr>
+<tr><td><strong>Static Factory Method</strong></td><td><code>Grade.reconstruct(...)</code>, <code>GpaLetterGrade.fromPercentage(...)</code></td><td>A named static method instead of a public constructor, for a specific, named construction scenario distinct from "the normal way to make one of these"</td></tr>
+</table>
+
+<!-- ============================================================ -->
+<h1>Part XII — Known Limitations &amp; Honest Discussion Points</h1>
+<p>An engineer being interviewed on this project should be able to name these unprompted — it demonstrates judgment, not just execution.</p>
+<table>
+<tr><th>Limitation</th><th>Why it exists</th><th>What would change it</th></tr>
+<tr><td>No persistence — all data lost on exit</td><td>Assignment brief explicitly required in-memory array storage</td><td>Swap each <code>*RepositoryImpl</code>'s array for a JDBC/JPA-backed implementation behind the same interface — no other layer would need to change, by design (DIP)</td></tr>
+<tr><td>The 10 <code>console/*Action</code> classes have zero automated test coverage</td><td>Each still reads <code>Scanner</code>/writes <code>System.out</code> directly; <code>Main</code>'s own equivalent problem was already fixed by extracting <code>app.ConsoleApp</code> (constructor-injected <code>Scanner</code>), but the same extraction hasn't been applied to each individual action yet</td><td>Nothing architectural is missing - each action already takes its <code>Scanner</code> via constructor, so the identical scripted-input-plus-captured-output technique used for <code>ConsoleAppTest</code> would work today; it's just 10 more test files, not yet written</td></tr>
+<tr><td>Single-threaded, single-user only</td><td>Console app; no server, no concurrent requests to serve</td><td>A move to a server (Spring Boot REST API, say) would require revisiting every shared-mutable-state assumption — the static ID counters, in particular, would need <code>AtomicInteger</code> or a database sequence</td></tr>
+<tr><td>O(n) linear-scan lookups in every repository</td><td>Required array-based storage; array sizes are small and fixed (200 grades max)</td><td>A <code>HashMap</code>-backed repository would make lookups O(1), trivial to swap in behind the same interface</td></tr>
+<tr><td><code>StudentServiceImpl.getStudentById()</code> throws a plain <code>RuntimeException</code>, not a custom one, on an unreachable null case</td><td>Defensive code for a state the repository's own contract already prevents (it throws first)</td><td>Could be tightened to throw <code>StudentNotFoundException</code> for full consistency, though it's provably dead code today</td></tr>
+<tr><td><code>getGrades()</code> exposes the live, mutable grade list</td><td>Convenience for <code>StudentManager.hydrateGrades()</code>, which deliberately clears and refills it</td><td>Return an unmodifiable/defensive copy and add a dedicated <code>replaceGrades(List&lt;Double&gt;)</code> method for the one legitimate internal caller</td></tr>
+</table>
+
+<!-- ============================================================ -->
+<h1>Part XIII — Anticipated Interview Questions (from the Assignment Rubric)</h1>
+<p>Drawn directly from <code>ReadMe-v2.md</code>'s grading rubric and testing scenarios — these are close to exactly what a reviewing engineer would ask, since the rubric <em>is</em> their checklist.</p>
+
+<div class="qa"><div class="q">Q: Walk me through what happens, end to end, when I record a grade.</div>
+<p>A: <code>console.RecordGradeAction.execute()</code> reads and sanitizes the student ID, subject choice, and grade value via <code>Scanner</code>/<code>InputSanitizer</code>, then calls <code>gradeManager.addGrade(grade)</code>. <code>GradeManager</code> delegates to <code>GradeService.recordGrade()</code>, which checks the student and subject both exist (throwing <code>StudentNotFoundException</code>/<code>SubjectNotFoundException</code> otherwise), then persists via <code>GradeRepository.addGrade()</code> into the <code>Grade[200]</code> array. The <code>Grade</code> object itself already validated its 0–100 range in its own constructor before any of this ran. Control returns up through the same call chain to <code>ConsoleApp</code>'s loop.</p></div>
+
+<div class="qa"><div class="q">Q: Where exactly is SOLID actually demonstrated, not just claimed?</div>
+<p>A: See Part IV in full — but the strongest answer is naming the two real violations that were <em>found and fixed</em> during a dedicated audit (the <code>Main</code> God Class for SRP, and the boolean/<code>instanceof</code>-based student-type dispatch for OCP), not just reciting where each principle theoretically applies.</p></div>
+
+<div class="qa"><div class="q">Q: How is a Student prevented from adding, editing, or deleting anything?</div>
+<p>A: Every write-capable <code>MenuAction</code> (<code>AddStudentAction</code>, <code>ViewStudentsAction</code>, <code>RecordGradeAction</code>, <code>BulkImportAction</code>) overrides <code>isAuthorizedFor(Role)</code> to require <code>TEACHER</code>; every read-only action accepts the interface's default <code>true</code>. Enforced twice: the menu itself is filtered by role before printing, and the dispatch loop re-checks authorization before calling <code>execute()</code>, so a Student typing an unlisted option number directly still fails safely.</p></div>
+
+<div class="qa"><div class="q">Q: What's the difference between your two test files per class?</div>
+<p>A: <code>&lt;Class&gt;Test</code> uses real collaborators end-to-end and checks output correctness. <code>&lt;Class&gt;MockitoTest</code> mocks the collaborators and verifies <em>interaction</em> — that the right method was called, the right number of times, in the right order — plus edge cases the real implementation can't produce but defensive code still guards.</p></div>
+
+<div class="qa"><div class="q">Q: Why doesn't this project use checked exceptions?</div>
+<p>A: Every custom exception represents a business-rule violation with nowhere useful to recover locally — it needs to bubble to one central handler in <code>ConsoleApp</code>. Checked exceptions would force every intermediate method signature to declare <code>throws</code>, pure boilerplate with no benefit here.</p></div>
+
+<div class="qa"><div class="q">Q: How would this scale to multiple concurrent users?</div>
+<p>A: Honestly — it currently wouldn't, safely. The static ID counters (<code>studentCounter</code>, <code>gradeCounter</code>) and the array-backed repositories have no synchronization; concurrent writes would race. Moving to a server model would require <code>AtomicInteger</code> counters (or a database sequence) and either synchronized access to the repositories or a real concurrent data store — this is flagged honestly in Part XII, not hidden.</p></div>
+
+<div class="qa"><div class="q">Q: Why did you build a custom Logger instead of using SLF4J/Log4j?</div>
+<p>A: A single-threaded console app with one output stream and four levels doesn't need log rotation, multiple appenders, or MDC — the full weight of a logging framework. The hand-rolled version gives exactly what's used, zero dependencies, and would be a mechanical swap to SLF4J's facade later if this became a server app.</p></div>
+
+<div class="qa"><div class="q">Q: What would you do differently if you started over?</div>
+<p>A: <code>Main</code> itself already went through exactly this — its menu loop was extracted into <code>app.ConsoleApp</code>, which takes its <code>Scanner</code> via constructor instead of binding to <code>System.in</code>, and is now fully covered by 17 tests. The same technique just hasn't been applied to each of the 10 individual <code>console/*Action</code> classes yet, even though each already takes a <code>Scanner</code> the same way — that's the one remaining, well-understood coverage gap in an otherwise 92%+-covered codebase.</p></div>
+
+<!-- ============================================================ -->
+<h1>Part XIV — Conclusion</h1>
+<p>This project took a flat, 9-class in-memory console app and rebuilt it into a layered, SOLID-compliant, dependency-injected, exception-safe, 92%+ business-logic-tested Java application, with a genuine Maven build, a genuine CI/CD pipeline, and a Git history that actually followed the required feature-branch discipline rather than just claiming to. Every architectural decision documented here — array storage, the composition root, colocated interfaces, the two-file test convention, the unchecked exception hierarchy — has a specific, defensible reason behind it, and every known gap (console test coverage, single-threaded assumptions, O(n) lookups) is named rather than hidden. That combination — knowing not just <em>what</em> the code does but <em>why</em> it's shaped that way and <em>where it would need to change</em> — is what this report was built to put in front of a reviewing engineer.</p>
+
+<!-- ============================================================ -->
+<h1>Appendix A — The 14 Requirements-Review Issues (Debugging in Practice)</h1>
+<p>Before this codebase reached its current state, a full requirements review compared the actual <code>develop</code> code against <code>ReadMe-v2.md</code> line by line. Fourteen contradictions were found — each was reproduced first (often by literally running the buggy code and observing the wrong output), then fixed on its own feature branch with its own tests, then verified again. This is the single best material to cite for the rubric's "analyze complex bugs using systematic testing" criterion, because it's real, not hypothetical.</p>
+<table>
+<tr><th>#</th><th>What was wrong</th><th>Root cause</th><th>Fix</th></tr>
+<tr><td>KI-1</td><td>GPA letter grade was wrong for every tier except the very top and bottom (a 90% showed "A" instead of "A-")</td><td>Two independently hand-written if-chains (percentage→GPA and GPA→letter) had silently drifted out of sync with each other</td><td>Rewrote as one table-driven lookup (later an enum, <code>GpaLetterGrade</code>) — a single source of truth that cannot disagree with itself</td></tr>
+<tr><td>KI-2</td><td>Exported summary report literally printed <code>"Name: [name]"</code> instead of the student's real name</td><td><code>ReportGenerator</code> was never actually given a <code>Student</code> object, only a raw ID string, and had hardcoded a placeholder</td><td>Injected <code>StudentManager</code> so the class can resolve the real name itself from the ID</td></tr>
+<tr><td>KI-3</td><td>Logging didn't cover <code>export</code>/<code>calculators</code>/<code>imports</code>/search; one <code>IOException</code> was caught with no log call and no rethrow — a silent failure</td><td>Logging was added incrementally per-feature and some classes were simply missed</td><td>Added <code>Logger</code> calls throughout; the swallowed exception now logs via <code>Logger.error()</code> before continuing</td></tr>
+<tr><td>KI-4</td><td>Zero test coverage on all 7 new v2 feature classes despite an explicit 80%+ requirement</td><td>Tests were never written alongside the features</td><td>Added a full <code>Test</code> + <code>MockitoTest</code> pair per class; suite grew from 210 to (eventually) 350 tests</td></tr>
+<tr><td>KI-5</td><td>Two different, disagreeing letter-grade scales existed simultaneously (View Grade Report said "A" for 87%; View Class Statistics said "B" for the same 87%)</td><td><code>StatisticsCalculator</code> hardcoded its own separate percentage bands instead of reusing <code>LetterGrade</code></td><td>Statistics now buckets by <code>LetterGrade.fromNumeric(grade).ordinal()</code> directly — impossible to disagree with itself again</td></tr>
+<tr><td>KI-6</td><td>"Mode" was documented and shown in the brief's own example output, but was never actually implemented</td><td>Simply missing</td><td>Added <code>calculateMode()</code> (ties broken toward the lower value)</td></tr>
+<tr><td>KI-7</td><td><code>Calculable</code>'s real method signatures didn't match the originally planned design (it took pre-assembled lists instead of resolving data itself by student ID)</td><td>Design drifted during implementation without updating the interface</td><td><code>GPACalculator</code> now takes <code>GradeManager</code>/<code>StudentManager</code> via constructor injection and resolves everything internally by ID, matching the intended contract</td></tr>
+<tr><td>KI-8</td><td>Custom exceptions extended <code>RuntimeException</code> directly (no shared base) and <code>Main</code> still had a generic <code>catch (Exception e)</code> — an explicit requirement violation</td><td>No common exception root existed yet</td><td>Introduced <code>ApplicationException</code> as the one abstract root; <code>Main</code>'s final catch is now <code>catch (ApplicationException e)</code></td></tr>
+<tr><td>KI-9</td><td><code>StudentNotFoundException</code>'s recovery data (available IDs) was thrown away before <code>Main</code> ever saw it — every caller wrote its own duplicated "not found" message instead, one missing the ID list entirely</td><td>The exception was being caught early and converted to a plain <code>null</code>, discarding its payload</td><td>Every affected method now lets the exception bubble up intact to the one top-level handler that already knew how to print the available-IDs list</td></tr>
+<tr><td>KI-10</td><td>Bulk import read the CSV's declared Subject Type column but never actually checked it — a row could claim "Elective" for a Core subject and import silently</td><td>The parsed value was discarded immediately after being read</td><td><code>CSVParser</code> now rejects a row whose declared type disagrees with the subject's real type</td></tr>
+<tr><td>KI-11</td><td>No <code>CHANGELOG.md</code> existed at all, despite being an explicit minimum requirement</td><td>Never created</td><td>Created — you're reading a report partly built from it</td></tr>
+<tr><td>KI-12</td><td>No Maven/Gradle build existed; test dependencies were sourced from local jars by hand</td><td>Project started before a build tool was introduced</td><td>Added <code>pom.xml</code> and a matching CI job — see Part X</td></tr>
+<tr><td>KI-13</td><td>Only ~11% of commits before this review used a conventional-commit prefix, despite it being required</td><td>Habit, not enforced</td><td>Every commit from this review onward uses <code>feat(scope): ...</code>/<code>fix(scope): ...</code>/etc.</td></tr>
+<tr><td>KI-14</td><td>None of the 7 new v2 classes had JavaDoc; GPA/statistics thresholds were hardcoded inline with no named constants</td><td>Skipped under time pressure during initial implementation</td><td>Added class/method JavaDoc throughout; replaced inline numbers with named constants (later: enums)</td></tr>
+</table>
+<div class="box tip"><strong>Why this list matters for an interview:</strong> it proves the debugging skill the rubric asks for was actually exercised — each row is "I found a real discrepancy between spec and code, reproduced it, understood why it happened, fixed it on its own branch, and added a regression test so it can't silently return."</div>
+
+<!-- ============================================================ -->
+<h1>Appendix B — Real Console Transcripts</h1>
+<p>Actual output from running the compiled application (<code>java -cp target/classes Main</code>), not mocked-up examples — captured while verifying the role-based-access and bulk-import fixes described earlier in this report.</p>
+
+<h3>B.1 — Add Student, then Search by ID (Teacher role)</h3>
+<pre><code>Enter choice: 1
+
+ADD STUDENT
+─────────────────────────
+Enter student name: John Doe
+Enter student age: 20
+Enter student email: john@example.com
+Enter student phone: 1234567890
+
+Student type:
+1. Regular Student (Passing grade: 50%)
+2. Honors Student (Passing grade: 60%, honors recognition)
+Select type (1-2): 1
+[INFO]  Student added: STU006 (John Doe)
+
+✓ Student added successfully!
+  Student ID: STU006
+  Name: John Doe
+  Type: REGULAR
+  Age: 20
+  Email: john@example.com
+  Passing Grade: 50%
+  Status: Active</code></pre>
+
+<h3>B.2 — Bulk Import with a deliberately mixed CSV (every rejection type in one file)</h3>
+<pre><code>Enter choice: 7
+
+BULK IMPORT GRADES
+─────────────────────────
+Enter filename (without extension): bulk_import_mixed_errors
+Validating file... ✓
+Processing grades...
+[INFO]  Parsed imports\bulk_import_mixed_errors.csv: 2 valid row(s), 6 error(s)
+[INFO]  Grade recorded: GRD001 (85.0) for student STU003
+
+IMPORT SUMMARY
+─────────────────────────
+Total Rows: 2
+Successfully Imported: 1
+Failed: 1
+
+Failed Records:
+  Row 4: Unknown subject (History)
+  Row 5: Subject type mismatch - Mathematics is CORE, not ELECTIVE
+  Row 6: Grade out of range (150)
+  Row 7: Invalid grade number (abc)
+  Row 8: Invalid format (expected 4 columns, got 3)
+  Row 9: Unknown subject type (Advanced)
+  Row 3: Invalid student ID (STU999)
+
+✓ Import completed!
+  1 grades added to system
+  See import_log_20260721_104943.txt for details</code></pre>
+<p class="small">Every one of those seven failure lines corresponds to a distinct validation branch inside <code>CSVParser</code>/<code>BulkImportService</code> (Part VIII, §8.6) — this single file exercises every rejection path the importer has, in one run.</p>
+
+<h3>B.3 — Role-based menu filtering (Student role)</h3>
+<pre><code>Enable role-based access control? (Y/N, default N): Y
+
+Select your role:
+1. Teacher
+2. Student
+Choose (1-2): 2
+
+╔═══════════════════════════════════════╗
+║   STUDENT GRADE MANAGEMENT - MAIN MENU    ║
+╚═══════════════════════════════════════╝
+
+4. View Grade Report
+5. Export Grade Report
+6. Calculate Student GPA
+8. View Class Statistics
+9. Search Students
+10. Exit
+Role: Student
+
+Enter choice:</code></pre>
+<p class="small">Options 1, 2, 3, and 7 (every write-capable action) are simply absent from this menu — not listed-then-denied. Typing <code>7</code> directly anyway still produces "Access denied. This action is not available for your role." from the dispatch-time check, confirming defense-in-depth.</p>
+
+<!-- ============================================================ -->
+<h1>Appendix C — Glossary (Quick-Reference Definitions)</h1>
+<table>
+<tr><th>Term</th><th>Definition</th></tr>
+<tr><td>JVM</td><td>Java Virtual Machine — the runtime that loads compiled <code>.class</code> bytecode and executes it, providing memory management (heap, GC), a call stack per thread, and platform independence</td></tr>
+<tr><td>Metaspace / Method Area</td><td>Where class metadata and <code>static</code> fields live — one copy per class, for the life of the JVM process</td></tr>
+<tr><td>Heap</td><td>Where every object created with <code>new</code> lives; managed by the garbage collector</td></tr>
+<tr><td>Stack frame</td><td>One method call's local variables + return address; popped when the method returns or an exception unwinds past it</td></tr>
+<tr><td>Bytecode</td><td>The platform-independent instruction set the <code>javac</code> compiler emits and the JVM executes (e.g. <code>invokevirtual</code>, <code>invokeinterface</code>)</td></tr>
+<tr><td>Dynamic dispatch</td><td>Resolving which method body actually runs based on the object's real runtime class, not its declared reference type — the mechanism behind polymorphism</td></tr>
+<tr><td>Type erasure</td><td>Generic type parameters (<code>&lt;T&gt;</code>) exist only at compile time; the compiled bytecode has no record of them</td></tr>
+<tr><td>Checked vs. unchecked exception</td><td>Checked: compiler forces a <code>throws</code> declaration or a catch. Unchecked (extends <code>RuntimeException</code>): no such enforcement — used exclusively in this project</td></tr>
+<tr><td>Happens-before</td><td>A Java Memory Model guarantee that one thread's write becomes visible to another thread's subsequent read — what <code>volatile</code>/locks/<code>synchronized</code> establish</td></tr>
+<tr><td>Composition root</td><td>The single place in an application where the full object graph is constructed and wired together — here, <code>Main</code></td></tr>
+<tr><td>Mock vs. spy</td><td>A mock replaces a collaborator entirely (every method is fake unless stubbed); a spy wraps a real object (every method is real unless overridden) — both from Mockito</td></tr>
+<tr><td>CI/CD</td><td>Continuous Integration / Continuous Delivery — automatically building and testing every push (here: GitHub Actions running <code>mvn test</code>) so integration problems surface immediately, not at release time</td></tr>
+</table>
+
+</body>
+</html>

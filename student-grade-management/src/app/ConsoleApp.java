@@ -1,87 +1,45 @@
-import calculators.GPACalculator;
-import calculators.StatisticsCalculator;
-import console.AddStudentAction;
-import console.BulkImportAction;
-import console.CalculateGpaAction;
-import console.ClassStatisticsAction;
-import console.ExitAction;
-import console.ExportGradeReportAction;
+package app;
+
 import console.MenuAction;
-import console.RecordGradeAction;
-import console.SearchStudentsAction;
-import console.ViewGradeReportAction;
-import console.ViewStudentsAction;
 import exceptions.ApplicationException;
 import exceptions.ExportException;
+import exceptions.GradeException;
 import exceptions.ImportException;
 import exceptions.InvalidGradeException;
 import exceptions.StudentNotFoundException;
 import exceptions.StudentValidationException;
-import exceptions.GradeException;
 import exceptions.SubjectNotFoundException;
 import exceptions.SubjectValidationException;
-import export.FileExporter;
-import export.ReportGenerator;
-import imports.BulkImportService;
 import logging.Logger;
-import manager.GradeManager;
-import manager.StudentManager;
-import manager.StudentSearcher;
 import model.enums.Role;
-import repository.student.StudentRepository;
-import repository.student.StudentRepositoryImpl;
-import repository.subject.SubjectRepository;
-import repository.subject.SubjectRepositoryImpl;
-import service.GradeService;
-import service.StudentService;
-import service.GradeServiceImpl;
-import service.StudentServiceImpl;
 
 import java.util.List;
 import java.util.Scanner;
 
 /**
- * Console entry point: builds the dependency graph (composition root),
- * prints the menu, and dispatches each chosen number to its
- * {@link MenuAction}. Per-feature behavior lives entirely in the
- * {@code console} package's action classes - this class only owns the
- * session-level concerns that don't belong to any single feature: the
- * role-based-access toggle and translating a thrown exception into a
- * console message.
+ * The interactive menu loop: prints the menu, reads a choice, dispatches it
+ * to the matching {@link MenuAction}, and translates a thrown exception
+ * into a console message. Extracted out of {@code Main} specifically so it
+ * can be constructed with any {@link Scanner} - including one wrapping a
+ * scripted, in-memory input stream in a test - rather than being permanently
+ * bound to {@code System.in} the way a {@code static final} field on Main
+ * used to be. {@code Main} itself now only builds the dependency graph and
+ * hands it here.
  */
-public class Main {
-    private static final Scanner scanner = new Scanner(System.in);
+public class ConsoleApp {
 
-    private static final StudentRepository studentRepository = new StudentRepositoryImpl();
-    private static final SubjectRepository subjectRepository = new SubjectRepositoryImpl();
-    private static final GradeService gradeService = new GradeServiceImpl(studentRepository, subjectRepository);
-    private static final GradeManager gradeManager = new GradeManager(gradeService, subjectRepository);
-    private static final StudentService studentService = new StudentServiceImpl(studentRepository);
-    private static final StudentManager studentManager = new StudentManager(studentService, gradeManager);
-    private static final ReportGenerator reportGenerator = new ReportGenerator(gradeManager, studentManager);
-    private static final FileExporter fileExporter = new FileExporter();
-    private static final GPACalculator gpaCalculator = new GPACalculator(gradeManager, studentManager);
-    private static final BulkImportService bulkImportService = new BulkImportService(subjectRepository, studentManager, gradeManager);
-    private static final StatisticsCalculator statisticsCalculator = new StatisticsCalculator();
-    private static final StudentSearcher studentSearcher = new StudentSearcher(studentManager);
+    private final Scanner scanner;
+    private final List<MenuAction> actions;
 
-    private static final List<MenuAction> actions = List.of(
-            new AddStudentAction(scanner, studentManager),
-            new ViewStudentsAction(scanner, studentManager),
-            new RecordGradeAction(scanner, studentManager, gradeManager),
-            new ViewGradeReportAction(scanner, studentManager, gradeManager),
-            new ExportGradeReportAction(scanner, studentManager, gradeManager, reportGenerator, fileExporter),
-            new CalculateGpaAction(scanner, studentManager, gradeManager, gpaCalculator),
-            new BulkImportAction(scanner, bulkImportService),
-            new ClassStatisticsAction(scanner, studentManager, gradeManager, statisticsCalculator, subjectRepository),
-            new SearchStudentsAction(scanner, studentManager, studentSearcher, fileExporter),
-            new ExitAction()
-    );
+    private boolean useRoleBased = false;
+    private Role currentRole = Role.TEACHER;
 
-    private static boolean useRoleBased = false;
-    private static Role currentRole = Role.TEACHER;
+    public ConsoleApp(Scanner scanner, List<MenuAction> actions) {
+        this.scanner = scanner;
+        this.actions = actions;
+    }
 
-    public static void main(String[] args) {
+    public void run() {
         askRoleBased();
 
         while (true) {
@@ -152,7 +110,7 @@ public class Main {
         }
     }
 
-    private static MenuAction findAction(int choice) {
+    private MenuAction findAction(int choice) {
         for (MenuAction action : actions) {
             if (action.getOptionNumber() == choice) {
                 return action;
@@ -161,7 +119,7 @@ public class Main {
         return null;
     }
 
-    private static void askRoleBased() {
+    private void askRoleBased() {
         System.out.print("Enable role-based access control? (Y/N, default N): ");
         String input = scanner.nextLine().trim();
         if (!input.equalsIgnoreCase("Y")) {
@@ -186,7 +144,7 @@ public class Main {
         }
     }
 
-    private static void printMenu() {
+    private void printMenu() {
         System.out.println("\n╔═══════════════════════════════════════╗");
         System.out.println("║   STUDENT GRADE MANAGEMENT - MAIN MENU    ║");
         System.out.println("╚═══════════════════════════════════════╝");
