@@ -309,12 +309,19 @@ until it was caught and fixed (`feature/BugFix-student-read-only`).
 Authorization is enforced at two points, both in `Main`'s loop — never
 inside an action itself:
 
-- **Menu is unfiltered, action dispatch is gated** — `printMenu()` always
-  lists all 10 options (matching the original console output), but before
-  calling `action.execute()`, `Main` checks
-  `useRoleBased && !action.isAuthorizedFor(currentRole)`. A STUDENT
-  choosing an unauthorized option sees "Access denied..." and the loop
-  continues without ever calling that action.
+- **Menu is filtered** — `printMenu()` only lists an option when
+  `!useRoleBased || action.isAuthorizedFor(currentRole)`, so a STUDENT
+  never even sees "1. Add Student", "2. View Students", "3. Record
+  Grade", or "7. Bulk Import Grades" in their menu at all - not just a
+  denial after picking one. With role-based access off (the default),
+  every option is shown, same as before.
+- **Dispatch is still gated too** — even though unauthorized options
+  aren't listed, `Main` still checks
+  `useRoleBased && !action.isAuthorizedFor(currentRole)` before calling
+  `action.execute()`. This matters because nothing stops a user from
+  typing a number that isn't on their filtered menu (e.g. a STUDENT
+  typing `7` anyway) - they still get "Access denied..." rather than the
+  action silently running.
 - **Per-action, not per-number** — each `MenuAction` overrides
   `isAuthorizedFor(Role)` itself (`AddStudentAction`, `ViewStudentsAction`,
   `RecordGradeAction`, and `BulkImportAction` return `role == Role.TEACHER`;

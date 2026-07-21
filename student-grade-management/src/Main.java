@@ -192,7 +192,9 @@ public class Main {
         System.out.println("╚═══════════════════════════════════════╝");
         System.out.println();
         for (MenuAction action : actions) {
-            System.out.println(action.getOptionNumber() + ". " + action.getLabel());
+            if (!useRoleBased || action.isAuthorizedFor(currentRole)) {
+                System.out.println(action.getOptionNumber() + ". " + action.getLabel());
+            }
         }
         if (useRoleBased) {
             System.out.println("Role: " + (currentRole == Role.TEACHER ? "Teacher" : "Student"));
