@@ -15,6 +15,21 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <junit.version>5.10.2</junit.version>
         <mockito.version>5.23.0</mockito.version>
+
+        <!--
+            sourceDirectory and testSourceDirectory below both point at `src`
+            (see the comment above <build>), which is fine for javac/surefire
+            (the compiler plugin's own excludes handle it) but the Sonar
+            Scanner derives its main/test file sets directly from these two
+            properties - if left unset, it sees the identical `src` path for
+            both and refuses to index any file "twice". These three
+            properties tell it explicitly how to split the one physical tree:
+            everything under src/tests is a test file, everything else under
+            src is a main file, and the two sets never overlap.
+        -->
+        <sonar.sources>src</sonar.sources>
+        <sonar.exclusions>src/tests/**</sonar.exclusions>
+        <sonar.tests>src/tests</sonar.tests>
     </properties>
 
     <!--
