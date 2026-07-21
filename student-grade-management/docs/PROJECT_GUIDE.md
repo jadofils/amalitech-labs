@@ -285,18 +285,26 @@ If the user answers `Y`, a role prompt appears, and the selected role
 (`TEACHER` or `STUDENT`, `model.enums.Role`) is preserved for the
 session. Menu rendering and action authorization both depend on it.
 
-| Option | Action | TEACHER | STUDENT |
-|---|---|---|---|
-| 1 | Add Student | ✓ | ✗ |
-| 2 | View Students | ✓ | ✗ |
-| 3 | Record Grade | ✓ | ✗ |
-| 4 | View Grade Report | ✓ | ✓ |
-| 5 | Export Grade Report | ✓ | ✓ |
-| 6 | Calculate Student GPA | ✓ | ✓ |
-| 7 | Bulk Import Grades | ✓ | ✓ |
-| 8 | View Class Statistics | ✓ | ✓ |
-| 9 | Search Students | ✓ | ✓ |
-| 10 | Exit | ✓ | ✓ |
+| Option | Action | Mutates data? | TEACHER | STUDENT |
+|---|---|---|---|---|
+| 1 | Add Student | write | ✓ | ✗ |
+| 2 | View Students | read | ✓ | ✗ |
+| 3 | Record Grade | write | ✓ | ✗ |
+| 4 | View Grade Report | read | ✓ | ✓ |
+| 5 | Export Grade Report | read | ✓ | ✓ |
+| 6 | Calculate Student GPA | read | ✓ | ✓ |
+| 7 | Bulk Import Grades | write | ✓ | ✗ |
+| 8 | View Class Statistics | read | ✓ | ✓ |
+| 9 | Search Students | read | ✓ | ✓ |
+| 10 | Exit | — | ✓ | ✓ |
+
+**Student is always read-only, by design** — every option a STUDENT can
+reach only reads existing data (or exports/searches over it); the three
+that mutate state (Add Student, Record Grade, Bulk Import Grades) are all
+teacher-only. This wasn't true from the start: `BulkImportAction`
+originally had no `isAuthorizedFor` override, defaulting to the
+interface's `true`, which let a Student import grades — a write path —
+until it was caught and fixed (`feature/BugFix-student-read-only`).
 
 Authorization is enforced at two points, both in `Main`'s loop — never
 inside an action itself:
@@ -309,10 +317,12 @@ inside an action itself:
   continues without ever calling that action.
 - **Per-action, not per-number** — each `MenuAction` overrides
   `isAuthorizedFor(Role)` itself (`AddStudentAction`, `ViewStudentsAction`,
-  and `RecordGradeAction` return `role == Role.TEACHER`; every other
-  action accepts the interface's default `true`). Adding a new menu
-  option never requires touching a shared "if choice is between X and Y"
-  check, since there isn't one anymore.
+  `RecordGradeAction`, and `BulkImportAction` return `role == Role.TEACHER`;
+  every other action accepts the interface's default `true`, since it
+  never mutates anything). Adding a new menu option never requires
+  touching a shared "if choice is between X and Y" check, since there
+  isn't one anymore — it only requires deciding, once, whether the new
+  action reads or writes.
 
 ---
 
@@ -327,8 +337,9 @@ inside an action itself:
    ten features.
 3. As a **Teacher** you have full access: add students, view students,
    record grades, plus everything a Student can do.
-4. As a **Student** you can view/export/report/search/statistics/import
-   (options 4–9) and exit, but cannot add students, view the full
-   listing, or record grades (options 1–3).
+4. As a **Student** you can view/export/report/calculate GPA/view
+   statistics/search (options 4, 5, 6, 8, 9) and exit, but cannot add
+   students, view the full listing, record grades, or bulk-import grades
+   (options 1, 2, 3, 7) — every write action is teacher-only.
 5. 5 sample students (3 Regular, 2 Honors) and 6 subjects (3 Core, 3
    Elective) are pre-loaded on every start.
