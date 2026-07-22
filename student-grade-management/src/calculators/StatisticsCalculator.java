@@ -54,33 +54,41 @@ public class StatisticsCalculator {
         public String[] getLabels() { return LABELS; }
     }
 
+    /** One extreme grade (highest or lowest) bundled with who earned it and in what subject. */
+    public static class GradeExtreme {
+        private final double value;
+        private final String studentName;
+        private final String subjectName;
+
+        public GradeExtreme(double value, String studentName, String subjectName) {
+            this.value = value;
+            this.studentName = studentName;
+            this.subjectName = subjectName;
+        }
+
+        public double getValue() { return value; }
+        public String getStudentName() { return studentName; }
+        public String getSubjectName() { return subjectName; }
+    }
+
     public static class StatsResult {
         private final double mean;
         private final double median;
         private final double mode;
         private final double stdDev;
         private final double range;
-        private final double min;
-        private final double max;
-        private final String maxStudentName;
-        private final String maxSubjectName;
-        private final String minStudentName;
-        private final String minSubjectName;
+        private final GradeExtreme highest;
+        private final GradeExtreme lowest;
 
         public StatsResult(double mean, double median, double mode, double stdDev, double range,
-                           double min, double max, String maxStudentName, String maxSubjectName,
-                           String minStudentName, String minSubjectName) {
+                           GradeExtreme highest, GradeExtreme lowest) {
             this.mean = mean;
             this.median = median;
             this.mode = mode;
             this.stdDev = stdDev;
             this.range = range;
-            this.min = min;
-            this.max = max;
-            this.maxStudentName = maxStudentName;
-            this.maxSubjectName = maxSubjectName;
-            this.minStudentName = minStudentName;
-            this.minSubjectName = minSubjectName;
+            this.highest = highest;
+            this.lowest = lowest;
         }
 
         public double getMean() { return mean; }
@@ -88,12 +96,12 @@ public class StatisticsCalculator {
         public double getMode() { return mode; }
         public double getStdDev() { return stdDev; }
         public double getRange() { return range; }
-        public double getMin() { return min; }
-        public double getMax() { return max; }
-        public String getMaxStudentName() { return maxStudentName; }
-        public String getMaxSubjectName() { return maxSubjectName; }
-        public String getMinStudentName() { return minStudentName; }
-        public String getMinSubjectName() { return minSubjectName; }
+        public double getMin() { return lowest.getValue(); }
+        public double getMax() { return highest.getValue(); }
+        public String getMaxStudentName() { return highest.getStudentName(); }
+        public String getMaxSubjectName() { return highest.getSubjectName(); }
+        public String getMinStudentName() { return lowest.getStudentName(); }
+        public String getMinSubjectName() { return lowest.getSubjectName(); }
     }
 
     public static class SubjectAverage {
@@ -141,13 +149,17 @@ public class StatisticsCalculator {
     /** Mean, median, mode, standard deviation, range, and the highest/lowest single grade (with who/what earned it). */
     public StatsResult calculateStats(List<Grade> grades, List<Student> students) {
         if (grades.isEmpty()) {
-            return new StatsResult(0, 0, 0, 0, 0, 0, 0, "", "", "", "");
+            GradeExtreme none = new GradeExtreme(0, "", "");
+            return new StatsResult(0, 0, 0, 0, 0, none, none);
         }
 
         double sum = 0;
         double max = Double.MIN_VALUE;
         double min = Double.MAX_VALUE;
-        String maxStudent = "", maxSubject = "", minStudent = "", minSubject = "";
+        String maxStudent = "";
+        String maxSubject = "";
+        String minStudent = "";
+        String minSubject = "";
 
         for (Grade g : grades) {
             double val = g.getGrade();
@@ -185,8 +197,9 @@ public class StatisticsCalculator {
         double stdDev = Math.sqrt(varianceSum / n);
         double range = max - min;
 
-        return new StatsResult(mean, median, mode, stdDev, range, min, max,
-                maxStudent, maxSubject, minStudent, minSubject);
+        return new StatsResult(mean, median, mode, stdDev, range,
+                new GradeExtreme(max, maxStudent, maxSubject),
+                new GradeExtreme(min, minStudent, minSubject));
     }
 
     // Ties broken by lowest value, via TreeMap's ascending iteration order
@@ -226,8 +239,10 @@ public class StatisticsCalculator {
     }
 
     public StudentTypeComparison compareStudentTypes(List<Student> students) {
-        double regSum = 0, honSum = 0;
-        int regCount = 0, honCount = 0;
+        double regSum = 0;
+        double honSum = 0;
+        int regCount = 0;
+        int honCount = 0;
         for (Student s : students) {
             if (s.getType() == StudentType.HONORS) {
                 honSum += s.calculateAverageGrade();
