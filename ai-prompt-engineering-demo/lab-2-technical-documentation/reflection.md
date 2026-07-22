@@ -1,21 +1,17 @@
 # Reflection — Lab 2
 
-**What the prompting process got right:** the single highest-leverage change across all four
-iterations wasn't a wording tweak, it was forcing source grounding before generation (v1 → v2).
-Without it, the model produces a fluent, well-formatted, entirely wrong document, and nothing
-about its tone signals that — a generic-but-confident wrong answer is more dangerous for
-documentation than an obviously broken one, because it reads as trustworthy.
+**What was the hardest part of this task?** Fact-checking, not tone. Once the model had the
+source material, the API reference itself came out clean on the first try — endpoints, fields,
+and status codes matched the code exactly. The hard part was catching where the team's own
+Slack/wiki notes disagreed with that code (the login field name, the "test without auth" advice,
+the fourth task status, the `DELETE` response shape). A passive "document this" prompt happily
+repeated all four wrong claims as fact, because they read like plausible documentation, not like
+errors.
 
-**What needed correction:** v2's "describe what the code does" instruction was still passive
-enough that it inherited the project's own documentation errors instead of catching them. Telling
-the model to actively distrust the existing docs and re-derive behavior from source (v3) is what
-actually found the two real discrepancies (honors eligibility threshold, phone validation vs. seed
-data) — those weren't things I already knew going in; they surfaced from the verification step
-itself. That's the actual argument for "AI-assisted" documentation over "AI-generated": the value
-isn't producing prose faster, it's using the read-everything capability to catch drift between
-docs and implementation that a human skimming the README would reasonably miss.
-
-**Implication for using this on a real backend:** an instruction to "document X" defaults to
-summarizing what X *claims* to be. Getting documentation that's actually useful for onboarding
-requires explicitly asking for adversarial verification against source — otherwise you've just
-paid an AI to retype the README.
+**How did iterative prompting change the quality of the documentation?** v1, ungrounded, invented
+an entire imaginary API. v2 grounded it in the source material but still trusted the notes as much
+as the code, so it inherited the four inaccuracies. Only v3 — instructing the model to check every
+note against the code line-by-line and flag disagreements instead of silently picking one — turned
+those four inaccuracies into a named "Known Issues" list anchoring the Troubleshooting section.
+v4's schema instruction got all three required sections into one consistently-toned document
+instead of three separately-styled fragments.

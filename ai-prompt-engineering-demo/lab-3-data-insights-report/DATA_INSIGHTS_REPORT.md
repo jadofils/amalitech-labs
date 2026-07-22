@@ -1,110 +1,78 @@
-# Data Insights Report — Student Grade Management (Sample Run)
+# UrbanTransit — Data Insights Report
 
-**Source:** [dataset/sample-grades.csv](dataset/sample-grades.csv) — 25 grade records, 5 students,
-6 subjects. See [README.md](README.md) for why this is a constructed sample rather than a real
-export (the app has no persistence — nothing to export).
-
-**Method:** computed directly from the dataset using the same rules the codebase itself defines
-(`Student.calculateAverageGrade`, `isPassing`, `HonorsStudent.checkHonorsEligibility`,
-`GradeManager`'s core/elective split, `LetterGrade.fromNumeric`) — not generic mean/median/mode
-blind to what the app considers "passing" or "eligible". All figures below are reproducible by
-hand from the CSV.
+**For:** UrbanTransit operations team (non-technical)
+**Source:** [dataset/urban-transit-ridership-2024.csv](dataset/urban-transit-ridership-2024.csv) —
+366 days, January 1 through December 31, 2024. Five columns: daily ridership, ticket sales, number
+of delays, and average delay length in minutes.
+**Method:** every number below was computed directly from the CSV (day-of-week averages, monthly
+averages, a standard correlation coefficient, and outlier days more than 2.5 standard deviations
+from the yearly average) — nothing here is a model guess. See [prompts.md](prompts.md) for how the
+analysis was built up step by step.
 
 ---
 
-## 1. Headline numbers
+## 1. Summary of key trends
 
-| Metric | Value |
-|---|---|
-| Students | 5 (3 Regular, 2 Honors) |
-| Grade records | 25 (15 core, 10 elective) |
-| Overall class average | **73.8%** |
-| Pass rate (against each student's own passing threshold) | **4 / 5 (80%)** |
-| Core subjects average | 72.4% |
-| Elective subjects average | 75.9% |
+**Ridership follows a clear seasonal arc, not a flat average.** Riders per day climb from about
+2,085 in January to a spring peak of roughly 2,480 in March and April, then decline steadily
+through the summer to a low of about 1,587–1,596 in September and October, before recovering
+toward year-end. The single "average day" (~2,016 riders) that a quick summary stat would give you
+hides a swing of nearly 900 riders between the best and worst months.
 
-## 2. Per-student summary
+**There is no meaningful weekday/weekend pattern.** Average ridership by day of week ranges only
+from about 1,982 (Wednesday) to 2,043 (Tuesday) — a 3% spread. Most transit systems see a real dip
+on weekends; this one doesn't. If schedules or staffing assume weekends are quieter, that
+assumption isn't supported by this data.
 
-| ID | Name | Type | Core avg | Elective avg | Overall | Passing grade | Status |
-|---|---|---|---|---|---|---|---|
-| STU001 | Alice Johnson | Regular | 85.0 | 75.5 | **81.2%** | 50% | Passing |
-| STU002 | Bob Smith | Honors | 78.3 | 87.5 | **82.0%** | 60% | Passing |
-| STU003 | Carol Martinez | Regular | 45.0 | 54.0 | **48.6%** | 50% | **Failing** |
-| STU004 | David Chen | Honors | 92.7 | 92.5 | **92.6%** | 60% | Passing |
-| STU005 | Emma Wilson | Regular | 61.0 | 70.0 | **64.6%** | 50% | Passing (marginal) |
+**Delays have their own, different seasonal pattern.** Average delay count per day roughly doubles
+in April–June and again in September–October (around 4.0–4.4 delays/day) compared to
+January–February, August, and November (around 1.6–1.8 delays/day). This doesn't line up with the
+ridership seasons above — it looks like its own cycle, plausibly tied to maintenance windows or
+weather transitions, but that's a hypothesis to check operationally, not something this data alone
+proves.
 
-**At-risk:** Carol Martinez is the only failing student, and by a meaningful margin (1.4 points
-under her 50% threshold) — every core grade she has is in the D/F range (42, 38, 55). Her lowest
-mark is English (38, letter grade F), her strongest is Physical Education (48, still below the
-class's weakest subject average). This is a single-student pattern across subjects, not one bad
-grade — worth flagging for intervention rather than treating as noise.
+## 2. Notable anomalies
 
-**Marginal:** Emma Wilson passes (64.6% vs. a 50% bar) but sits closer to Carol than to the rest
-of the class — 3 of her 5 grades (60, 65, 58) land in the C range. Not at-risk under the app's own
-rule, but the next student worth watching if the bar were raised.
+**A suspicious flat floor of exactly 1,500 riders, 42 separate days, all between August 9 and
+November 21.** Real ridership doesn't naturally land on the exact same number 42 times — for
+comparison, no other single ridership value repeats more than twice all year. This cluster sits
+right in the seasonal trough identified above, which raises a real question: is actual ridership
+during this period being **replaced or clipped** by a minimum value somewhere in how this data is
+collected or reported, hiding what demand really looked like in the trough? **This should be
+confirmed with whoever owns the data pipeline before the September–October low is treated as real**
+— it may understate an actual problem, or it may be entirely artificial.
 
-## 3. Subject-level breakdown
+**Two very different "bad delay days" that a single delay-count number would treat as similar.**
+April 15 had the most delays of any day in the dataset (11), but they were short — averaging only
+3.7 minutes each. June 8, by contrast, had fewer delays (8) but they were the longest of the year on
+average (23.1 minutes) — the single worst day for delay severity in 2024. These look like two
+different operational failure modes (a dispatching/frequency problem vs. a service-disruption
+problem), not the same issue at different volumes.
 
-| Subject | Type | Average | Rank (highest first) |
-|---|---|---|---|
-| Music | Elective | 86.75 | 1 |
-| Science | Core | 74.6 | 2 |
-| Mathematics | Core | 72.0 | 3 |
-| English | Core | 70.6 | 4 |
-| Art | Elective | 70.3 | 5 |
-| Physical Education | Elective | 67.0 | 6 |
+**No correlation between delays and ticket sales.** The rubric for this analysis asked specifically
+whether delays and ticket sales move together — checked directly, they don't (correlation
+coefficient of 0.06, where 0 means no relationship and 1 means they move in lockstep). Whatever
+drives ticket sales up or down over the course of a year, it isn't visibly the number of delays. If
+anyone on the team has been assuming "more delays = fewer riders buying tickets," this dataset
+doesn't back that up.
 
-Electives aren't uniformly "easier" — Music is the single highest-scoring subject in the dataset,
-but Physical Education is the lowest. The elective average (75.9%) being above the core average
-(72.4%) is being pulled up almost entirely by Music; Art and PE are in line with, or below, the
-core subjects. A report that only compared "core vs. elective" as two buckets (as
-`GradeManager.calculateCoreAverage`/`calculateElectiveAverage` do) would miss that the elective
-category isn't internally consistent.
+## 3. Actionable recommendations
 
-## 4. Letter grade distribution (`LetterGrade.fromNumeric`, all 25 records)
-
-| Grade | Count | % of records |
-|---|---|---|
-| A (≥85) | 10 | 40% |
-| B (≥70) | 5 | 20% |
-| C (≥55) | 7 | 28% |
-| D (≥40) | 2 | 8% |
-| F (<40) | 1 | 4% |
-
-60% of all records are B or above; the D/F records (3 total) all belong to Carol Martinez — no
-other student has a sub-55 grade in this sample.
-
-## 5. Honors eligibility: a worked example of the Lab 2 discrepancy
-
-Lab 2's technical documentation flagged that `HonorsStudent.checkHonorsEligibility()` checks
-`average >= 60` (the Honors passing grade), not `>= 85` as `ReadMe.md`'s acceptance criteria for
-US-1 states. This dataset has a student where that difference isn't hypothetical:
-
-| Student | Overall avg | Eligible under **code** (`>= 60`) | Eligible under **documented spec** (`>= 85`) |
-|---|---|---|---|
-| Bob Smith (STU002) | 82.0% | ✅ Yes | ❌ No |
-| David Chen (STU004) | 92.6% | ✅ Yes | ✅ Yes |
-
-Run this dataset through the app as-is and Bob Smith is reported "Honors Eligible" — the same
-status as David Chen, despite averaging over 10 points lower and not meeting the 85% bar the
-project's own requirements describe. If the intent really is an 85% honors bar, this is a real
-student outcome the current logic gets wrong, not just a documentation nit — it changes who shows
-up as "eligible" in the View Students listing.
-
-## 6. Recommendations
-
-1. **Decide and fix the honors-eligibility threshold** (`HonorsStudent.checkHonorsEligibility()`,
-   [HonorsStudent.java:49-53](../../student-grade-management/src/model/student/HonorsStudent.java#L49-L53)).
-   Either the check should compare against a distinct 85% constant, or the README's acceptance
-   criteria should be corrected to say "eligible = passing" — right now the code and the spec
-   disagree, and §5 shows a case where the answer actually flips.
-2. **Flag Carol Martinez (STU003) for follow-up** — every subject, not one outlier grade, is below
-   passing; a per-subject pattern like this is exactly the kind of signal `viewGradesByStudent`
-   already has the data for but doesn't surface (it prints a table, it doesn't compute "how many
-   subjects below passing").
-3. **Don't report core/elective as two flat buckets when they're this uneven** — Music's 86.75
-   average is carrying the entire "electives" category; PE at 67.0 would look very different
-   reported on its own. If `GradeManager` ever adds an aggregate report, per-subject breakdown
-   should be the default, not core-vs-elective.
-4. **Watch Emma Wilson (STU005)** — currently passing but with a C-heavy grade spread; not
-   actionable under current rules, but worth a note if passing thresholds are ever revisited.
+1. **Confirm whether the August–November 1,500-rider floor is real.** Forty-two days landing on
+   the exact same number is the single biggest red flag in this dataset — resolve this with the
+   data source before using the fall trough for any staffing or budget decision.
+2. **Don't budget around a delay-to-ticket-sales link — it isn't there.** If service-recovery or
+   marketing spend has been justified by "delays are costing us riders," this year's data doesn't
+   support that; look elsewhere for what's driving the seasonal ticket-sales swing.
+3. **Treat April 15 and June 8 as two different problems, not two data points on one chart.** A
+   high delay *count* with a low average length points at frequency/dispatch; a lower count with a
+   high average length (like June 8) points at service disruption severity. Track both separately
+   going forward, not just "delays per day."
+4. **Plan for the April–June and September–October delay bumps as a predictable pattern, not a
+   surprise each time.** Both windows show roughly double the delay rate of the calendar's quieter
+   months — worth checking against maintenance schedules to see if extra spare vehicles or staffing
+   during those windows would help before it recurs next year.
+5. **Re-examine any schedule built around a weekday/weekend ridership gap.** This system's
+   ridership is essentially flat across all seven days — a schedule that reduces weekend service
+   assuming lower demand may be under-serving riders who are, on average, showing up just as much
+   as they do on a weekday.

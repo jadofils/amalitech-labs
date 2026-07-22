@@ -8,9 +8,11 @@ This folder holds the submission for the two formative lab pathways assigned to 
 | Lab 2: AI-Assisted Technical Documentation | [lab-2-technical-documentation/](lab-2-technical-documentation/) | Technical skills (API docs) |
 | Lab 3: AI-Driven Data Insights Report | [lab-3-data-insights-report/](lab-3-data-insights-report/) | Analytical skills (data handling) |
 
-Both labs use the same subject project — **[student-grade-management](../student-grade-management/)**,
-the Java console app in this repo — so the documentation and the data analysis are grounded in a
-real, already-built backend instead of a toy example.
+Each lab uses the scenario specified in the official lab brief
+(`Applied-AI-and-Prompt-Engineering`): Lab 2 is TaskFlow, a fictional task management web app with
+messy, scattered documentation; Lab 3 is UrbanTransit, a real year of daily ridership/ticket-sales/
+delay data for a city transit authority
+([lab-3-data-insights-report/dataset/](lab-3-data-insights-report/dataset/)).
 
 Each lab folder follows the same structure:
 

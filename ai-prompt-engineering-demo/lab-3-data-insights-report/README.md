@@ -1,33 +1,35 @@
 # Lab 3: AI-Driven Data Insights Report
 
-**Subject project:** [student-grade-management](../../student-grade-management/) — same backend as
-Lab 2.
+**Scenario:** UrbanTransit, a mid-sized city's public transportation authority (per the official
+lab brief) — a year of daily ridership, ticket sales, and delay data, needing a plain-English
+report for a non-technical operations team.
 
-## Why a sample dataset instead of "real" data
+## Dataset
 
-`student-grade-management` stores everything in fixed-size in-memory arrays with no persistence —
-`StudentRepositoryImpl` seeds 5 students and `SubjectRepositoryImpl` seeds 6 subjects on every
-startup, but **no grades are seeded**; a grade only exists if it's entered by hand through the
-"Record Grade" menu option during that one run, and it's gone the moment the process exits. There
-is no committed grade dataset anywhere in the repo to analyze.
+[dataset/urban-transit-ridership-2024.csv](dataset/urban-transit-ridership-2024.csv) — the actual
+dataset provided for this lab (366 days, January–December 2024: daily ridership, ticket sales,
+delay count, average delay length in minutes).
 
-So this lab uses [dataset/sample-grades.csv](dataset/sample-grades.csv): the 5 real seeded
-students and 6 real seeded subjects, populated with one invented grade record per student per
-subject they're enrolled in (3 core + 2 electives each, 25 records total) — built to exercise a
-realistic spread (a failing student, a strong-across-the-board honors student, and specifically a
-borderline honors student, so the honors-eligibility bug found in Lab 2 actually has a visible
-effect on the numbers). It is clearly a constructed sample, not a claim about real student data.
+## Task
+
+Explore the data for peak/seasonal ridership patterns, check whether delays correlate with ticket
+sales, surface any anomalies a quick summary would miss, and turn all of it into 3–5 actionable
+recommendations a non-technical operations team can actually use.
 
 ## Approach
 
-See [prompts.md](prompts.md) for the prompt iterations. The short version: a first pass asked for
-"insights from this dataset" and got back generic descriptive stats (mean, min, max) with no
-connection to the actual business logic in the codebase. The useful version of the prompt asked
-the analysis to be run *through* the domain rules implemented in `model/` and `manager/`
-(`isPassing()`, `checkHonorsEligibility()`, core/elective averaging) rather than computing generic
-statistics blind to what the app itself considers meaningful — which is what turned up the honors
-eligibility discrepancy as a data point with a concrete, named example (STU002), not just an
-abstract note in Lab 2.
+1. Started broad ("give me insights") and got back a technically-correct but useless summary — no
+   connection to the specific comparisons (day of week, month, delay/ticket-sales correlation) the
+   brief actually asks for.
+2. Named those comparisons explicitly (see [prompts.md](prompts.md)), which surfaced the real
+   seasonal pattern and a genuine null result: delays and ticket sales don't correlate (0.06).
+3. Asked for patterns *across* outliers rather than a flat top/bottom list — this is what found
+   the report's headline anomaly: 42 separate days between August and November sitting at the
+   *exact same* ridership value (1,500), which no other value in the dataset repeats more than
+   twice.
+4. Verified every reported number independently against the raw CSV (means, standard deviations,
+   correlation, and an exact-match count for the 1,500-floor claim) rather than trusting the
+   model's first read of the data — see "How accuracy was checked" in [prompts.md](prompts.md).
 
 ## Deliverable
 

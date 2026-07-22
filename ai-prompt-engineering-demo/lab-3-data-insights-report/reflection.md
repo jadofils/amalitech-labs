@@ -1,20 +1,18 @@
 # Reflection — Lab 3
 
-**What the prompting process got right:** insisting the analysis run through the app's actual
-business rules (§passing thresholds, honors eligibility, core/elective split) instead of generic
-`mean`/`min`/`max` is what made this report specific to *this* system rather than a template that
-would fit any grades CSV. A "data insights" ask defaults to spreadsheet-style descriptive stats
-unless told which numbers the domain actually cares about.
+**What was the biggest challenge in using AI for data analysis?** Getting past answers that were
+technically true but useless. The first pass gave a correct overall mean and a vague "ridership
+varies" comment — nothing an operations team could act on. The real work was naming the specific
+comparisons the rubric needed (day of week, month, delays vs. ticket sales) instead of accepting a
+generic summary as "insights."
 
-**What needed correction:** v2's instruction to use "the app's own rules" quietly assumed there was
-one unambiguous rule to use for honors eligibility, when Lab 2 had already shown the code and the
-docs disagree on it. The model didn't flag that ambiguity on its own — it picked the documented
-85% rule and moved on. Only forcing an explicit both-ways comparison in v3 turned that into a
-concrete finding (Bob Smith's eligibility literally flips) instead of a footnote.
+**How did I ensure the AI's insights were accurate and not hallucinations?** Every number in the
+report — monthly averages, the 0.06 delay/ticket-sales correlation, the 42-day count on the
+1,500-rider floor — was recomputed independently from the raw CSV, not accepted from the model's
+first description. The 1,500-floor claim was checked by counting every exact match across all 366
+rows — a claim that surprising needed real proof, not a plausible sentence.
 
-**Implication for using this on real data:** analytical prompts inherit whatever silent
-assumptions the underlying system has, unless a prior step (here, Lab 2's documentation pass) has
-already made those assumptions visible enough to name in the prompt. Data insight work and
-technical documentation work aren't separable tasks on a codebase like this one — the insights
-report only found something real because it was pointed at a discrepancy the documentation lab had
-already surfaced.
+**How did your prompts evolve during this lab?** From "give me insights" (too vague to be wrong or
+right), to naming exact computations, to asking for patterns *across* outliers instead of a flat
+top/bottom list (which found the 1,500-floor anomaly), to splitting a conflated delay metric once a
+follow-up revealed it hid two problems.
