@@ -46,8 +46,8 @@ public class BulkImportService {
         CSVParseResult parseResult = csvParser.parse(file);
 
         int success = 0;
-        int failed = 0;
         List<String> failReasons = new ArrayList<>(parseResult.getErrors());
+        int failed = failReasons.size();
 
         for (CSVRow row : parseResult.getValidRows()) {
             Student student = studentManager.findStudent(row.getStudentId());
