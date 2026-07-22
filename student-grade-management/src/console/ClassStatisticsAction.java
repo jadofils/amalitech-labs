@@ -42,7 +42,7 @@ public class ClassStatisticsAction implements MenuAction {
     @Override
     public void execute() {
         System.out.println("\nCLASS STATISTICS");
-        System.out.println("─────────────────────────");
+        System.out.println(ConsoleUtils.DIVIDER);
 
         List<Student> students = studentManager.getAllStudents();
         List<Grade> allGrades = new ArrayList<>();
@@ -65,7 +65,7 @@ public class ClassStatisticsAction implements MenuAction {
         StatisticsCalculator.StudentTypeComparison typeComp = statisticsCalculator.compareStudentTypes(students);
 
         System.out.println("\nGRADE DISTRIBUTION");
-        System.out.println("─────────────────────────");
+        System.out.println(ConsoleUtils.DIVIDER);
         String[] labels = dist.getLabels();
         int[] counts = dist.getCounts();
         for (int i = 0; i < 5; i++) {
@@ -76,7 +76,7 @@ public class ClassStatisticsAction implements MenuAction {
         }
 
         System.out.println("\nSTATISTICAL ANALYSIS");
-        System.out.println("─────────────────────────");
+        System.out.println(ConsoleUtils.DIVIDER);
         System.out.printf("Mean (Average):      %.1f%%%n", stats.getMean());
         System.out.printf("Median:              %.1f%%%n", stats.getMedian());
         System.out.printf("Mode:                %.1f%%%n", stats.getMode());
@@ -87,13 +87,13 @@ public class ClassStatisticsAction implements MenuAction {
         System.out.printf("Lowest Grade:    %.0f%% (%s - %s)%n", stats.getMin(), stats.getMinStudentName(), stats.getMinSubjectName());
 
         System.out.println("\nSUBJECT PERFORMANCE");
-        System.out.println("─────────────────────────");
+        System.out.println(ConsoleUtils.DIVIDER);
         for (StatisticsCalculator.SubjectAverage sa : subjAverages) {
             System.out.printf("  %s: %.1f%%%n", sa.getSubjectName(), sa.getAverage());
         }
 
         System.out.println("\nSTUDENT TYPE COMPARISON");
-        System.out.println("─────────────────────────");
+        System.out.println(ConsoleUtils.DIVIDER);
         if (typeComp.getRegularCount() > 0)
             System.out.printf("  Regular Students:  %.1f%% average (%d students)%n", typeComp.getRegularAverage(), typeComp.getRegularCount());
         if (typeComp.getHonorsCount() > 0)

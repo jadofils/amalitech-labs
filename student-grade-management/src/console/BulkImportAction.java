@@ -37,7 +37,7 @@ public class BulkImportAction implements MenuAction {
     @Override
     public void execute() {
         System.out.println("\nBULK IMPORT GRADES");
-        System.out.println("─────────────────────────");
+        System.out.println(ConsoleUtils.DIVIDER);
 
         System.out.println("\nPlace your CSV file in: ./imports/");
         System.out.println("\nCSV Format Required:");
@@ -59,7 +59,7 @@ public class BulkImportAction implements MenuAction {
             BulkImportService.ImportResult result = bulkImportService.importFromFile(filename);
 
             System.out.println("\nIMPORT SUMMARY");
-            System.out.println("─────────────────────────");
+            System.out.println(ConsoleUtils.DIVIDER);
             System.out.println("Total Rows: " + (result.getSuccessCount() + result.getFailedCount()));
             System.out.println("Successfully Imported: " + result.getSuccessCount());
             System.out.println("Failed: " + result.getFailedCount());

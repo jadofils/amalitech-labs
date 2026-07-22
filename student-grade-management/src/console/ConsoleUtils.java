@@ -10,6 +10,12 @@ import java.util.Scanner;
 /** Small pieces of console behavior shared by more than one {@link MenuAction}. */
 public final class ConsoleUtils {
 
+    /** The standard section divider printed under most headings. */
+    public static final String DIVIDER = "─────────────────────────";
+
+    /** A wider divider for tables with more columns (e.g. student/search-result listings). */
+    public static final String WIDE_DIVIDER = "────────────────────────────────────────────────────";
+
     private ConsoleUtils() {
     }
 

@@ -44,72 +44,106 @@ public class ConsoleApp {
     public void run() {
         askRoleBased();
 
-        while (true) {
+        boolean running = true;
+        while (running) {
             printMenu();
-
-            int choice;
-            try {
-                choice = Integer.parseInt(scanner.nextLine());
-            } catch (NumberFormatException e) {
-                System.out.println("Invalid input. Please enter a number.");
-                continue;
-            }
-
-            MenuAction action = findAction(choice);
-            if (action == null) {
-                System.out.println("Invalid choice.");
-                continue;
-            }
-
-            if (useRoleBased && !action.isAuthorizedFor(currentRole)) {
-                System.out.println("Access denied. This action is not available for your role.");
-                continue;
-            }
-
-            try {
-                action.execute();
-                if (action.terminatesLoop()) {
-                    return;
-                }
-            } catch (InvalidGradeException e) {
-                System.out.println("\n✗ ERROR: InvalidGradeException");
-                System.out.println("  " + e.getMessage());
-                System.out.println("  Try again? (Y/N): ");
-                if (scanner.nextLine().trim().equalsIgnoreCase("Y")) {
-                    action.execute();
-                }
-            } catch (StudentNotFoundException e) {
-                System.out.println("\n✗ ERROR: StudentNotFoundException");
-                System.out.println("  " + e.getMessage());
-                if (e.getAvailableIds() != null && !e.getAvailableIds().isEmpty()) {
-                    System.out.println("  Available student IDs: " + String.join(", ", e.getAvailableIds()));
-                }
-            } catch (ExportException e) {
-                System.out.println("\n✗ ERROR: ExportException");
-                System.out.println("  " + e.getMessage());
-                if (e.getFilePath() != null) {
-                    System.out.println("  File: " + e.getFilePath());
-                }
-            } catch (ImportException e) {
-                System.out.println("\n✗ ERROR: ImportException");
-                System.out.println("  " + e.getMessage());
-                if (e.getFilePath() != null) {
-                    System.out.println("  File: " + e.getFilePath());
-                }
-            } catch (StudentValidationException | StudentException | GradeException
-                     | SubjectNotFoundException | SubjectValidationException | SubjectException e) {
-                Logger.warn("Menu action " + choice + " rejected: " + e.getMessage());
-                System.out.println("\n✗ ERROR: " + e.getClass().getSimpleName());
-                System.out.println("  " + e.getMessage());
-            } catch (ApplicationException e) {
-                // Catches any other custom exception not named above -
-                // deliberately not `catch (Exception e)`, so a genuinely
-                // unexpected failure still surfaces instead of being masked.
-                Logger.error("Unhandled application exception for menu action " + choice, e);
-                System.out.println("\n✗ ERROR: " + e.getClass().getSimpleName());
-                System.out.println("  " + e.getMessage());
+            MenuAction action = resolveAuthorizedAction();
+            if (action != null) {
+                running = !executeAction(action);
             }
         }
+    }
+
+    /**
+     * Reads one menu choice and resolves it to an authorized action, printing
+     * the appropriate rejection message and returning {@code null} for any
+     * of the three ways that can fail - never {@code continue}s the caller's
+     * loop directly, so {@link #run()} itself has none.
+     */
+    private MenuAction resolveAuthorizedAction() {
+        Integer choice = readChoice();
+        if (choice == null) {
+            System.out.println("Invalid input. Please enter a number.");
+            return null;
+        }
+
+        MenuAction action = findAction(choice);
+        if (action == null) {
+            System.out.println("Invalid choice.");
+            return null;
+        }
+
+        if (useRoleBased && !action.isAuthorizedFor(currentRole)) {
+            System.out.println("Access denied. This action is not available for your role.");
+            return null;
+        }
+
+        return action;
+    }
+
+    private Integer readChoice() {
+        try {
+            return Integer.parseInt(scanner.nextLine());
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    /** Runs one action, translating any thrown exception into a console message. Returns true once the loop should stop. */
+    private boolean executeAction(MenuAction action) {
+        try {
+            action.execute();
+            return action.terminatesLoop();
+        } catch (InvalidGradeException e) {
+            handleInvalidGrade(action, e);
+        } catch (StudentNotFoundException e) {
+            handleStudentNotFound(e);
+        } catch (ExportException e) {
+            handleFileException("ExportException", e.getMessage(), e.getFilePath());
+        } catch (ImportException e) {
+            handleFileException("ImportException", e.getMessage(), e.getFilePath());
+        } catch (StudentValidationException | StudentException | GradeException
+                 | SubjectNotFoundException | SubjectValidationException | SubjectException e) {
+            Logger.warn("Menu action " + action.getOptionNumber() + " rejected: " + e.getMessage());
+            printError(e);
+        } catch (ApplicationException e) {
+            // Catches any other custom exception not named above -
+            // deliberately not `catch (Exception e)`, so a genuinely
+            // unexpected failure still surfaces instead of being masked.
+            Logger.error("Unhandled application exception for menu action " + action.getOptionNumber(), e);
+            printError(e);
+        }
+        return false;
+    }
+
+    private void handleInvalidGrade(MenuAction action, InvalidGradeException e) {
+        System.out.println("\n✗ ERROR: InvalidGradeException");
+        System.out.println("  " + e.getMessage());
+        System.out.println("  Try again? (Y/N): ");
+        if (scanner.nextLine().trim().equalsIgnoreCase("Y")) {
+            action.execute();
+        }
+    }
+
+    private void handleStudentNotFound(StudentNotFoundException e) {
+        System.out.println("\n✗ ERROR: StudentNotFoundException");
+        System.out.println("  " + e.getMessage());
+        if (e.getAvailableIds() != null && !e.getAvailableIds().isEmpty()) {
+            System.out.println("  Available student IDs: " + String.join(", ", e.getAvailableIds()));
+        }
+    }
+
+    private void handleFileException(String exceptionName, String message, String filePath) {
+        System.out.println("\n✗ ERROR: " + exceptionName);
+        System.out.println("  " + message);
+        if (filePath != null) {
+            System.out.println("  File: " + filePath);
+        }
+    }
+
+    private void printError(ApplicationException e) {
+        System.out.println("\n✗ ERROR: " + e.getClass().getSimpleName());
+        System.out.println("  " + e.getMessage());
     }
 
     private MenuAction findAction(int choice) {
