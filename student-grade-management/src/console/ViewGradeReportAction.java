@@ -34,7 +34,7 @@ public class ViewGradeReportAction implements MenuAction {
     @Override
     public void execute() {
         System.out.println("\nVIEW GRADE REPORT");
-        System.out.println("─────────────────────────");
+        System.out.println(ConsoleUtils.DIVIDER);
 
         System.out.print("Enter Student ID: ");
         String studentId = InputSanitizer.sanitize(scanner.nextLine());

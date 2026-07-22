@@ -37,9 +37,9 @@ public class ViewStudentsAction implements MenuAction {
     @Override
     public void execute() {
         System.out.println("\nSTUDENT LISTING");
-        System.out.println("────────────────────────────────────────────────────");
+        System.out.println(ConsoleUtils.WIDE_DIVIDER);
         System.out.printf("%-8s | %-18s | %-12s | %-9s | %s%n", "STU ID", "NAME", "TYPE", "AVG GRADE", "STATUS");
-        System.out.println("────────────────────────────────────────────────────");
+        System.out.println(ConsoleUtils.WIDE_DIVIDER);
 
         List<Student> students = studentManager.getAllStudents();
         double classTotal = 0;
@@ -59,7 +59,7 @@ public class ViewStudentsAction implements MenuAction {
                 System.out.printf("          | Enrolled Subjects: %d | Passing Grade: %.0f%%%n",
                         enrolledCount, student.getPassingGrade());
             }
-            System.out.println("────────────────────────────────────────────────────");
+            System.out.println(ConsoleUtils.WIDE_DIVIDER);
             classTotal += student.calculateAverageGrade();
         }
 

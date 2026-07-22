@@ -50,8 +50,9 @@ class StudentRepositoryImplMockitoTest {
         }
         assertEquals(50, repository.getAllStudents().size());
 
+        Student oneTooMany = mockStudentWithId("ONE-TOO-MANY");
         StudentException ex = assertThrows(StudentException.class,
-                () -> repository.addStudent(mockStudentWithId("ONE-TOO-MANY")));
+                () -> repository.addStudent(oneTooMany));
         assertEquals("Cannot add more students. Storage is full.", ex.getMessage());
     }
 

@@ -41,7 +41,7 @@ public class CalculateGpaAction implements MenuAction {
     @Override
     public void execute() {
         System.out.println("\nCALCULATE STUDENT GPA");
-        System.out.println("─────────────────────────");
+        System.out.println(ConsoleUtils.DIVIDER);
 
         System.out.print("Enter Student ID: ");
         String studentId = InputSanitizer.sanitize(scanner.nextLine());
@@ -57,9 +57,9 @@ public class CalculateGpaAction implements MenuAction {
         System.out.printf("Overall Average: %.1f%%%n", student.calculateAverageGrade());
 
         System.out.println("\nGPA CALCULATION (4.0 Scale)");
-        System.out.println("─────────────────────────");
+        System.out.println(ConsoleUtils.DIVIDER);
         System.out.printf("%-16s | %-7s | %s%n", "Subject", "Grade", "GPA Points");
-        System.out.println("─────────────────────────");
+        System.out.println(ConsoleUtils.DIVIDER);
 
         List<Grade> grades = gradeManager.getGradesForStudent(studentId);
         double cumulativeGPA = gpaCalculator.cumulativeGPA(studentId);
@@ -70,7 +70,7 @@ public class CalculateGpaAction implements MenuAction {
                     g.getSubject().getSubjectName(), g.getGrade(), gpa, gpaCalculator.gpaToLetter(gpa));
         }
 
-        System.out.println("─────────────────────────");
+        System.out.println(ConsoleUtils.DIVIDER);
         System.out.printf("Cumulative GPA: %.2f / 4.0%n", cumulativeGPA);
         System.out.println("Letter Grade: " + gpaCalculator.gpaToLetter(cumulativeGPA));
 

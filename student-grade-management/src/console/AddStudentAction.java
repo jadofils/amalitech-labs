@@ -38,7 +38,7 @@ public class AddStudentAction implements MenuAction {
     @Override
     public void execute() {
         System.out.println("\nADD STUDENT");
-        System.out.println("─────────────────────────");
+        System.out.println(ConsoleUtils.DIVIDER);
 
         System.out.print("Enter student name: ");
         String name = InputSanitizer.sanitize(scanner.nextLine());

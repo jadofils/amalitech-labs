@@ -41,7 +41,7 @@ public class ExportGradeReportAction implements MenuAction {
     @Override
     public void execute() {
         System.out.println("\nEXPORT GRADE REPORT");
-        System.out.println("─────────────────────────");
+        System.out.println(ConsoleUtils.DIVIDER);
 
         System.out.print("Enter Student ID: ");
         String studentId = InputSanitizer.sanitize(scanner.nextLine());
@@ -93,7 +93,7 @@ public class ExportGradeReportAction implements MenuAction {
 
         System.out.println("\n✓ Report exported successfully!");
         for (int i = 0; i < filesCreated; i++) {
-            String suffix = summary && detailed ? (i == 0 ? "_summary" : "_detailed") : "";
+            String suffix = fileSuffix(summary, detailed, i);
             System.out.println("  File: " + filename + suffix + ".txt");
         }
         System.out.println("  Location: ./reports/");
@@ -101,5 +101,13 @@ public class ExportGradeReportAction implements MenuAction {
         System.out.println("  Contains: " + gradeManager.getGradesForStudent(studentId).size() + " grades");
 
         ConsoleUtils.promptEnter(scanner);
+    }
+
+    /** The filename suffix for the i-th file written, when both a summary and a detailed report were requested. */
+    private String fileSuffix(boolean summary, boolean detailed, int index) {
+        if (!summary || !detailed) {
+            return "";
+        }
+        return index == 0 ? "_summary" : "_detailed";
     }
 }

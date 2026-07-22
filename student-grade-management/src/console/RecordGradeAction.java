@@ -44,7 +44,7 @@ public class RecordGradeAction implements MenuAction {
     @Override
     public void execute() {
         System.out.println("\nRECORD GRADE");
-        System.out.println("─────────────────────────");
+        System.out.println(ConsoleUtils.DIVIDER);
 
         System.out.print("Enter Student ID: ");
         String studentId = InputSanitizer.sanitize(scanner.nextLine());
@@ -104,13 +104,13 @@ public class RecordGradeAction implements MenuAction {
         Grade grade = new Grade(studentId, subject, gradeValue);
 
         System.out.println("\nGRADE CONFIRMATION");
-        System.out.println("─────────────────────────");
+        System.out.println(ConsoleUtils.DIVIDER);
         System.out.println("Grade ID: " + grade.getGradeId());
         System.out.println("Student: " + studentId + " - " + student.getName());
         System.out.println("Subject: " + subject.getSubjectName() + " (" + subject.getSubjectType() + ")");
         System.out.printf("Grade: %.1f%%%n", gradeValue);
         System.out.println("Date: " + grade.getDate());
-        System.out.println("─────────────────────────");
+        System.out.println(ConsoleUtils.DIVIDER);
 
         System.out.print("Confirm grade? (Y/N): ");
         if (!scanner.nextLine().equalsIgnoreCase("Y")) {
