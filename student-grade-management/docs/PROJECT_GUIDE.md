@@ -160,9 +160,9 @@ Rules of the layering:
   for each individual feature. Each `MenuAction` owns exactly one menu
   feature end-to-end (I/O, calling the right manager/calculator, printing
   the result), so adding, removing, or reordering a menu option never
-  requires touching `Main` or `ConsoleApp`. Unlike `ConsoleApp`, the
-  individual `*Action` classes are not yet covered by automated tests -
-  a known, deliberately scoped-out next step (see §12).
+  requires touching `Main` or `ConsoleApp`. Every individual `*Action`
+  class is covered by automated tests the same way `ConsoleApp` is (see
+  §12).
 - **`manager/`** is the layer `console/` actually depends on.
   `StudentManager` wraps `StudentService` and, on every read, asks
   `GradeManager` to "hydrate" a `Student` object's transient grade list
@@ -406,9 +406,9 @@ mvn clean verify
   reads to build the report above; not meant to be read directly.
 
 Current numbers (see CHANGELOG.md for the full package-by-package
-breakdown): ~65% overall instruction coverage, ~92% excluding the 10
-individual `console/*Action` classes (the one remaining, deliberately
-scoped-out gap — see §12).
+breakdown): **96.2%** overall instruction coverage (up from ~65%), with
+every `console/*Action` class now covered (see §12 — this used to be
+the one remaining, deliberately scoped-out gap; it no longer is).
 
 ### SonarQube — static analysis
 
@@ -465,15 +465,22 @@ rationale.
 
 ---
 
-## 12. Known, Deliberately Scoped-Out Gap
+## 12. `console/*Action` Test Coverage
 
 The 10 classes under `console/` (`AddStudentAction`, `RecordGradeAction`,
-etc.) each still read `Scanner` input and write `System.out` directly,
-and have no automated tests of their own yet - they sit at 0% in the
-JaCoCo report. This is *not* the same untestability problem `Main` used
-to have: each action already takes its `Scanner` via constructor
-injection, so testing one the same way `ConsoleAppTest` tests `ConsoleApp`
-(a fake `Scanner` plus a captured `System.out`) would work today, with no
-further refactor required. It simply hasn't been done yet - a natural,
-bounded next step, one test file per action, following the exact pattern
-already proven out in `tests/app/ConsoleAppTest.java`.
+etc.) each take their `Scanner` via constructor injection, the same way
+`ConsoleApp` does — so each one is tested the same way `ConsoleAppTest`
+tests `ConsoleApp`: a scripted `Scanner` over a fake input script, with
+`System.out` captured and asserted on (see `tests/app/ConsoleAppTest.java`
+for the pattern). Every class has the standard real-collaborator
+(`<Class>Test`) + mocked-collaborator (`<Class>MockitoTest`) pair under
+`src/tests/console/`, except `ExitAction` (no collaborators to mock,
+same exception as `LetterGradeTest` — see `tests/README.md`).
+
+This closed what used to be this project's one remaining,
+deliberately-scoped-out coverage gap (the `console` package sat at 0%);
+see CHANGELOG.md's `feature/BugFix-console-test-coverage` entry for the
+before/after numbers and two bugs the effort turned up along the way
+(one fixed — `BulkImportService`'s failed-row count; one flagged but
+left as a judgment call — a filename/message mismatch in
+`ExportGradeReportAction`).

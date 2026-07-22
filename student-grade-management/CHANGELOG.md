@@ -673,3 +673,62 @@ findings:
 
 Full suite: 379/379 passing (unchanged — no behavior changes, only
 structure).
+
+### `feature/BugFix-studentmanager-coverage` (merged `65cabd3`)
+
+The JaCoCo report showed `StudentManager.viewAllStudents()`,
+`updateStudent(Student)`, and `deleteStudent(String)` at 0% — the three
+methods had simply never been exercised by any test. Added delegation
+tests (Mockito) for `updateStudent`/`deleteStudent` and the empty-roster
+branch of `viewAllStudents`, plus real-repository tests for
+`viewAllStudents`' populated-roster branch and for `updateStudent`/
+`deleteStudent` actually persisting through `StudentServiceImpl`.
+
+Full suite: 385/385 passing (up from 379).
+
+### `feature/BugFix-console-test-coverage` (merged `9c7447e`)
+
+JaCoCo showed **64% overall instruction coverage**, with the `console`
+package's 10 `*Action` classes sitting at a combined 0% — by far the
+largest share of what was missed, and the one gap the project had
+deliberately scoped out until explicitly asked for (see §12 of
+`docs/PROJECT_GUIDE.md`, and KI-notes above). Asked the user whether
+the "get to ~85%" target meant overall (including console) or just the
+already-~92%-covered business logic; the answer was overall, so this
+branch closes it.
+
+Added the standard real-collaborator (`<Class>Test`) + mocked-collaborator
+(`<Class>MockitoTest`) pair for `AddStudentAction`, `ViewStudentsAction`,
+`RecordGradeAction`, `ViewGradeReportAction`, `ExportGradeReportAction`,
+`CalculateGpaAction`, `BulkImportAction`, `ClassStatisticsAction`, and
+`SearchStudentsAction`, plus a single `ExitActionTest` (no collaborators
+to mock, same exception as `LetterGradeTest`). Scripted `Scanner` input
+and captured `System.out`, following `tests/app/ConsoleAppTest.java`'s
+established pattern; real-collaborator tests that touch the filesystem
+(`ExportGradeReportAction`, `SearchStudentsAction`'s export sub-action,
+`BulkImportAction`) redirect to a `target/test-*` temp directory or a
+disposable `imports/*.csv` fixture, cleaned up in `@AfterEach`, matching
+`FileExporterTest`'s/`BulkImportServiceTest`'s existing pattern.
+
+Writing these tests surfaced two real bugs:
+
+- **Fixed** — `BulkImportService.importFromFile()`'s `failed` counter
+  only ever incremented for an unknown student ID, never for a row
+  `CSVParser` itself had already rejected (bad format, unknown subject,
+  subject-type mismatch, invalid/out-of-range grade) — even though
+  those rows were already present in `failReasons`. That undercounted
+  `getFailedCount()` and, since the console UI only prints its "Failed
+  Records:" section when `getFailedCount() > 0`, silently hid those
+  reasons from the user despite them being one `FileWriter` call away in
+  the generated log file. Fixed by starting `failed` at
+  `failReasons.size()` instead of `0`.
+- **Flagged, not fixed** — `ExportGradeReportAction`: the file actually
+  written to disk always carries a `_summary.txt`/`_detailed.txt`
+  suffix, but the printed "File: ..." console message only adds that
+  suffix when *both* Summary and Detailed were requested. Exporting
+  Summary-only, for example, writes `<name>_summary.txt` to disk but
+  tells the user it wrote `<name>.txt`. Left as-is pending a decision on
+  which side (the file name or the message) should change.
+
+Overall JaCoCo instruction coverage: **64% → 96.2%** (`console`: 0% →
+99.7%). Full suite: 495/495 passing (up from 385).
