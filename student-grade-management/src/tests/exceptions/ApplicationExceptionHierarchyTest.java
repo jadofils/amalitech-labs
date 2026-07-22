@@ -5,8 +5,10 @@ import exceptions.CSVImportException;
 import exceptions.GradeException;
 import exceptions.ImportException;
 import exceptions.InvalidGradeException;
+import exceptions.StudentException;
 import exceptions.StudentNotFoundException;
 import exceptions.StudentValidationException;
+import exceptions.SubjectException;
 import exceptions.SubjectNotFoundException;
 import exceptions.SubjectValidationException;
 import org.junit.jupiter.api.DisplayName;
@@ -106,6 +108,28 @@ class ApplicationExceptionHierarchyTest {
         assertNull(messageOnly.getFilePath());
         assertEquals(0, messageOnly.getSuccessfulRows());
         assertEquals(0, messageOnly.getFailedRows());
+    }
+
+    @Test
+    @DisplayName("StudentException's two constructors: with and without a studentId")
+    void studentExceptionConstructorsTest() {
+        StudentException withId = new StudentException("storage full", "STU051");
+        assertEquals("storage full", withId.getMessage());
+        assertEquals("STU051", withId.getStudentId());
+
+        StudentException withoutId = new StudentException("storage full");
+        assertNull(withoutId.getStudentId());
+    }
+
+    @Test
+    @DisplayName("SubjectException's two constructors: with and without a subjectCode")
+    void subjectExceptionConstructorsTest() {
+        SubjectException withCode = new SubjectException("storage full", "ZZ99");
+        assertEquals("storage full", withCode.getMessage());
+        assertEquals("ZZ99", withCode.getSubjectCode());
+
+        SubjectException withoutCode = new SubjectException("storage full");
+        assertNull(withoutCode.getSubjectCode());
     }
 
     @Test

@@ -1,5 +1,6 @@
 package tests.repository.student;
 
+import exceptions.StudentException;
 import exceptions.StudentNotFoundException;
 import model.student.Student;
 import org.junit.jupiter.api.DisplayName;
@@ -49,7 +50,7 @@ class StudentRepositoryImplMockitoTest {
         }
         assertEquals(50, repository.getAllStudents().size());
 
-        RuntimeException ex = assertThrows(RuntimeException.class,
+        StudentException ex = assertThrows(StudentException.class,
                 () -> repository.addStudent(mockStudentWithId("ONE-TOO-MANY")));
         assertEquals("Cannot add more students. Storage is full.", ex.getMessage());
     }

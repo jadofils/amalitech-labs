@@ -1,5 +1,6 @@
 package tests.repository.subject;
 
+import exceptions.SubjectException;
 import exceptions.SubjectNotFoundException;
 import model.subject.Subject;
 import org.junit.jupiter.api.DisplayName;
@@ -47,7 +48,7 @@ class SubjectRepositoryImplMockitoTest {
         }
         assertEquals(50, repository.getAllSubjects().size());
 
-        RuntimeException ex = assertThrows(RuntimeException.class,
+        SubjectException ex = assertThrows(SubjectException.class,
                 () -> repository.addSubject(validMockSubject("ZZ99")));
         assertEquals("Cannot add more subjects. Storage is full.", ex.getMessage());
     }
