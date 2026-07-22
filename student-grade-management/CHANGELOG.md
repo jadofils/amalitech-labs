@@ -571,3 +571,47 @@ rather than left implicit.
 Full suite: 377/377 passing (up from 350). Overall JaCoCo instruction
 coverage: 65.3% (up from 60.0%); excluding only `console/` (the
 remaining, explicitly-scoped-out gap): 92.3%.
+
+### `feature/BugFix-generic-exceptions` (generic-RuntimeException audit)
+
+Requested audit: every service/repository throw site should use the
+declared exception hierarchy under `ApplicationException`, never a raw
+`RuntimeException`. Grepped every `throw new RuntimeException(...)` in
+`src` (excluding tests) and found exactly two, both for the identical
+"backing array is full" condition:
+
+- `StudentRepositoryImpl.addStudent()`
+- `SubjectRepositoryImpl.addSubject()`
+
+`GradeRepositoryImpl.addGrade()` already handled this correctly via
+`GradeException` - Grade had a general-purpose exception beyond just
+"not found"/"validation failed," but Student and Subject didn't, so
+those two call sites fell back to the generic root type instead.
+
+**Fix:** added `StudentException` (studentId) and `SubjectException`
+(subjectCode), mirroring `GradeException`'s existing shape and role
+exactly, and swapped both throw sites over. `app.ConsoleApp`'s
+warn-level catch group extended to include both (they're expected
+business conditions, not "genuinely unexpected" bugs, so they belong
+with `StudentValidationException`/`GradeException`/etc., not the final
+catch-all). Added direct constructor/getter tests for both to
+`ApplicationExceptionHierarchyTest`, and updated
+`StudentRepositoryImplMockitoTest`/`SubjectRepositoryImplMockitoTest` to
+assert the specific exception type instead of bare `RuntimeException`.
+
+Also fixed in passing: `StudentServiceImpl.getStudentById()`'s
+unreachable defensive branch (the repository already throws
+`StudentNotFoundException` on a miss, so this can never actually run)
+was still falling back to a plain `RuntimeException` instead of
+`StudentNotFoundException` - corrected for full consistency.
+
+Every other `catch (RuntimeException e)` in the codebase turned out, on
+inspection, to be one of two different legitimate patterns that don't
+need to change: a deliberate "best-effort, swallow and continue" catch
+(`StudentManager`/`GradeManager`'s static-counter sync, which must never
+crash construction over a not-yet-available data source), or a "log for
+visibility, then rethrow the exact same specific exception unchanged"
+wrapper (`GradeServiceImpl.recordGrade()`'s two catch blocks) - neither
+converts anything to a generic type.
+
+Full suite: 379/379 passing (up from 377).

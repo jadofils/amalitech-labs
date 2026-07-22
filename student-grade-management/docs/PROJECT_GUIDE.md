@@ -101,9 +101,14 @@ src/
 │   └── validators/               StudentValidator, SubjectValidator
 ├── logging/                      Logger (DEBUG/INFO/WARN/ERROR, no dependency)
 └── exceptions/                   ApplicationException (common abstract root) +
-                                   nine custom exceptions extending it
+                                   11 custom exceptions extending it - every
+                                   service/repository throw site uses one of
+                                   these, never a raw RuntimeException
                                    (InvalidFileFormatException was removed - dead
-                                   code, superseded by CSVImportException)
+                                   code, superseded by CSVImportException;
+                                   StudentException/SubjectException added to
+                                   give Student/Subject the same general-purpose
+                                   exception GradeException already had)
 ```
 
 No `interfaces/`, `validation/`, `service/serviceimpl/`, or

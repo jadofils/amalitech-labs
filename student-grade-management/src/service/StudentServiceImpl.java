@@ -1,5 +1,6 @@
 package service;
 
+import exceptions.StudentNotFoundException;
 import logging.Logger;
 import model.student.Student;
 import repository.student.StudentRepository;
@@ -29,12 +30,13 @@ public class StudentServiceImpl implements StudentService {
     }
 
     @Override
-    public Student getStudentById(String studentId) {
+    public Student getStudentById(String studentId){
         Student student = studentRepository.findStudentById(studentId);
 
         if (student == null) {
             Logger.error("Student lookup returned null unexpectedly for id: " + studentId);
-            throw new RuntimeException("Student with id: " + studentId + " not found");
+            throw new StudentNotFoundException("Student with id: " + studentId + " not found");
+
         }
 
         return student;

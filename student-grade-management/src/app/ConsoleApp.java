@@ -6,8 +6,10 @@ import exceptions.ExportException;
 import exceptions.GradeException;
 import exceptions.ImportException;
 import exceptions.InvalidGradeException;
+import exceptions.StudentException;
 import exceptions.StudentNotFoundException;
 import exceptions.StudentValidationException;
+import exceptions.SubjectException;
 import exceptions.SubjectNotFoundException;
 import exceptions.SubjectValidationException;
 import logging.Logger;
@@ -94,8 +96,8 @@ public class ConsoleApp {
                 if (e.getFilePath() != null) {
                     System.out.println("  File: " + e.getFilePath());
                 }
-            } catch (StudentValidationException | GradeException
-                     | SubjectNotFoundException | SubjectValidationException e) {
+            } catch (StudentValidationException | StudentException | GradeException
+                     | SubjectNotFoundException | SubjectValidationException | SubjectException e) {
                 Logger.warn("Menu action " + choice + " rejected: " + e.getMessage());
                 System.out.println("\n✗ ERROR: " + e.getClass().getSimpleName());
                 System.out.println("  " + e.getMessage());

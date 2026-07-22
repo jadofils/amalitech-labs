@@ -356,16 +356,18 @@
 <h2>7.1 The Hierarchy</h2>
 <pre><code>RuntimeException  (java.lang)
   └── ApplicationException  (abstract — the ONE common root for everything this app throws on purpose)
-        ├── StudentNotFoundException     (studentId, availableIds — lets Main suggest valid IDs)
+        ├── StudentNotFoundException     (studentId, availableIds — lets ConsoleApp suggest valid IDs)
         ├── StudentValidationException
+        ├── StudentException              (studentId — general-purpose, e.g. repository storage full)
         ├── SubjectNotFoundException
         ├── SubjectValidationException
-        ├── GradeException                (gradeId)
+        ├── SubjectException              (subjectCode — general-purpose, e.g. repository storage full)
+        ├── GradeException                (gradeId — general-purpose, e.g. repository storage full)
         ├── InvalidGradeException         (attemptedGrade — e.g. entered 150)
         ├── ExportException               (filePath)
         ├── ImportException                (filePath, successfulRows, failedRows)
-        ├── InvalidFileFormatException     (filename, lineNumber)
         └── CSVImportException            (whole-file read failure, distinct from a single bad row)</code></pre>
+<div class="box tip"><strong>Found and fixed during a dedicated audit:</strong> grepping every <code>throw new RuntimeException(...)</code> in <code>src</code> (excluding tests) turned up exactly two: <code>StudentRepositoryImpl.addStudent()</code> and <code>SubjectRepositoryImpl.addSubject()</code>, both for the identical "backing array is full" condition that <code>GradeRepositoryImpl.addGrade()</code> already handled correctly via <code>GradeException</code> - Grade had a general-purpose exception beyond just "not found"/"validation failed," but Student and Subject didn't, so those two call sites fell back to the generic root type instead. Fixed by adding <code>StudentException</code>/<code>SubjectException</code>, mirroring <code>GradeException</code>'s existing role exactly, and swapping both throw sites over. Every other <code>catch (RuntimeException e)</code> in the codebase turned out to be a different, legitimate pattern on inspection - either a deliberate "best-effort, swallow and continue" catch (the static-counter sync in <code>StudentManager</code>/<code>GradeManager</code>, which never crashes construction over a not-yet-available data source) or a "log for visibility, then rethrow the exact same specific exception unchanged" wrapper (<code>GradeServiceImpl.recordGrade()</code>) - neither converts anything to a generic type, so neither needed to change.</div>
 <h2>7.2 Why Everything Extends <code>RuntimeException</code> (Unchecked), Deliberately</h2>
 <p>Java offers <em>checked</em> exceptions (must be declared with <code>throws</code> or caught, enforced by the compiler) and <em>unchecked</em> ones (no such enforcement). This project chose unchecked deliberately: every custom exception here represents a business-rule violation (a bad student ID, an out-of-range grade) that the caller almost never wants to recover from locally — it wants to bubble all the way up to one central handler in <code>ConsoleApp</code>. Checked exceptions would force every intermediate layer (<code>StudentServiceImpl</code>, <code>StudentManager</code>, every <code>console.*Action</code>) to either declare <code>throws StudentNotFoundException</code> on every method signature or catch-and-rethrow pointlessly — pure boilerplate with no benefit, since there's nowhere useful to "handle" it before <code>ConsoleApp</code>.</p>
 <h2>7.3 No Generic <code>catch (Exception e)</code> — Why That Matters</h2>
@@ -375,7 +377,7 @@
 <pre><code><span class="kw">throw new</span> StudentNotFoundException(
     <span class="str">"Student with ID '"</span> + studentId + <span class="str">"' not found."</span>,
     studentId,
-    getAvailableStudentIds()   <span class="cm">// caught in Main, printed as "Available student IDs: STU001, STU002, ..."</span>
+    getAvailableStudentIds()   <span class="cm">// caught in ConsoleApp, printed as "Available student IDs: STU001, STU002, ..."</span>
 );</code></pre>
 
 <!-- ============================================================ -->
@@ -423,7 +425,7 @@
 <h2>8.3 <code>service</code> — Business Rules</h2>
 <div class="classcard"><h4>StudentServiceImpl</h4>
 <div class="method"><span class="sig">addStudent(Student): void</span> — runs <code>StudentValidator.validateStudent()</code> first (name/age/email/phone/ID format), logging and rethrowing on rejection; only then persists.</div>
-<div class="method"><span class="sig">getStudentById(String): Student</span> — throws (a plain <code>RuntimeException</code>, notably <em>not</em> one of the custom hierarchy, if the repository somehow returns <code>null</code> — defensive code for a state the repository's own contract says can't happen, since <code>findStudentById</code> itself throws <code>StudentNotFoundException</code> on a miss).</div>
+<div class="method"><span class="sig">getStudentById(String): Student</span> — throws <code>StudentNotFoundException</code> if the repository somehow returns <code>null</code> — defensive code for a state the repository's own contract already prevents, since <code>findStudentById</code> itself throws <code>StudentNotFoundException</code> on a miss. (This used to fall back to a plain <code>RuntimeException</code> instead of the declared exception type — found and fixed during a dedicated audit of every generic-exception throw site in the codebase; see Part VII.)</div>
 </div>
 <div class="classcard"><h4>GradeServiceImpl</h4>
 <p>Three constructor overloads (telescoping pattern): no-arg (news its own default <code>Impl</code>s — a minor, isolated DIP compromise used only in one test), two-repository, and full three-repository. <code>recordGrade()</code> checks the student exists, then the subject exists, before persisting — the grade's own 0–100 range check already happened inside <code>Grade</code>'s constructor, so this method doesn't repeat it.</p>
@@ -634,7 +636,6 @@ jobs:
 <tr><td>The 10 <code>console/*Action</code> classes have zero automated test coverage</td><td>Each still reads <code>Scanner</code>/writes <code>System.out</code> directly; <code>Main</code>'s own equivalent problem was already fixed by extracting <code>app.ConsoleApp</code> (constructor-injected <code>Scanner</code>), but the same extraction hasn't been applied to each individual action yet</td><td>Nothing architectural is missing - each action already takes its <code>Scanner</code> via constructor, so the identical scripted-input-plus-captured-output technique used for <code>ConsoleAppTest</code> would work today; it's just 10 more test files, not yet written</td></tr>
 <tr><td>Single-threaded, single-user only</td><td>Console app; no server, no concurrent requests to serve</td><td>A move to a server (Spring Boot REST API, say) would require revisiting every shared-mutable-state assumption — the static ID counters, in particular, would need <code>AtomicInteger</code> or a database sequence</td></tr>
 <tr><td>O(n) linear-scan lookups in every repository</td><td>Required array-based storage; array sizes are small and fixed (200 grades max)</td><td>A <code>HashMap</code>-backed repository would make lookups O(1), trivial to swap in behind the same interface</td></tr>
-<tr><td><code>StudentServiceImpl.getStudentById()</code> throws a plain <code>RuntimeException</code>, not a custom one, on an unreachable null case</td><td>Defensive code for a state the repository's own contract already prevents (it throws first)</td><td>Could be tightened to throw <code>StudentNotFoundException</code> for full consistency, though it's provably dead code today</td></tr>
 <tr><td><code>getGrades()</code> exposes the live, mutable grade list</td><td>Convenience for <code>StudentManager.hydrateGrades()</code>, which deliberately clears and refills it</td><td>Return an unmodifiable/defensive copy and add a dedicated <code>replaceGrades(List&lt;Double&gt;)</code> method for the one legitimate internal caller</td></tr>
 </table>
 
