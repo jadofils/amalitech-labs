@@ -48,8 +48,9 @@ class SubjectRepositoryImplMockitoTest {
         }
         assertEquals(50, repository.getAllSubjects().size());
 
+        Subject oneTooMany = validMockSubject("ZZ99");
         SubjectException ex = assertThrows(SubjectException.class,
-                () -> repository.addSubject(validMockSubject("ZZ99")));
+                () -> repository.addSubject(oneTooMany));
         assertEquals("Cannot add more subjects. Storage is full.", ex.getMessage());
     }
 }
