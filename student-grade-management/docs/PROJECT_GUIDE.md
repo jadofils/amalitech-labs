@@ -450,6 +450,19 @@ coverage, all in one dashboard.
 To stop the local server afterward: `bin\windows-x86-64\StopSonar.bat`
 (or just close the terminal window `StartSonar.bat` is running in).
 
+**Findings resolved so far** (see CHANGELOG.md,
+`feature/BugFix-sonar-quality-issues`, for the full list): cognitive
+complexity in `ConsoleApp.run()` and `SearchStudentsAction.execute()`,
+a `StatisticsCalculator` constructor with too many parameters, a nested
+ternary, duplicated string literals, and a test-lambda smell. One rule
+is deliberately excluded rather than fixed: `java:S106` ("replace
+`System.out` by a logger") is scoped out for `src/console/**` and
+`src/app/**` via `sonar.issue.ignore.multicriteria` in `pom.xml`,
+because `System.out` there is the application's actual user-facing
+output, not a diagnostic that belongs on `Logger`/`System.err` — see
+the comment above that property block in `pom.xml` for the full
+rationale.
+
 ---
 
 ## 12. Known, Deliberately Scoped-Out Gap

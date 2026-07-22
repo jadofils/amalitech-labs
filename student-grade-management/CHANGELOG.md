@@ -615,3 +615,61 @@ wrapper (`GradeServiceImpl.recordGrade()`'s two catch blocks) - neither
 converts anything to a generic type.
 
 Full suite: 379/379 passing (up from 377).
+
+### `feature/BugFix-sonar-quality-issues` (merged `5e0d252`)
+
+Ran a local SonarQube analysis (`feature/BugFix-sonar-plugin`'s
+`sonar-maven-plugin`, see above) and worked through the reported
+findings:
+
+- **Throwing-lambda test smell** (`262ad14`) —
+  `SubjectRepositoryImplMockitoTest`/`StudentRepositoryImplMockitoTest`
+  each had an `assertThrows` lambda that could throw from two different
+  invocations (mock construction *and* the call under test). Moved mock
+  construction above the lambda so only the call under test is inside it.
+- **`StatisticsCalculator` constructor/declaration violations**
+  (`d80851d`) — `StatsResult`'s constructor took 11 parameters (7
+  allowed); introduced a `GradeExtreme` nested value object bundling a
+  grade's value/student/subject, cutting the constructor to 7 params
+  with every existing public getter (`getMax()`, `getMaxStudentName()`,
+  etc.) unchanged. Also split two flagged multi-variable declarations
+  (`maxStudent/maxSubject/minStudent/minSubject`, `regSum/honSum`,
+  `regCount/honCount`) onto separate lines.
+- **Cognitive complexity / Brain Method** (`4d8e811`) —
+  `ConsoleApp.run()` (35, 15 allowed) split into
+  `resolveAuthorizedAction`/`readChoice`/`executeAction` plus one
+  handler method per exception category, eliminating every `continue`/
+  `break` from the menu loop in the process.
+  `SearchStudentsAction.execute()` (complexity 33, Brain Method: 101
+  LOC/5 nesting levels/16 locals) split into `runSearchRound`,
+  `promptSearchOption`, `readSearchQuery` (+ one small reader per search
+  type), `printSearchResults`, `handleResultAction`,
+  `viewStudentDetails`, `exportSearchResults`, and `buildExportContent`;
+  the search loop now has zero `break`/`continue` statements, same
+  observable behavior.
+- **Nested ternary** (`4d8e811`) — `ExportGradeReportAction`'s
+  `summary && detailed ? (i == 0 ? "_summary" : "_detailed") : ""`
+  extracted into a `fileSuffix()` helper.
+- **Duplicated string literal** (`4d8e811`) — the 25-dash and 54-dash
+  section-divider literals, repeated across `AddStudentAction`,
+  `BulkImportAction`, `CalculateGpaAction`, `ClassStatisticsAction`,
+  `ExportGradeReportAction`, `RecordGradeAction`, `SearchStudentsAction`,
+  `ViewGradeReportAction`, and `ViewStudentsAction`, replaced with two
+  shared constants on `ConsoleUtils` (`DIVIDER`, `WIDE_DIVIDER`).
+- **`java:S106` (System.out) — excluded, not converted** (`4d8e811`) —
+  by far the largest volume of findings was "replace this use of
+  System.out by a logger" across every `console/*Action` and
+  `app.ConsoleApp`. Converting these would be wrong, not just noisy:
+  `System.out` there *is* this application's user-facing menu/report
+  output, deliberately kept off `Logger` (which writes diagnostics to
+  `System.err` — see `logging.Logger`'s own Javadoc); routing it through
+  `Logger` would prefix every menu line, table row, and report line with
+  a `[timestamp] LEVEL` tag, corrupting the console UI it's meant to
+  render. Documented as a `sonar.issue.ignore.multicriteria` rule
+  exclusion scoped to `src/console/**` and `src/app/**` in `pom.xml`,
+  with a comment explaining why, rather than suppressed issue-by-issue
+  in the SonarQube UI — so the exception is itself reviewable in version
+  control instead of living only as server-side state.
+
+Full suite: 379/379 passing (unchanged — no behavior changes, only
+structure).
