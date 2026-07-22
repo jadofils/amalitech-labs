@@ -94,4 +94,56 @@ class StudentManagerMockitoTest {
 
         verify(studentService, times(1)).addStudent(student);
     }
+
+    @Test
+    @DisplayName("updateStudent() delegates to StudentService with the exact same object")
+    void updateStudentDelegatesTest() {
+        StudentService studentService = mock(StudentService.class);
+        GradeManager gradeManager = mock(GradeManager.class);
+        StudentManager manager = new StudentManager(studentService, gradeManager);
+        Student student = new RegularStudent("STU001", "Musa Nkusi", 17, "musa@school.edu",
+                "1234567890", model.enums.StudentStatus.ACTIVE);
+
+        manager.updateStudent(student);
+
+        verify(studentService, times(1)).updateStudent(student);
+    }
+
+    @Test
+    @DisplayName("deleteStudent() delegates to StudentService with the exact same ID")
+    void deleteStudentDelegatesTest() {
+        StudentService studentService = mock(StudentService.class);
+        GradeManager gradeManager = mock(GradeManager.class);
+        StudentManager manager = new StudentManager(studentService, gradeManager);
+
+        manager.deleteStudent("STU001");
+
+        verify(studentService, times(1)).deleteStudent("STU001");
+    }
+
+    @Test
+    @DisplayName("viewAllStudents() prints a specific message and never hydrates when there are no students")
+    void viewAllStudentsEmptyTest() {
+        StudentService studentService = mock(StudentService.class);
+        GradeManager gradeManager = mock(GradeManager.class);
+        StudentManager manager = new StudentManager(studentService, gradeManager);
+        when(studentService.getAllStudents()).thenReturn(List.of());
+
+        String output = captureStdOut(manager::viewAllStudents);
+
+        assertTrue(output.contains("No students found."));
+        verify(gradeManager, never()).getGradesForStudent(any());
+    }
+
+    private String captureStdOut(Runnable action) {
+        java.io.PrintStream original = System.out;
+        java.io.ByteArrayOutputStream buffer = new java.io.ByteArrayOutputStream();
+        System.setOut(new java.io.PrintStream(buffer));
+        try {
+            action.run();
+        } finally {
+            System.setOut(original);
+        }
+        return buffer.toString();
+    }
 }
