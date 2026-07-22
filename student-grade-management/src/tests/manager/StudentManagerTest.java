@@ -10,6 +10,8 @@ import model.subject.Subject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import repository.student.StudentRepositoryImpl;
 import repository.subject.SubjectRepositoryImpl;
 import service.GradeService;
@@ -129,5 +131,55 @@ class StudentManagerTest {
         gradeManager.addGrade(new Grade(honorsStudent.getStudentId(), subject, 100.0)); // average now 65.0
         HonorsStudent rehydrated = (HonorsStudent) studentManager.findStudent(honorsStudent.getStudentId());
         assertTrue(rehydrated.checkHonorsEligibility());
+    }
+
+    @Test
+    @DisplayName("viewAllStudents() prints every seeded student plus the class-wide totals")
+    void viewAllStudentsTest() {
+        Student first = studentRepository.getAllStudents().get(0);
+        Subject subject = subjectRepository.getAllSubjects().get(0);
+        gradeManager.addGrade(new Grade(first.getStudentId(), subject, 100.0));
+
+        String output = captureStdOut(studentManager::viewAllStudents);
+
+        assertTrue(output.contains(first.getName()));
+        assertTrue(output.contains("Total Students: 5"));
+        assertTrue(output.contains("Average Class Grade: 20.0%")); // (100 + 0 + 0 + 0 + 0) / 5
+    }
+
+    @Test
+    @DisplayName("updateStudent() persists the change so a later findStudent() sees it")
+    void updateStudentTest() {
+        Student student = studentManager.getAllStudents().get(0);
+        student.setName("Updated Name");
+        student.setPhone("1234567890"); // seeded phones like "+1-555-0101" don't pass update validation
+
+        studentManager.updateStudent(student);
+
+        assertEquals("Updated Name", studentManager.findStudent(student.getStudentId()).getName());
+    }
+
+    @Test
+    @DisplayName("deleteStudent() removes the student so findStudent() no longer finds them")
+    void deleteStudentTest() {
+        Student student = studentManager.getAllStudents().get(0);
+        int before = studentManager.getStudentCount();
+
+        studentManager.deleteStudent(student.getStudentId());
+
+        assertEquals(before - 1, studentManager.getStudentCount());
+        assertNull(studentManager.findStudent(student.getStudentId()));
+    }
+
+    private String captureStdOut(Runnable action) {
+        PrintStream original = System.out;
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(buffer));
+        try {
+            action.run();
+        } finally {
+            System.setOut(original);
+        }
+        return buffer.toString();
     }
 }
