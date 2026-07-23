@@ -9,12 +9,23 @@ import model.subject.CoreSubject;
 import model.subject.ElectiveSubject;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
+/**
+ * v3: backed by a {@code LinkedHashMap<String, Subject>} keyed on subject code instead of a fixed
+ * array - same O(1)-keyed-operation rationale as {@link repository.student.StudentRepositoryImpl}.
+ * Also closes a real gap the array version had: {@link #addSubject} now actually rejects a
+ * duplicate subject code (checked via the map key itself - a second {@code HashSet} would just
+ * duplicate what the map's own keys already are) instead of silently accepting a second entry that
+ * {@link #findSubjectByCode}/{@link #deleteSubject} could never reach.
+ */
 public class SubjectRepositoryImpl implements SubjectRepository {
 
-    private final Subject[] subjects = new Subject[50];
-    private int subjectCount = 0;
+    private static final int MAX_CAPACITY = 50;
+
+    private final Map<String, Subject> subjects = new LinkedHashMap<>();
 
     public SubjectRepositoryImpl() {
         // Seed Core Subjects (matching README specification)
@@ -29,48 +40,45 @@ public class SubjectRepositoryImpl implements SubjectRepository {
     }
 
     private void seedSubject(Subject subject) {
-        subjects[subjectCount++] = subject;
+        subjects.put(subject.getSubjectCode(), subject);
     }
 
+    /** O(1) - HashMap containsKey + put, guarded by an O(1) size() capacity check. */
     @Override
     public void addSubject(Subject subject) {
         SubjectValidator.validateSubject(subject);
-        if (subjectCount >= subjects.length) {
-            Logger.error("Subject storage full at capacity " + subjects.length + "; rejected " + subject.getSubjectCode());
+        String subjectCode = subject.getSubjectCode();
+        if (subjects.containsKey(subjectCode)) {
+            throw new SubjectException("A subject with code '" + subjectCode + "' already exists.", subjectCode);
+        }
+        if (subjects.size() >= MAX_CAPACITY) {
+            Logger.error("Subject storage full at capacity " + MAX_CAPACITY + "; rejected " + subjectCode);
             throw new SubjectException("Cannot add more subjects. Storage is full.");
         }
-        subjects[subjectCount++] = subject;
+        subjects.put(subjectCode, subject);
     }
 
+    /** O(1) - direct keyed lookup, vs. O(n) linear scan in the array version. */
     @Override
     public Subject findSubjectByCode(String subjectCode) {
-        for (int i = 0; i < subjectCount; i++) {
-            if (subjects[i].getSubjectCode().equals(subjectCode)) {
-                return subjects[i];
-            }
+        Subject subject = subjects.get(subjectCode);
+        if (subject == null) {
+            throw new SubjectNotFoundException("Subject with code " + subjectCode + " not found");
         }
-        throw new SubjectNotFoundException("Subject with code " + subjectCode + " not found");
+        return subject;
     }
 
+    /** O(n) - must copy every entry into the returned list; same complexity as the array version. */
     @Override
     public List<Subject> getAllSubjects() {
-        List<Subject> result = new ArrayList<>();
-        for (int i = 0; i < subjectCount; i++) {
-            result.add(subjects[i]);
-        }
-        return result;
+        return new ArrayList<>(subjects.values());
     }
 
+    /** O(1) - keyed remove, vs. O(n) scan-then-swap-with-last in the array version. */
     @Override
     public void deleteSubject(String subjectCode) {
-        for (int i = 0; i < subjectCount; i++) {
-            if (subjects[i].getSubjectCode().equals(subjectCode)) {
-                subjects[i] = subjects[subjectCount - 1];
-                subjects[subjectCount - 1] = null;
-                subjectCount--;
-                return;
-            }
+        if (subjects.remove(subjectCode) == null) {
+            throw new SubjectNotFoundException("Subject with code " + subjectCode + " not found.");
         }
-        throw new SubjectNotFoundException("Subject with code " + subjectCode + " not found.");
     }
 }

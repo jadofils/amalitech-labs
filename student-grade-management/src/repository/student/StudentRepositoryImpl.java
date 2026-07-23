@@ -8,12 +8,24 @@ import model.student.RegularStudent;
 import model.student.Student;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
+/**
+ * v3: backed by a {@code LinkedHashMap<String, Student>} keyed on student ID instead of a fixed
+ * array - {@link #findStudentById}, {@link #updateStudent}, and {@link #deleteStudent} are O(1)
+ * keyed operations instead of an O(n) linear scan. {@code LinkedHashMap} specifically (not
+ * {@code HashMap}) so {@link #getAllStudents()} keeps returning students in insertion order,
+ * exactly like the array version did - existing callers that grab "the first seeded student" via
+ * {@code getAllStudents().get(0)} still get the same student. The public {@link StudentRepository}
+ * contract is unchanged; this is an internal storage swap only.
+ */
 public class StudentRepositoryImpl implements StudentRepository {
 
-    private final Student[] students = new Student[50];
-    private int studentCount = 0;
+    private static final int MAX_CAPACITY = 50;
+
+    private final Map<String, Student> students = new LinkedHashMap<>();
 
     public StudentRepositoryImpl() {
         // Seed 5 students: 3 Regular, 2 Honors (matching README specification)
@@ -25,66 +37,54 @@ public class StudentRepositoryImpl implements StudentRepository {
     }
 
     private void seedStudent(Student student) {
-        students[studentCount++] = student;
+        students.put(student.getStudentId(), student);
     }
 
+    /** O(1) amortized - one HashMap put, guarded by an O(1) size() capacity check. */
     @Override
     public void addStudent(Student student) {
-        if (studentCount >= students.length) {
-            Logger.error("Student storage full at capacity " + students.length + "; rejected " + student.getName());
+        if (students.size() >= MAX_CAPACITY) {
+            Logger.error("Student storage full at capacity " + MAX_CAPACITY + "; rejected " + student.getName());
             throw new StudentException("Cannot add more students. Storage is full.");
         }
-        students[studentCount++] = student;
+        students.put(student.getStudentId(), student);
     }
 
+    /** O(1) - direct keyed lookup, vs. O(n) linear scan in the array version. */
     @Override
     public Student findStudentById(String studentId) {
-        for (int i = 0; i < studentCount; i++) {
-            if (students[i].getStudentId().equals(studentId)) {
-                return students[i];
-            }
+        Student student = students.get(studentId);
+        if (student == null) {
+            throw new StudentNotFoundException("Student with ID " + studentId + " not found.", studentId, getAvailableIds());
         }
-        throw new StudentNotFoundException("Student with ID " + studentId + " not found.", studentId, getAvailableIds());
+        return student;
     }
 
+    /** O(n) - must copy every entry into the returned list; same complexity as the array version. */
     @Override
     public List<Student> getAllStudents() {
-        List<Student> result = new ArrayList<>();
-        for (int i = 0; i < studentCount; i++) {
-            result.add(students[i]);
-        }
-        return result;
+        return new ArrayList<>(students.values());
     }
 
+    /** O(1) - keyed replace, vs. O(n) scan-then-replace in the array version. */
     @Override
     public void updateStudent(Student student) {
-        for (int i = 0; i < studentCount; i++) {
-            if (students[i].getStudentId().equals(student.getStudentId())) {
-                students[i] = student;
-                return;
-            }
+        String studentId = student.getStudentId();
+        if (!students.containsKey(studentId)) {
+            throw new StudentNotFoundException("Student with ID " + studentId + " not found.", studentId, getAvailableIds());
         }
-        throw new StudentNotFoundException("Student with ID " + student.getStudentId() + " not found.", student.getStudentId(), getAvailableIds());
+        students.put(studentId, student);
     }
 
+    /** O(1) - keyed remove, vs. O(n) scan-then-swap-with-last in the array version. */
     @Override
     public void deleteStudent(String studentId) {
-        for (int i = 0; i < studentCount; i++) {
-            if (students[i].getStudentId().equals(studentId)) {
-                students[i] = students[studentCount - 1];
-                students[studentCount - 1] = null;
-                studentCount--;
-                return;
-            }
+        if (students.remove(studentId) == null) {
+            throw new StudentNotFoundException("Student with ID " + studentId + " not found.", studentId, getAvailableIds());
         }
-        throw new StudentNotFoundException("Student with ID " + studentId + " not found.", studentId, getAvailableIds());
     }
 
     private List<String> getAvailableIds() {
-        List<String> ids = new ArrayList<>();
-        for (int i = 0; i < studentCount; i++) {
-            ids.add(students[i].getStudentId());
-        }
-        return ids;
+        return new ArrayList<>(students.keySet());
     }
 }
