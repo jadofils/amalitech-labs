@@ -12,7 +12,7 @@ Source: [../../REAME-V3.md](../../REAME-V3.md).
 
 ## Backlog Items
 
-### PBI-1: Collections Optimization (US-1)
+### PBI-1: Collections Optimization (US-1) — ✅ Done (`feature/v3-collections-optimization`, merged)
 | Field | Value |
 |---|---|
 | **Priority** | High |
@@ -25,15 +25,23 @@ Source: [../../REAME-V3.md](../../REAME-V3.md).
 > scans over an array
 
 **Acceptance Criteria:**
-- [ ] `HashMap<String, Student>` (keyed on student ID) for O(1) lookup, replacing/complementing the
-      current array scan in `StudentRepositoryImpl`
-- [ ] `TreeMap<Double, List<Student>>` (or equivalent) for sorted GPA ranking, O(log n) insert
-- [ ] `HashSet<String>` for unique course/subject-code tracking
-- [ ] `LinkedList<Grade>` for a student's grade history where insertion order matters
-- [ ] `PriorityQueue<Task>` for the scheduled/batch task queue (feeds PBI-4/PBI-6)
-- [ ] Big-O documented per operation (in Javadoc or `docs/v3/`) for every collection choice above
-- [ ] Existing `StudentRepository`/`SubjectRepository`/`GradeRepository` interfaces unchanged —
-      this is a backing-storage swap, not a public API change (v2 callers must not need to change)
+- [x] `HashMap<String, Student>` (keyed on student ID) for O(1) lookup, replacing/complementing the
+      current array scan in `StudentRepositoryImpl` — done as `LinkedHashMap` specifically, to
+      preserve `getAllStudents()`'s insertion order for existing callers/tests
+- [x] `TreeMap<Double, List<Student>>` (or equivalent) for sorted GPA ranking, O(log n) insert —
+      `GPACalculator.classRankings()`
+- [x] `HashSet<String>` for unique course/subject-code tracking — implemented as the
+      `LinkedHashMap<String, Subject>`'s own key set rather than a second, redundant `HashSet`
+      (the map's keys already are the unique-code set; addSubject() now checks `containsKey`
+      before inserting, closing a real gap where the array version never checked for duplicates)
+- [x] `LinkedList<Grade>` for a student's grade history where insertion order matters — the new
+      `HashMap<String, LinkedList<Grade>>` secondary index in `GradeRepositoryImpl`
+- [ ] `PriorityQueue<Task>` for the scheduled/batch task queue — still deferred to PBI-4/PBI-6,
+      nothing to queue until those stories exist
+- [x] Big-O documented per operation — Javadoc on every changed method in
+      `StudentRepositoryImpl`/`SubjectRepositoryImpl`/`GradeRepositoryImpl`/`GPACalculator`
+- [x] Existing `StudentRepository`/`SubjectRepository`/`GradeRepository` interfaces unchanged —
+      verified by the full existing suite passing unmodified (496/496)
 
 ### PBI-2: Multi-Format File I/O (US-2, US-10)
 | Field | Value |
