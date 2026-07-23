@@ -7,7 +7,7 @@ public abstract class Subject {
     private String subjectCode;
 
     // constructor
-    public Subject(String subjectName, String subjectCode) {
+    protected Subject(String subjectName, String subjectCode) {
         this.subjectName = subjectName;
         this.subjectCode = subjectCode;
     }

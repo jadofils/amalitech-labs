@@ -9,6 +9,7 @@ import main.model.subject.CoreSubject;
 import main.model.subject.ElectiveSubject;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class SubjectRepositoryImpl implements SubjectRepository {
@@ -54,11 +55,7 @@ public class SubjectRepositoryImpl implements SubjectRepository {
 
     @Override
     public List<Subject> getAllSubjects() {
-        List<Subject> result = new ArrayList<>();
-        for (int i = 0; i < subjectCount; i++) {
-            result.add(subjects[i]);
-        }
-        return result;
+        return new ArrayList<>(Arrays.asList(subjects).subList(0, subjectCount));
     }
 
     @Override

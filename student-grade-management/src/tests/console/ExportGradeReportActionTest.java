@@ -116,7 +116,7 @@ class ExportGradeReportActionTest {
 
     @Test
     @DisplayName("Option 3 (both) writes both a '_summary.txt' and a '_detailed.txt' file")
-    void exportBothTest() throws IOException {
+    void exportBothTest() {
         Student student = studentManager.getAllStudents().get(0);
         ExportGradeReportAction action = actionWithInput(student.getStudentId() + "\n3\nmyreport\n\n");
 

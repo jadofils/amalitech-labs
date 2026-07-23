@@ -18,7 +18,7 @@ public abstract class Student {
     private List<Double> grades = new ArrayList<>();
 
     // Constructor
-    public Student(String name, int age, String email, String phone) {
+    protected Student(String name, int age, String email, String phone) {
         this.studentId = generateStudentId();
         this.name = name;
         this.age = age;
@@ -39,7 +39,7 @@ public abstract class Student {
     }
 
     // Generate unique student ID
-    private String generateStudentId() {
+    private static String generateStudentId() {
         studentCounter++;
         return String.format("STU%03d", studentCounter);
     }

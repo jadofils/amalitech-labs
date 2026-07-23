@@ -4,7 +4,7 @@ import main.model.enums.StudentStatus;
 import main.model.enums.StudentType;
 
 public class RegularStudent extends Student {
-    private final StudentType studentType = StudentType.REGULAR;
+    private static final StudentType studentType = StudentType.REGULAR;
 
     public RegularStudent(String name, int age, String email, String phone) {
         super(name, age, email, phone);

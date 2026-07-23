@@ -13,6 +13,9 @@ import main.model.subject.CoreSubject;
 import main.model.subject.Subject;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -20,6 +23,7 @@ import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Scanner;
+import java.util.stream.Stream;
 
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -38,10 +42,9 @@ class RecordGradeActionMockitoTest {
     private final Subject subject = new CoreSubject("Mathematics", "MATH01");
 
     private String runWithInput(StudentManager studentManager, GradeManager gradeManager, String scriptedInput) {
-        Scanner scanner = new Scanner(new ByteArrayInputStream(scriptedInput.getBytes(StandardCharsets.UTF_8)));
         PrintStream originalOut = System.out;
         ByteArrayOutputStream captured = new ByteArrayOutputStream();
-        try {
+        try (Scanner scanner = new Scanner(new ByteArrayInputStream(scriptedInput.getBytes(StandardCharsets.UTF_8)))) {
             System.setOut(new PrintStream(captured, true, StandardCharsets.UTF_8));
             new RecordGradeAction(scanner, studentManager, gradeManager).execute();
         } finally {
@@ -64,59 +67,30 @@ class RecordGradeActionMockitoTest {
         verify(gradeManager, never()).addGrade(any());
     }
 
-    @Test
-    @DisplayName("Invalid (non-numeric) subject selection prints 'Invalid selection.' and never records a grade")
-    void invalidSubjectSelectionNonNumericTest() {
-        StudentManager studentManager = mock(StudentManager.class);
-        GradeManager gradeManager = mock(GradeManager.class);
-        when(studentManager.findStudent("STU001")).thenReturn(student);
-        when(gradeManager.getSubjectsByType(SubjectType.CORE)).thenReturn(List.of(subject));
-
-        String output = runWithInput(studentManager, gradeManager, "STU001\n1\nabc\n");
-
-        assertTrue(output.contains("Invalid selection."));
-        verify(gradeManager, never()).addGrade(any());
+    private static Stream<Arguments> invalidOrDeclinedInputs() {
+        // @MethodSource, not @CsvSource: these scripted inputs contain literal
+        // newlines, which @CsvSource's underlying parser reads as row
+        // separators (corrupting the columns) rather than as part of one value.
+        return Stream.of(
+                Arguments.of("STU001\n1\nabc\n", "Invalid selection."),
+                Arguments.of("STU001\n1\n99\n", "Invalid selection."),
+                Arguments.of("STU001\n1\n1\nabc\n", "Invalid grade."),
+                Arguments.of("STU001\n1\n1\n85\nN\n", "Grade recording cancelled.")
+        );
     }
 
-    @Test
-    @DisplayName("Out-of-range subject selection number prints 'Invalid selection.'")
-    void outOfRangeSubjectSelectionTest() {
+    @ParameterizedTest
+    @MethodSource("invalidOrDeclinedInputs")
+    @DisplayName("Each invalid/declined input path prints its matching message and never records a grade")
+    void invalidOrDeclinedInputNeverRecordsGradeTest(String scriptedInput, String expectedMessage) {
         StudentManager studentManager = mock(StudentManager.class);
         GradeManager gradeManager = mock(GradeManager.class);
         when(studentManager.findStudent("STU001")).thenReturn(student);
         when(gradeManager.getSubjectsByType(SubjectType.CORE)).thenReturn(List.of(subject));
 
-        String output = runWithInput(studentManager, gradeManager, "STU001\n1\n99\n");
+        String output = runWithInput(studentManager, gradeManager, scriptedInput);
 
-        assertTrue(output.contains("Invalid selection."));
-        verify(gradeManager, never()).addGrade(any());
-    }
-
-    @Test
-    @DisplayName("Invalid (non-numeric) grade input prints 'Invalid grade.' and never records a grade")
-    void invalidGradeInputTest() {
-        StudentManager studentManager = mock(StudentManager.class);
-        GradeManager gradeManager = mock(GradeManager.class);
-        when(studentManager.findStudent("STU001")).thenReturn(student);
-        when(gradeManager.getSubjectsByType(SubjectType.CORE)).thenReturn(List.of(subject));
-
-        String output = runWithInput(studentManager, gradeManager, "STU001\n1\n1\nabc\n");
-
-        assertTrue(output.contains("Invalid grade."));
-        verify(gradeManager, never()).addGrade(any());
-    }
-
-    @Test
-    @DisplayName("Declining the confirmation prints 'Grade recording cancelled.' and never records a grade")
-    void declinedConfirmationCancelsTest() {
-        StudentManager studentManager = mock(StudentManager.class);
-        GradeManager gradeManager = mock(GradeManager.class);
-        when(studentManager.findStudent("STU001")).thenReturn(student);
-        when(gradeManager.getSubjectsByType(SubjectType.CORE)).thenReturn(List.of(subject));
-
-        String output = runWithInput(studentManager, gradeManager, "STU001\n1\n1\n85\nN\n");
-
-        assertTrue(output.contains("Grade recording cancelled."));
+        assertTrue(output.contains(expectedMessage));
         verify(gradeManager, never()).addGrade(any());
     }
 

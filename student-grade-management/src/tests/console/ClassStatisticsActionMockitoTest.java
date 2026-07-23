@@ -180,11 +180,11 @@ class ClassStatisticsActionMockitoTest {
     }
 
     private String runAction(StudentManager studentManager, GradeManager gradeManager, SubjectRepository subjectRepository) {
-        ClassStatisticsAction action = new ClassStatisticsAction(scriptedScanner(), studentManager, gradeManager,
-                statisticsCalculator, subjectRepository);
         PrintStream originalOut = System.out;
         ByteArrayOutputStream captured = new ByteArrayOutputStream();
-        try {
+        try (Scanner scanner = scriptedScanner()) {
+            ClassStatisticsAction action = new ClassStatisticsAction(scanner, studentManager, gradeManager,
+                    statisticsCalculator, subjectRepository);
             System.setOut(new PrintStream(captured, true, StandardCharsets.UTF_8));
             action.execute();
         } finally {

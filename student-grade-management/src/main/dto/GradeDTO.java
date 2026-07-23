@@ -5,21 +5,13 @@ import main.model.enums.SubjectType;
 /**
  * Read-only projection of a {@link main.model.grade.Grade} for the exported
  * detailed report's grade-history table.
+ *
+ * <p>A {@code record} (pure data, no behavior of its own) - the JavaBean-style
+ * {@code getX()} accessors below sit alongside the record's own
+ * {@code gradeId()}/{@code date()}/etc. purely so every existing caller
+ * (GradeMapper, ReportGenerator, tests) keeps compiling unchanged.
  */
-public final class GradeDTO {
-    private final String gradeId;
-    private final String date;
-    private final String subjectName;
-    private final SubjectType subjectType;
-    private final double grade;
-
-    public GradeDTO(String gradeId, String date, String subjectName, SubjectType subjectType, double grade) {
-        this.gradeId = gradeId;
-        this.date = date;
-        this.subjectName = subjectName;
-        this.subjectType = subjectType;
-        this.grade = grade;
-    }
+public record GradeDTO(String gradeId, String date, String subjectName, SubjectType subjectType, double grade) {
 
     public String getGradeId() { return gradeId; }
     public String getDate() { return date; }

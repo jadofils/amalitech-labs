@@ -23,9 +23,8 @@ import static org.mockito.Mockito.*;
 class ConsoleAppMockitoTest {
 
     private void run(List<MenuAction> actions, String scriptedInput) {
-        Scanner scanner = new Scanner(new ByteArrayInputStream(scriptedInput.getBytes(StandardCharsets.UTF_8)));
         PrintStream originalOut = System.out;
-        try {
+        try (Scanner scanner = new Scanner(new ByteArrayInputStream(scriptedInput.getBytes(StandardCharsets.UTF_8)))) {
             System.setOut(new PrintStream(new ByteArrayOutputStream(), true, StandardCharsets.UTF_8));
             new ConsoleApp(scanner, actions).run();
         } finally {

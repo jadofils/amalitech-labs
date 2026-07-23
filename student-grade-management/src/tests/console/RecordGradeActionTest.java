@@ -10,6 +10,9 @@ import main.model.student.Student;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import main.repository.student.StudentRepositoryImpl;
 import main.repository.subject.SubjectRepositoryImpl;
 import main.service.GradeService;
@@ -23,6 +26,7 @@ import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Scanner;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -51,10 +55,9 @@ class RecordGradeActionTest {
     }
 
     private String runWithInput(String scriptedInput) {
-        Scanner scanner = new Scanner(new ByteArrayInputStream(scriptedInput.getBytes(StandardCharsets.UTF_8)));
         PrintStream originalOut = System.out;
         ByteArrayOutputStream captured = new ByteArrayOutputStream();
-        try {
+        try (Scanner scanner = new Scanner(new ByteArrayInputStream(scriptedInput.getBytes(StandardCharsets.UTF_8)))) {
             System.setOut(new PrintStream(captured, true, StandardCharsets.UTF_8));
             new RecordGradeAction(scanner, studentManager, gradeManager).execute();
         } finally {
@@ -102,51 +105,28 @@ class RecordGradeActionTest {
         assertEquals(90.0, grades.get(0).getGrade(), 0.0001);
     }
 
-    @Test
-    @DisplayName("Invalid (non-numeric) subject selection prints 'Invalid selection.' and records nothing")
-    void invalidSubjectSelectionNonNumericTest() {
-        Student student = studentManager.getAllStudents().get(0);
-        String studentId = student.getStudentId();
-
-        String output = runWithInput(studentId + "\n1\nabc\n");
-
-        assertTrue(output.contains("Invalid selection."));
-        assertTrue(gradeManager.getGradesForStudent(studentId).isEmpty());
+    private static Stream<Arguments> invalidOrDeclinedInputSuffixes() {
+        // @MethodSource, not @CsvSource: these input suffixes contain literal
+        // newlines, which @CsvSource's underlying parser reads as row
+        // separators (corrupting the columns) rather than as part of one value.
+        return Stream.of(
+                Arguments.of("1\nabc\n", "Invalid selection."),
+                Arguments.of("1\n99\n", "Invalid selection."),
+                Arguments.of("1\n1\nabc\n", "Invalid grade."),
+                Arguments.of("1\n1\n85\nN\n", "Grade recording cancelled.")
+        );
     }
 
-    @Test
-    @DisplayName("Out-of-range subject selection number prints 'Invalid selection.'")
-    void outOfRangeSubjectSelectionTest() {
+    @ParameterizedTest
+    @MethodSource("invalidOrDeclinedInputSuffixes")
+    @DisplayName("Each invalid/declined input path prints its matching message and records nothing")
+    void invalidOrDeclinedInputRecordsNothingTest(String inputSuffix, String expectedMessage) {
         Student student = studentManager.getAllStudents().get(0);
         String studentId = student.getStudentId();
 
-        String output = runWithInput(studentId + "\n1\n99\n");
+        String output = runWithInput(studentId + "\n" + inputSuffix);
 
-        assertTrue(output.contains("Invalid selection."));
-        assertTrue(gradeManager.getGradesForStudent(studentId).isEmpty());
-    }
-
-    @Test
-    @DisplayName("Invalid (non-numeric) grade input prints 'Invalid grade.'")
-    void invalidGradeInputTest() {
-        Student student = studentManager.getAllStudents().get(0);
-        String studentId = student.getStudentId();
-
-        String output = runWithInput(studentId + "\n1\n1\nabc\n");
-
-        assertTrue(output.contains("Invalid grade."));
-        assertTrue(gradeManager.getGradesForStudent(studentId).isEmpty());
-    }
-
-    @Test
-    @DisplayName("Declining the confirmation prints 'Grade recording cancelled.' and records nothing")
-    void declinedConfirmationCancelsTest() {
-        Student student = studentManager.getAllStudents().get(0);
-        String studentId = student.getStudentId();
-
-        String output = runWithInput(studentId + "\n1\n1\n85\nN\n");
-
-        assertTrue(output.contains("Grade recording cancelled."));
+        assertTrue(output.contains(expectedMessage));
         assertTrue(gradeManager.getGradesForStudent(studentId).isEmpty());
     }
 

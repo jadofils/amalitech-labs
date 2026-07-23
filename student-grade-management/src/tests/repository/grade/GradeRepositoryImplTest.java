@@ -75,11 +75,12 @@ class GradeRepositoryImplTest {
         GradeRepositoryImpl repository = new GradeRepositoryImpl();
         Grade grade = new Grade("STU001", math, 85.0);
         repository.addGrade(grade);
+        String gradeId = grade.getGradeId();
 
-        repository.deleteGrade(grade.getGradeId());
+        repository.deleteGrade(gradeId);
 
         assertEquals(0, repository.getGradeCount());
-        assertThrows(GradeException.class, () -> repository.findGradeById(grade.getGradeId()));
+        assertThrows(GradeException.class, () -> repository.findGradeById(gradeId));
     }
 
     @Test

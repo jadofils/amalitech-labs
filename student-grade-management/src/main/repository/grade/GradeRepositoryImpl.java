@@ -5,6 +5,7 @@ import main.logging.Logger;
 import main.model.grade.Grade;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class GradeRepositoryImpl implements GradeRepository {
@@ -44,11 +45,7 @@ public class GradeRepositoryImpl implements GradeRepository {
 
     @Override
     public List<Grade> getAllGrades() {
-        List<Grade> result = new ArrayList<>();
-        for (int i = 0; i < gradeCount; i++) {
-            result.add(grades[i]);
-        }
-        return result;
+        return new ArrayList<>(Arrays.asList(grades).subList(0, gradeCount));
     }
 
     @Override

@@ -3,7 +3,7 @@ package main.model.subject;
 import main.model.enums.SubjectType;
 
 public class CoreSubject extends Subject {
-    private final boolean mandatory = true;
+    private static final boolean mandatory = true;
 
     public CoreSubject(String subjectName, String subjectCode) {
         super(subjectName, subjectCode);

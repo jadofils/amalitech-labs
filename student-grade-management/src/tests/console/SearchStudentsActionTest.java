@@ -76,11 +76,10 @@ class SearchStudentsActionTest {
     }
 
     private String runWithInput(String scriptedInput) {
-        Scanner scanner = new Scanner(new ByteArrayInputStream(scriptedInput.getBytes(StandardCharsets.UTF_8)));
-        SearchStudentsAction action = new SearchStudentsAction(scanner, studentManager, studentSearcher, fileExporter);
         PrintStream originalOut = System.out;
         ByteArrayOutputStream captured = new ByteArrayOutputStream();
-        try {
+        try (Scanner scanner = new Scanner(new ByteArrayInputStream(scriptedInput.getBytes(StandardCharsets.UTF_8)))) {
+            SearchStudentsAction action = new SearchStudentsAction(scanner, studentManager, studentSearcher, fileExporter);
             System.setOut(new PrintStream(captured, true, StandardCharsets.UTF_8));
             action.execute();
         } finally {

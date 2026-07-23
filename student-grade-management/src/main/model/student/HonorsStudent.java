@@ -4,7 +4,7 @@ import main.model.enums.StudentStatus;
 import main.model.enums.StudentType;
 
 public class HonorsStudent extends Student {
-    private final StudentType studentType = StudentType.HONORS;
+    private static final StudentType studentType = StudentType.HONORS;
     private boolean honorsEligible;
 
     // Constructor

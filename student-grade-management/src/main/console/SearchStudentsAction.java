@@ -12,7 +12,6 @@ import main.utils.InputSanitizer;
 
 import java.util.List;
 import java.util.Scanner;
-import java.util.stream.Collectors;
 
 /** Menu option 9: Search Students (has its own result/action sub-menu). */
 public class SearchStudentsAction implements MenuAction {
@@ -62,7 +61,7 @@ public class SearchStudentsAction implements MenuAction {
         }
 
         String searchDesc = studentSearcher.getSearchDescription(option, query.rawInput);
-        List<StudentDTO> resultDtos = query.results.stream().map(StudentMapper::toDto).collect(Collectors.toList());
+        List<StudentDTO> resultDtos = query.results.stream().map(StudentMapper::toDto).toList();
         printSearchResults(resultDtos);
 
         return handleResultAction(searchDesc, resultDtos);

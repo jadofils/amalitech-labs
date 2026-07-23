@@ -107,8 +107,8 @@ public class ConsoleApp {
             Logger.warn("Menu action " + action.getOptionNumber() + " rejected: " + e.getMessage());
             printError(e);
         } catch (ApplicationException e) {
-            // Catches any other custom exception not named above -
-            // deliberately not `catch (Exception e)`, so a genuinely
+            // Catches any other custom exception not named above - deliberately
+            // avoids a catch-all for the generic Exception type, so a genuinely
             // unexpected failure still surfaces instead of being masked.
             Logger.error("Unhandled application exception for menu action " + action.getOptionNumber(), e);
             printError(e);

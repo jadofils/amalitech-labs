@@ -12,7 +12,7 @@ public class Grade implements Gradable {
     private String gradeId;
     private String studentId;
     private Subject subject;
-    private double grade;
+    private double gradeValue;
     private String date;
 
     public Grade(String studentId, Subject subject, double gradeValue) {
@@ -35,7 +35,7 @@ public class Grade implements Gradable {
         this.gradeId = gradeId;
         this.studentId = studentId;
         this.subject = subject;
-        this.grade = gradeValue;
+        this.gradeValue = gradeValue;
         this.date = date;
     }
 
@@ -49,19 +49,19 @@ public class Grade implements Gradable {
     public String getGradeId() { return gradeId; }
     public String getStudentId() { return studentId; }
     public Subject getSubject() { return subject; }
-    public double getGrade() { return grade; }
+    public double getGrade() { return gradeValue; }
     public String getDate() { return date; }
 
     public void displayGradeDetails() {
         System.out.println("Grade ID: " + gradeId);
         System.out.println("Student ID: " + studentId);
         subject.displaySubjectDetails();
-        System.out.println("Grade: " + grade + " (" + getLetterGrade() + ")");
+        System.out.println("Grade: " + gradeValue + " (" + getLetterGrade() + ")");
         System.out.println("Date: " + date);
     }
 
     public LetterGrade getLetterGrade() {
-        return LetterGrade.fromNumeric(grade);
+        return LetterGrade.fromNumeric(gradeValue);
     }
 
     public SubjectType getSubjectType() {
@@ -78,7 +78,7 @@ public class Grade implements Gradable {
         if (!validateGrade(gradeValue)) {
             return false;
         }
-        this.grade = gradeValue;
+        this.gradeValue = gradeValue;
         return true;
     }
 

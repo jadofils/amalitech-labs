@@ -8,6 +8,7 @@ import main.model.student.RegularStudent;
 import main.model.student.Student;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class StudentRepositoryImpl implements StudentRepository {
@@ -49,11 +50,7 @@ public class StudentRepositoryImpl implements StudentRepository {
 
     @Override
     public List<Student> getAllStudents() {
-        List<Student> result = new ArrayList<>();
-        for (int i = 0; i < studentCount; i++) {
-            result.add(students[i]);
-        }
-        return result;
+        return new ArrayList<>(Arrays.asList(students).subList(0, studentCount));
     }
 
     @Override

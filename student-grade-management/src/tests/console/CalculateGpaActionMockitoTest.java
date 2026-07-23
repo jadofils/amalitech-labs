@@ -14,6 +14,8 @@ import main.model.subject.CoreSubject;
 import main.model.subject.Subject;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -43,10 +45,9 @@ class CalculateGpaActionMockitoTest {
 
     private String runWithInput(StudentManager studentManager, GradeManager gradeManager,
                                  GPACalculator gpaCalculator, String scriptedInput) {
-        Scanner scanner = new Scanner(new ByteArrayInputStream(scriptedInput.getBytes(StandardCharsets.UTF_8)));
         PrintStream originalOut = System.out;
         ByteArrayOutputStream captured = new ByteArrayOutputStream();
-        try {
+        try (Scanner scanner = new Scanner(new ByteArrayInputStream(scriptedInput.getBytes(StandardCharsets.UTF_8)))) {
             System.setOut(new PrintStream(captured, true, StandardCharsets.UTF_8));
             new CalculateGpaAction(scanner, studentManager, gradeManager, gpaCalculator).execute();
         } finally {
@@ -77,76 +78,28 @@ class CalculateGpaActionMockitoTest {
         verify(gpaCalculator, never()).classRank(any());
     }
 
-    @Test
-    @DisplayName("cumulativeGPA >= 3.5 prints the excellent-performance message")
-    void excellentPerformanceBranchTest() {
+    @ParameterizedTest
+    @CsvSource({
+            "3.6, Excellent performance (3.5+ GPA)",
+            "3.2, Good performance (3.0+ GPA)",
+            "2.5, Satisfactory performance (2.0+ GPA)",
+            "1.0, Needs improvement (below 2.0 GPA)"
+    })
+    @DisplayName("Each cumulativeGPA tier prints its matching performance message")
+    void performanceTierBranchTest(double cumulativeGpa, String expectedMessage) {
         StudentManager studentManager = mock(StudentManager.class);
         GradeManager gradeManager = mock(GradeManager.class);
         GPACalculator gpaCalculator = mock(GPACalculator.class);
         Student student = regularStudent();
         when(studentManager.findStudent(STUDENT_ID)).thenReturn(student);
         when(gradeManager.getGradesForStudent(STUDENT_ID)).thenReturn(List.of());
-        when(gpaCalculator.cumulativeGPA(STUDENT_ID)).thenReturn(3.6);
+        when(gpaCalculator.cumulativeGPA(STUDENT_ID)).thenReturn(cumulativeGpa);
         when(studentManager.getAllStudents()).thenReturn(List.of(student));
         when(gpaCalculator.classRank(STUDENT_ID)).thenReturn(1);
 
         String output = runWithInput(studentManager, gradeManager, gpaCalculator, STUDENT_ID + "\n\n");
 
-        assertTrue(output.contains("Excellent performance (3.5+ GPA)"));
-    }
-
-    @Test
-    @DisplayName("3.0 <= cumulativeGPA < 3.5 prints the good-performance message")
-    void goodPerformanceBranchTest() {
-        StudentManager studentManager = mock(StudentManager.class);
-        GradeManager gradeManager = mock(GradeManager.class);
-        GPACalculator gpaCalculator = mock(GPACalculator.class);
-        Student student = regularStudent();
-        when(studentManager.findStudent(STUDENT_ID)).thenReturn(student);
-        when(gradeManager.getGradesForStudent(STUDENT_ID)).thenReturn(List.of());
-        when(gpaCalculator.cumulativeGPA(STUDENT_ID)).thenReturn(3.2);
-        when(studentManager.getAllStudents()).thenReturn(List.of(student));
-        when(gpaCalculator.classRank(STUDENT_ID)).thenReturn(1);
-
-        String output = runWithInput(studentManager, gradeManager, gpaCalculator, STUDENT_ID + "\n\n");
-
-        assertTrue(output.contains("Good performance (3.0+ GPA)"));
-    }
-
-    @Test
-    @DisplayName("2.0 <= cumulativeGPA < 3.0 prints the satisfactory-performance message")
-    void satisfactoryPerformanceBranchTest() {
-        StudentManager studentManager = mock(StudentManager.class);
-        GradeManager gradeManager = mock(GradeManager.class);
-        GPACalculator gpaCalculator = mock(GPACalculator.class);
-        Student student = regularStudent();
-        when(studentManager.findStudent(STUDENT_ID)).thenReturn(student);
-        when(gradeManager.getGradesForStudent(STUDENT_ID)).thenReturn(List.of());
-        when(gpaCalculator.cumulativeGPA(STUDENT_ID)).thenReturn(2.5);
-        when(studentManager.getAllStudents()).thenReturn(List.of(student));
-        when(gpaCalculator.classRank(STUDENT_ID)).thenReturn(1);
-
-        String output = runWithInput(studentManager, gradeManager, gpaCalculator, STUDENT_ID + "\n\n");
-
-        assertTrue(output.contains("Satisfactory performance (2.0+ GPA)"));
-    }
-
-    @Test
-    @DisplayName("cumulativeGPA < 2.0 prints the needs-improvement message")
-    void needsImprovementBranchTest() {
-        StudentManager studentManager = mock(StudentManager.class);
-        GradeManager gradeManager = mock(GradeManager.class);
-        GPACalculator gpaCalculator = mock(GPACalculator.class);
-        Student student = regularStudent();
-        when(studentManager.findStudent(STUDENT_ID)).thenReturn(student);
-        when(gradeManager.getGradesForStudent(STUDENT_ID)).thenReturn(List.of());
-        when(gpaCalculator.cumulativeGPA(STUDENT_ID)).thenReturn(1.0);
-        when(studentManager.getAllStudents()).thenReturn(List.of(student));
-        when(gpaCalculator.classRank(STUDENT_ID)).thenReturn(1);
-
-        String output = runWithInput(studentManager, gradeManager, gpaCalculator, STUDENT_ID + "\n\n");
-
-        assertTrue(output.contains("Needs improvement (below 2.0 GPA)"));
+        assertTrue(output.contains(expectedMessage));
     }
 
     @Test

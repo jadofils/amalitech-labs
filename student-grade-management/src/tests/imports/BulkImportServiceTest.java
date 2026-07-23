@@ -83,8 +83,8 @@ class BulkImportServiceTest {
         StudentManager studentManager = new StudentManager(studentService, gradeManager);
         BulkImportService bulkImportService = new BulkImportService(subjects, studentManager, gradeManager);
 
-        assertThrows(ImportException.class,
-                () -> bulkImportService.importFromFile("does-not-exist-" + System.nanoTime()));
+        String missingFilename = "does-not-exist-" + System.nanoTime();
+        assertThrows(ImportException.class, () -> bulkImportService.importFromFile(missingFilename));
     }
 
     @Test

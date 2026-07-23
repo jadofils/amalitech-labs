@@ -5,6 +5,9 @@ import main.model.subject.Subject;
 
 public class SubjectValidator {
 
+    private SubjectValidator() {
+    }
+
     // Validate a subject object
     public static void validateSubject(Subject subject) {
         validateName(subject.getSubjectName());
@@ -26,7 +29,7 @@ public class SubjectValidator {
         if (code == null || code.trim().isEmpty()) {
             throw new SubjectValidationException("Subject code cannot be empty.");
         }
-        if (!code.matches("^[A-Z]{2,}[0-9]{2,}$")) {
+        if (!code.matches("^[A-Z]{2,}\\d{2,}$")) {
             throw new SubjectValidationException("Subject code must follow format like MATH101.");
         }
     }

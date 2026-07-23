@@ -86,7 +86,7 @@ class ViewStudentsActionTest {
     @DisplayName("Honors student's detail row shows Honors Eligible once their average meets the honors threshold")
     void honorsStudentEligibleRowTest() {
         Student honors = studentRepository.getAllStudents().stream()
-                .filter(s -> s instanceof HonorsStudent)
+                .filter(HonorsStudent.class::isInstance)
                 .findFirst()
                 .orElseThrow();
         Subject subject = subjectRepository.getAllSubjects().get(0);
@@ -109,7 +109,7 @@ class ViewStudentsActionTest {
                 .findFirst()
                 .orElseThrow();
         Student honors = studentRepository.getAllStudents().stream()
-                .filter(s -> s instanceof HonorsStudent)
+                .filter(HonorsStudent.class::isInstance)
                 .findFirst()
                 .orElseThrow();
 
@@ -139,10 +139,10 @@ class ViewStudentsActionTest {
     }
 
     private String runAction() {
-        ViewStudentsAction action = new ViewStudentsAction(scriptedScanner(), studentManager);
         PrintStream originalOut = System.out;
         ByteArrayOutputStream captured = new ByteArrayOutputStream();
-        try {
+        try (Scanner scanner = scriptedScanner()) {
+            ViewStudentsAction action = new ViewStudentsAction(scanner, studentManager);
             System.setOut(new PrintStream(captured, true, StandardCharsets.UTF_8));
             action.execute();
         } finally {

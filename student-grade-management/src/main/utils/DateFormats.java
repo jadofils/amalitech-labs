@@ -1,7 +1,7 @@
 package main.utils;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 /**
  * Names the date/time patterns used across the main.app, previously copy-pasted
@@ -21,8 +21,14 @@ public final class DateFormats {
     private DateFormats() {
     }
 
-    /** A new SimpleDateFormat per call - SimpleDateFormat is not thread-safe to share. */
+    /**
+     * {@code java.time.format.DateTimeFormatter} - unlike the legacy
+     * {@code java.text.SimpleDateFormat} it replaces, this is immutable and
+     * thread-safe, but {@code ofPattern(...)} is still called fresh per call
+     * rather than cached per constant, since these patterns are only ever
+     * used for one-off timestamp formatting, not on a hot path.
+     */
     public static String now(String pattern) {
-        return new SimpleDateFormat(pattern).format(new Date());
+        return LocalDateTime.now().format(DateTimeFormatter.ofPattern(pattern));
     }
 }

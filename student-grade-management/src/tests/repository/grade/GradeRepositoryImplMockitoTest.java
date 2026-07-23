@@ -55,8 +55,8 @@ class GradeRepositoryImplMockitoTest {
         }
         assertEquals(200, repository.getGradeCount());
 
-        RuntimeException ex = assertThrows(GradeException.class,
-                () -> repository.addGrade(mockGradeWithId("ONE-TOO-MANY")));
+        Grade oneTooMany = mockGradeWithId("ONE-TOO-MANY");
+        RuntimeException ex = assertThrows(GradeException.class, () -> repository.addGrade(oneTooMany));
         assertEquals("Cannot add more grades. Storage is full.", ex.getMessage());
     }
 }

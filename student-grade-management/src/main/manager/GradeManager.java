@@ -12,6 +12,8 @@ import java.util.List;
 
 // Backed by the database (GradeService/GradeRepository) instead of an in-memory array for now.
 public class GradeManager {
+    private static final String DIVIDER = "───────────────────────────────────────────────────────────────────────";
+
     private final GradeService gradeService;
     private final SubjectRepository subjectRepository;
 
@@ -68,15 +70,15 @@ public class GradeManager {
         grades.sort(Comparator.comparing(Grade::getDate).thenComparing(Grade::getGradeId).reversed());
 
         System.out.println("GRADE HISTORY");
-        System.out.println("───────────────────────────────────────────────────────────────────────");
+        System.out.println(DIVIDER);
         System.out.printf("%-8s| %-10s | %-16s | %-9s | %s%n", "GRD ID", "DATE", "SUBJECT", "TYPE", "GRADE");
-        System.out.println("───────────────────────────────────────────────────────────────────────");
+        System.out.println(DIVIDER);
         for (Grade grade : grades) {
             System.out.printf("%-8s| %-10s | %-16s | %-9s | %.1f%%%n",
                     grade.getGradeId(), grade.getDate(), grade.getSubject().getSubjectName(),
                     grade.getSubjectType(), grade.getGrade());
         }
-        System.out.println("───────────────────────────────────────────────────────────────────────");
+        System.out.println(DIVIDER);
         System.out.println("Total Grades: " + grades.size());
         System.out.printf("Core Subjects Average: %.1f%%%n", calculateCoreAverage(studentId));
         System.out.printf("Elective Subjects Average: %.1f%%%n", calculateElectiveAverage(studentId));

@@ -12,6 +12,9 @@ public class StudentValidator {
     private static final Pattern NAME_PATTERN = Pattern.compile("^[A-Za-z ]+$");
     private static final Pattern ID_PATTERN = Pattern.compile("^[A-Za-z0-9]{4,}$");
 
+    private StudentValidator() {
+    }
+
     public static void validateStudent(Student student) {
         if (student == null) {
             throw new StudentValidationException("Student object cannot be null.");

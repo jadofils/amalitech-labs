@@ -93,10 +93,10 @@ class ViewStudentsActionMockitoTest {
     }
 
     private String runAction(StudentManager studentManager) {
-        ViewStudentsAction action = new ViewStudentsAction(scriptedScanner(), studentManager);
         PrintStream originalOut = System.out;
         ByteArrayOutputStream captured = new ByteArrayOutputStream();
-        try {
+        try (Scanner scanner = scriptedScanner()) {
+            ViewStudentsAction action = new ViewStudentsAction(scanner, studentManager);
             System.setOut(new PrintStream(captured, true, StandardCharsets.UTF_8));
             action.execute();
         } finally {

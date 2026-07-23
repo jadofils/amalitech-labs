@@ -117,7 +117,7 @@ class StudentManagerTest {
     @DisplayName("Honors eligibility is recomputed to reflect newly recorded grades")
     void honorsEligibilityReflectsNewGradesTest() {
         Student honorsStudent = studentRepository.getAllStudents().stream()
-                .filter(s -> s instanceof HonorsStudent)
+                .filter(HonorsStudent.class::isInstance)
                 .findFirst()
                 .orElseThrow();
         Subject subject = subjectRepository.getAllSubjects().get(0);
