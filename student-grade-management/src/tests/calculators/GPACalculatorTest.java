@@ -19,6 +19,10 @@ import service.StudentService;
 import service.GradeServiceImpl;
 import service.StudentServiceImpl;
 
+import java.util.List;
+import java.util.Map;
+import java.util.NavigableMap;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class GPACalculatorTest {
@@ -125,5 +129,34 @@ class GPACalculatorTest {
 
         assertEquals(1, calculator.classRank(top.getStudentId()));
         assertTrue(calculator.classRank(middle.getStudentId()) > 1);
+    }
+
+    @Test
+    @DisplayName("classRankings() groups students by GPA, highest first, ties in the same bucket")
+    void classRankingsGroupsByGpaDescendingTest() {
+        StudentRepositoryImpl students = new StudentRepositoryImpl();
+        SubjectRepositoryImpl subjects = new SubjectRepositoryImpl();
+        GradeService gradeService = new GradeServiceImpl(students, subjects);
+        GradeManager gradeManager = new GradeManager(gradeService, subjects);
+        GPACalculator calculator = newCalculator(students, subjects, gradeManager);
+
+        Student top = new RegularStudent("Top Student", 16, "top@school.edu", "1234567890");
+        Student alsoTop = new RegularStudent("Also Top Student", 16, "alsotop@school.edu", "1234567890");
+        Student middle = new RegularStudent("Middle Student", 16, "middle@school.edu", "1234567890");
+        students.addStudent(top);
+        students.addStudent(alsoTop);
+        students.addStudent(middle);
+        gradeManager.addGrade(new Grade(top.getStudentId(), subject, 99.0));      // 4.0
+        gradeManager.addGrade(new Grade(alsoTop.getStudentId(), subject, 95.0));  // 4.0 - tie with top
+        gradeManager.addGrade(new Grade(middle.getStudentId(), subject, 70.0));   // 1.7
+
+        NavigableMap<Double, List<Student>> rankings = calculator.classRankings();
+
+        assertEquals(4.0, rankings.firstKey(), 0.0001, "highest GPA must sort first (descending)");
+        assertEquals(2, rankings.get(4.0).size(), "tied students share one bucket");
+        assertTrue(rankings.get(4.0).stream().anyMatch(s -> s.getStudentId().equals(top.getStudentId())));
+        assertTrue(rankings.get(4.0).stream().anyMatch(s -> s.getStudentId().equals(alsoTop.getStudentId())));
+        assertEquals(1, rankings.get(1.7).size());
+        assertTrue(rankings.firstKey() > rankings.lastKey(), "descending order: first key is the highest GPA");
     }
 }

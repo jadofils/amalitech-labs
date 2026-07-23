@@ -6,7 +6,11 @@ import model.enums.GpaLetterGrade;
 import model.grade.Grade;
 import model.student.Student;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.NavigableMap;
+import java.util.TreeMap;
 
 /**
  * Converts percentage grades to a 4.0 GPA scale per the table in
@@ -63,5 +67,22 @@ public class GPACalculator implements Calculable {
             }
         }
         return rank;
+    }
+
+    /**
+     * v3: every enrolled student grouped by cumulative GPA, highest first - built with a
+     * {@link TreeMap} keyed on GPA (descending, via {@link Comparator#reverseOrder()}) so each
+     * student is an O(log n) insert, and students sharing an identical GPA land in the same
+     * bucket instead of an arbitrary tie-break order. Distinct from {@link #classRank(String)},
+     * which answers "where does this one student rank" in O(n); this answers "show me the whole
+     * class ranked" in one pass, for a future ranking report/dashboard view.
+     */
+    public NavigableMap<Double, List<Student>> classRankings() {
+        NavigableMap<Double, List<Student>> ranked = new TreeMap<>(Comparator.reverseOrder());
+        for (Student student : studentManager.getAllStudents()) {
+            double gpa = cumulativeGPA(student.getStudentId());
+            ranked.computeIfAbsent(gpa, key -> new ArrayList<>()).add(student);
+        }
+        return ranked;
     }
 }
