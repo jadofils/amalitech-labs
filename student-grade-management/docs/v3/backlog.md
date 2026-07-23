@@ -43,7 +43,7 @@ Source: [../../REAME-V3.md](../../REAME-V3.md).
 - [x] Existing `StudentRepository`/`SubjectRepository`/`GradeRepository` interfaces unchanged —
       verified by the full existing suite passing unmodified (496/496)
 
-### PBI-2: Multi-Format File I/O (US-2, US-10) — 🟡 Part 1 done (`feature/v3-multi-format-io`, merged)
+### PBI-2: Multi-Format File I/O (US-2, US-10) — ✅ Done (`feature/v3-multi-format-io` + `feature/v3-nio-migration`, merged)
 | Field | Value |
 |---|---|
 | **Priority** | High |
@@ -55,23 +55,25 @@ Source: [../../REAME-V3.md](../../REAME-V3.md).
 > **So that** I can exchange data with other systems and back up records efficiently
 
 **Acceptance Criteria:**
-- [x] NIO.2 `Path`/`Files.lines()` used for CSV read/write — done for the new `dataio` package
-      (`StudentDataExporter`/`Importer`, `GradeDataExporter`/`Importer`); **not yet done** for the
-      *existing* v2 `FileExporter`/`CSVParser` paths — still open, see note below
+- [x] NIO.2 `Path`/`Files.lines()` used for CSV read/write — the new `dataio` package
+      (`StudentDataExporter`/`Importer`, `GradeDataExporter`/`Importer`), **and** the existing v2
+      `FileExporter`/`CSVParser`/`BulkImportService` paths, migrated in a follow-up commit
+      (`Files.writeString`/`Files.createDirectories`/`Files.exists`/`Files.lines`), fully
+      behavior-preserving — `FileExportResult.getFilePath()` still returns the same
+      `"<reportsDir>/<filename>"` string shape regardless of OS, and `CSVParser.parse(File)` is
+      retained (delegates to a new `parse(Path)`) so every existing call site kept compiling
+      unmodified
 - [x] JSON export/import — Jackson (`jackson-databind`, chosen over Gson/hand-rolled per your
       answer; new `pom.xml` dependency)
 - [x] Binary export/import via object serialization — `StudentRecord`/`GradeRecord` are
       `Serializable` records, written/read via `ObjectOutputStream`/`ObjectInputStream`
-- [x] `Stream` pipelines (`map`/`filter`/`collect`) used for CSV row transformation, per US-10
+- [x] `Stream` pipelines (`map`/`filter`/`collect`) used for the actual transformations, not manual
+      loops, per US-10 — both in the new `dataio` CSV writers/readers and in
+      `CSVParser.parse(Path)`'s line → `ParsedLine` → rows/errors pipeline
 - [x] All three formats round-trip (export then import reproduces the original data) — verified by
       test for both `StudentRecord` and `GradeRecord`
-
-**Still open:** migrating the *existing* `FileExporter` (human-readable report text) and
-`CSVParser`/`BulkImportService` (bulk grade import) from `java.io` to NIO.2. Deliberately done as
-new, additive classes first rather than touching those - they're a different responsibility
-(already-formatted report text, not structured interchange data) and this way nothing existing had
-to change to get PBI-2's core deliverable working.
-- [ ] Proper resource management — try-with-resources throughout, no leaked file handles
+- [x] Proper resource management — try-with-resources throughout (`Files.lines()`,
+      `ObjectOutputStream`/`ObjectInputStream`, buffered writers), no leaked file handles
 
 ### PBI-3: Regex-Based Validation (US-3)
 | Field | Value |
