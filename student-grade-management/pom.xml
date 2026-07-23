@@ -44,7 +44,7 @@
             SonarQube UI, so the exception is itself reviewable in version
             control.
         -->
-        <sonar.issue.ignore.multicriteria>e1,e2,e3,e4,e5</sonar.issue.ignore.multicriteria>
+        <sonar.issue.ignore.multicriteria>e1,e2,e3,e4,e5,e6</sonar.issue.ignore.multicriteria>
         <sonar.issue.ignore.multicriteria.e1.ruleKey>java:S106</sonar.issue.ignore.multicriteria.e1.ruleKey>
         <sonar.issue.ignore.multicriteria.e1.resourceKey>src/main/console/**/*.java</sonar.issue.ignore.multicriteria.e1.resourceKey>
         <sonar.issue.ignore.multicriteria.e2.ruleKey>java:S106</sonar.issue.ignore.multicriteria.e2.ruleKey>
@@ -75,6 +75,15 @@
         -->
         <sonar.issue.ignore.multicriteria.e5.ruleKey>java:S1075</sonar.issue.ignore.multicriteria.e5.ruleKey>
         <sonar.issue.ignore.multicriteria.e5.resourceKey>src/main/export/FileExporter.java</sonar.issue.ignore.multicriteria.e5.resourceKey>
+        <!--
+            java:S106 also covers System.err, not just System.out - and flags
+            Logger.log()'s own System.err.printf call. This is the one
+            intentional place that write happens: Logger *is* "the logger" this
+            rule otherwise asks callers to use, so there is nothing to replace
+            it with.
+        -->
+        <sonar.issue.ignore.multicriteria.e6.ruleKey>java:S106</sonar.issue.ignore.multicriteria.e6.ruleKey>
+        <sonar.issue.ignore.multicriteria.e6.resourceKey>src/main/logging/Logger.java</sonar.issue.ignore.multicriteria.e6.resourceKey>
     </properties>
 
     <!--

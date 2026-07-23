@@ -1,6 +1,7 @@
 package main.utils;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
 /**
@@ -26,9 +27,12 @@ public final class DateFormats {
      * {@code java.text.SimpleDateFormat} it replaces, this is immutable and
      * thread-safe, but {@code ofPattern(...)} is still called fresh per call
      * rather than cached per constant, since these patterns are only ever
-     * used for one-off timestamp formatting, not on a hot path.
+     * used for one-off timestamp formatting, not on a hot path. The system
+     * default zone is passed explicitly (rather than relying on the
+     * argument-less {@code now()} overload's implicit default) purely to
+     * document that choice; behavior is unchanged either way.
      */
     public static String now(String pattern) {
-        return LocalDateTime.now().format(DateTimeFormatter.ofPattern(pattern));
+        return LocalDateTime.now(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern(pattern));
     }
 }

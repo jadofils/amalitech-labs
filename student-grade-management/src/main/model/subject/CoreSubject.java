@@ -3,7 +3,7 @@ package main.model.subject;
 import main.model.enums.SubjectType;
 
 public class CoreSubject extends Subject {
-    private static final boolean mandatory = true;
+    private static final boolean MANDATORY = true;
 
     public CoreSubject(String subjectName, String subjectCode) {
         super(subjectName, subjectCode);
@@ -20,6 +20,6 @@ public class CoreSubject extends Subject {
     }
 
     public boolean isMandatory() {
-        return mandatory;
+        return MANDATORY;
     }
 }

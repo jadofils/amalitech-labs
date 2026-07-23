@@ -139,15 +139,7 @@ public class CSVParser {
         }
     }
 
-    private static final class ParsedLine {
-        private final CSVRow row;
-        private final String error;
-
-        private ParsedLine(CSVRow row, String error) {
-            this.row = row;
-            this.error = error;
-        }
-
+    private record ParsedLine(CSVRow row, String error) {
         static ParsedLine row(CSVRow row) {
             return new ParsedLine(row, null);
         }
@@ -158,14 +150,6 @@ public class CSVParser {
 
         boolean isValid() {
             return row != null;
-        }
-
-        CSVRow row() {
-            return row;
-        }
-
-        String error() {
-            return error;
         }
     }
 
