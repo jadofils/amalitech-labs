@@ -43,7 +43,7 @@ Source: [../../REAME-V3.md](../../REAME-V3.md).
 - [x] Existing `StudentRepository`/`SubjectRepository`/`GradeRepository` interfaces unchanged —
       verified by the full existing suite passing unmodified (496/496)
 
-### PBI-2: Multi-Format File I/O (US-2, US-10)
+### PBI-2: Multi-Format File I/O (US-2, US-10) — 🟡 Part 1 done (`feature/v3-multi-format-io`, merged)
 | Field | Value |
 |---|---|
 | **Priority** | High |
@@ -55,14 +55,22 @@ Source: [../../REAME-V3.md](../../REAME-V3.md).
 > **So that** I can exchange data with other systems and back up records efficiently
 
 **Acceptance Criteria:**
-- [ ] NIO.2 `Path`/`Files.lines()` used for CSV read/write (replacing raw `FileWriter` where this
-      touches existing v2 export/import code)
-- [ ] JSON export/import (no v2 dependency currently pulls in a JSON library — pick one and record
-      the choice + rationale in `docs/v3/`)
-- [ ] Binary export/import via object serialization
-- [ ] `Stream` pipelines (`map`/`filter`/`reduce`/`collect`) used for the actual transformations,
-      not manual loops, per US-10
-- [ ] All three formats round-trip (export then import reproduces the original data)
+- [x] NIO.2 `Path`/`Files.lines()` used for CSV read/write — done for the new `dataio` package
+      (`StudentDataExporter`/`Importer`, `GradeDataExporter`/`Importer`); **not yet done** for the
+      *existing* v2 `FileExporter`/`CSVParser` paths — still open, see note below
+- [x] JSON export/import — Jackson (`jackson-databind`, chosen over Gson/hand-rolled per your
+      answer; new `pom.xml` dependency)
+- [x] Binary export/import via object serialization — `StudentRecord`/`GradeRecord` are
+      `Serializable` records, written/read via `ObjectOutputStream`/`ObjectInputStream`
+- [x] `Stream` pipelines (`map`/`filter`/`collect`) used for CSV row transformation, per US-10
+- [x] All three formats round-trip (export then import reproduces the original data) — verified by
+      test for both `StudentRecord` and `GradeRecord`
+
+**Still open:** migrating the *existing* `FileExporter` (human-readable report text) and
+`CSVParser`/`BulkImportService` (bulk grade import) from `java.io` to NIO.2. Deliberately done as
+new, additive classes first rather than touching those - they're a different responsibility
+(already-formatted report text, not structured interchange data) and this way nothing existing had
+to change to get PBI-2's core deliverable working.
 - [ ] Proper resource management — try-with-resources throughout, no leaked file handles
 
 ### PBI-3: Regex-Based Validation (US-3)
