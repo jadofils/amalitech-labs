@@ -11,9 +11,10 @@ import model.student.Student;
 import repository.subject.SubjectRepository;
 import utils.DateFormats;
 
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,9 +37,9 @@ public class BulkImportService {
 
     public ImportResult importFromFile(String filename) {
         String path = "imports/" + filename + ".csv";
-        File file = new File(path);
+        Path file = Path.of(path);
 
-        if (!file.exists()) {
+        if (!Files.exists(file)) {
             Logger.warn("Bulk import requested but file does not exist: " + path);
             throw new ImportException("File not found: " + path, path, null);
         }
@@ -74,22 +75,25 @@ public class BulkImportService {
         String logFilename = "import_log_" + timestamp + ".txt";
         String logPath = "imports/" + logFilename;
 
-        try (FileWriter writer = new FileWriter(logPath)) {
-            writer.write("IMPORT LOG\n");
-            writer.write("================================\n\n");
-            writer.write("File: " + originalFilename + ".csv\n");
-            writer.write("Date: " + DateFormats.now(DateFormats.DISPLAY_DATE_TIME) + "\n\n");
-            writer.write("Total Rows: " + total + "\n");
-            writer.write("Successfully Imported: " + success + "\n");
-            writer.write("Failed: " + failed + "\n\n");
+        StringBuilder content = new StringBuilder();
+        content.append("IMPORT LOG\n");
+        content.append("================================\n\n");
+        content.append("File: ").append(originalFilename).append(".csv\n");
+        content.append("Date: ").append(DateFormats.now(DateFormats.DISPLAY_DATE_TIME)).append("\n\n");
+        content.append("Total Rows: ").append(total).append("\n");
+        content.append("Successfully Imported: ").append(success).append("\n");
+        content.append("Failed: ").append(failed).append("\n\n");
 
-            if (!failReasons.isEmpty()) {
-                writer.write("FAILED RECORDS\n");
-                writer.write("--------------------------------\n");
-                for (String reason : failReasons) {
-                    writer.write(reason + "\n");
-                }
+        if (!failReasons.isEmpty()) {
+            content.append("FAILED RECORDS\n");
+            content.append("--------------------------------\n");
+            for (String reason : failReasons) {
+                content.append(reason).append("\n");
             }
+        }
+
+        try {
+            Files.writeString(Path.of(logPath), content.toString(), StandardCharsets.UTF_8);
         } catch (IOException e) {
             // The import itself already succeeded/failed by this point, so
             // a log-write failure doesn't roll anything back - but it must

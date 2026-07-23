@@ -3,11 +3,19 @@ package export;
 import exceptions.ExportException;
 import logging.Logger;
 
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
-/** Writes report text content to a file under a configurable directory (default {@code reports/}). */
+/**
+ * Writes report text content to a file under a configurable directory (default {@code reports/}).
+ * v3: NIO.2 ({@link Path}/{@link Files}) instead of {@code java.io.File}/{@code FileWriter}
+ * underneath - the string shape of {@link FileExportResult#getFilePath()} is unchanged
+ * ({@code "<reportsDir>/<filename>"}, forward slash, regardless of OS) since existing tests and
+ * console messages depend on that exact format, not on whatever separator {@link Path#toString()}
+ * would use on a given platform.
+ */
 public class FileExporter {
     private final String reportsDir;
 
@@ -28,24 +36,36 @@ public class FileExporter {
     public FileExportResult exportToFile(String filename, String content) {
         ensureDirectoryExists();
         String path = reportsDir + "/" + filename;
-        File file = new File(path);
+        Path file = Path.of(path);
 
-        try (FileWriter writer = new FileWriter(file)) {
-            writer.write(content);
-            writer.flush();
+        try {
+            Files.writeString(file, content, StandardCharsets.UTF_8);
         } catch (IOException e) {
             Logger.error("Failed to export report to " + path, e);
             throw new ExportException("Failed to export report: " + e.getMessage(), path, e);
         }
 
-        Logger.info("Report exported: " + path + " (" + file.length() + " bytes)");
-        return new FileExportResult(path, file.length());
+        long size = sizeOf(file, path);
+        Logger.info("Report exported: " + path + " (" + size + " bytes)");
+        return new FileExportResult(path, size);
+    }
+
+    private long sizeOf(Path file, String path) {
+        try {
+            return Files.size(file);
+        } catch (IOException e) {
+            throw new ExportException("Failed to export report: " + e.getMessage(), path, e);
+        }
     }
 
     private void ensureDirectoryExists() {
-        File dir = new File(reportsDir);
-        if (!dir.exists()) {
-            dir.mkdirs();
+        Path dir = Path.of(reportsDir);
+        if (!Files.exists(dir)) {
+            try {
+                Files.createDirectories(dir);
+            } catch (IOException e) {
+                throw new ExportException("Failed to create reports directory: " + e.getMessage(), reportsDir, e);
+            }
         }
     }
 
