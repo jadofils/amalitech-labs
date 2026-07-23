@@ -8,9 +8,12 @@ import repository.subject.SubjectRepository;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
-import java.util.Scanner;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * Parses a bulk-import CSV ({@code StudentID,SubjectName,SubjectType,Grade})
@@ -30,97 +33,98 @@ public class CSVParser {
         this.subjectRepository = subjectRepository;
     }
 
-    /**
-     * @throws CSVImportException if the file itself cannot be read (missing,
-     *                             permissions, ...) - unlike a malformed row,
-     *                             which is collected in the result instead
-     */
+    /** Retained so existing {@code java.io.File} callers keep compiling; delegates to {@link #parse(Path)}. */
     public CSVParseResult parse(File file) {
-        Logger.debug("Parsing CSV file: " + file.getPath());
-        List<CSVRow> rows = new ArrayList<>();
-        int lineNum = 0;
-        List<String> errors = new ArrayList<>();
+        return parse(file.toPath());
+    }
 
-        try (Scanner fileScanner = new Scanner(file)) {
-            if (fileScanner.hasNextLine()) {
-                fileScanner.nextLine();
-                lineNum++;
-            }
-
-            while (fileScanner.hasNextLine()) {
-                String line = fileScanner.nextLine().trim();
-                lineNum++;
-
-                if (line.isEmpty()) {
-                    continue;
-                }
-
-                String[] parts = line.split(",");
-                if (parts.length != EXPECTED_COLUMN_COUNT) {
-                    errors.add("Row " + lineNum + ": Invalid format (expected "
-                            + EXPECTED_COLUMN_COUNT + " columns, got " + parts.length + ")");
-                    continue;
-                }
-
-                String sid = parts[0].trim();
-                String subjName = parts[1].trim();
-                String subjTypeStr = parts[2].trim();
-                String gradeStr = parts[3].trim();
-
-                if (sid.isEmpty() || subjName.isEmpty() || subjTypeStr.isEmpty() || gradeStr.isEmpty()) {
-                    errors.add("Row " + lineNum + ": Empty field");
-                    continue;
-                }
-
-                double gradeVal;
-                try {
-                    gradeVal = Double.parseDouble(gradeStr);
-                } catch (NumberFormatException e) {
-                    errors.add("Row " + lineNum + ": Invalid grade number (" + gradeStr + ")");
-                    continue;
-                }
-
-                if (gradeVal < MIN_GRADE || gradeVal > MAX_GRADE) {
-                    errors.add("Row " + lineNum + ": Grade out of range (" + (int) gradeVal + ")");
-                    continue;
-                }
-
-                Subject matchedSubject = null;
-                for (Subject subj : subjectRepository.getAllSubjects()) {
-                    if (subj.getSubjectName().equalsIgnoreCase(subjName)) {
-                        matchedSubject = subj;
-                        break;
-                    }
-                }
-
-                if (matchedSubject == null) {
-                    errors.add("Row " + lineNum + ": Unknown subject (" + subjName + ")");
-                    continue;
-                }
-
-                // The CSV's own SubjectType column was previously read and
-                // discarded - a row could claim "Elective" for a Core
-                // subject and still import silently (CHANGELOG.md KI-10).
-                SubjectType declaredType = parseSubjectType(subjTypeStr);
-                if (declaredType == null) {
-                    errors.add("Row " + lineNum + ": Unknown subject type (" + subjTypeStr + ")");
-                    continue;
-                }
-                if (declaredType != matchedSubject.getSubjectType()) {
-                    errors.add("Row " + lineNum + ": Subject type mismatch - " + subjName + " is "
-                            + matchedSubject.getSubjectType() + ", not " + declaredType);
-                    continue;
-                }
-
-                rows.add(new CSVRow(sid, subjName, matchedSubject, gradeVal, lineNum));
-            }
+    /**
+     * v3: NIO.2 {@code Files.lines()} streamed through a map/filter/collect pipeline (US-10)
+     * instead of the {@code java.util.Scanner} loop the v2 version used - same validation rules,
+     * same behavior (including which rows count as errors vs. are silently skipped as blank).
+     *
+     * @throws CSVImportException if the file itself cannot be read (missing, permissions, ...) -
+     *                             unlike a malformed row, which is collected in the result instead
+     */
+    public CSVParseResult parse(Path path) {
+        Logger.debug("Parsing CSV file: " + path);
+        List<String> lines;
+        try (var lineStream = Files.lines(path, StandardCharsets.UTF_8)) {
+            lines = lineStream.collect(Collectors.toList());
         } catch (IOException e) {
-            Logger.error("Failed to read CSV file: " + file.getPath(), e);
+            Logger.error("Failed to read CSV file: " + path, e);
             throw new CSVImportException("Failed to read CSV file: " + e.getMessage(), e);
         }
 
-        Logger.info("Parsed " + file.getPath() + ": " + rows.size() + " valid row(s), " + errors.size() + " error(s)");
+        // Index 0 is the header; data rows are 1-based line numbers starting at 2.
+        List<ParsedLine> parsed = lines.isEmpty() ? List.of() : IntStream.range(1, lines.size())
+                .mapToObj(i -> parseLine(i + 1, lines.get(i).trim()))
+                .filter(line -> line != null) // blank data lines are silently skipped, same as v2
+                .collect(Collectors.toList());
+
+        List<CSVRow> rows = parsed.stream().filter(ParsedLine::isValid).map(ParsedLine::row).collect(Collectors.toList());
+        List<String> errors = parsed.stream().filter(line -> !line.isValid()).map(ParsedLine::error).collect(Collectors.toList());
+
+        Logger.info("Parsed " + path + ": " + rows.size() + " valid row(s), " + errors.size() + " error(s)");
         return new CSVParseResult(rows, errors);
+    }
+
+    private ParsedLine parseLine(int lineNum, String line) {
+        if (line.isEmpty()) {
+            return null;
+        }
+
+        String[] parts = line.split(",");
+        if (parts.length != EXPECTED_COLUMN_COUNT) {
+            return ParsedLine.error("Row " + lineNum + ": Invalid format (expected "
+                    + EXPECTED_COLUMN_COUNT + " columns, got " + parts.length + ")");
+        }
+
+        String sid = parts[0].trim();
+        String subjName = parts[1].trim();
+        String subjTypeStr = parts[2].trim();
+        String gradeStr = parts[3].trim();
+
+        if (sid.isEmpty() || subjName.isEmpty() || subjTypeStr.isEmpty() || gradeStr.isEmpty()) {
+            return ParsedLine.error("Row " + lineNum + ": Empty field");
+        }
+
+        double gradeVal;
+        try {
+            gradeVal = Double.parseDouble(gradeStr);
+        } catch (NumberFormatException e) {
+            return ParsedLine.error("Row " + lineNum + ": Invalid grade number (" + gradeStr + ")");
+        }
+
+        if (gradeVal < MIN_GRADE || gradeVal > MAX_GRADE) {
+            return ParsedLine.error("Row " + lineNum + ": Grade out of range (" + (int) gradeVal + ")");
+        }
+
+        Subject matchedSubject = null;
+        for (Subject subj : subjectRepository.getAllSubjects()) {
+            if (subj.getSubjectName().equalsIgnoreCase(subjName)) {
+                matchedSubject = subj;
+                break;
+            }
+        }
+
+        if (matchedSubject == null) {
+            return ParsedLine.error("Row " + lineNum + ": Unknown subject (" + subjName + ")");
+        }
+
+        // The CSV's own SubjectType column was previously read and
+        // discarded - a row could claim "Elective" for a Core
+        // subject and still import silently (CHANGELOG.md KI-10).
+        SubjectType declaredType = parseSubjectType(subjTypeStr);
+        if (declaredType == null) {
+            return ParsedLine.error("Row " + lineNum + ": Unknown subject type (" + subjTypeStr + ")");
+        }
+        if (declaredType != matchedSubject.getSubjectType()) {
+            return ParsedLine.error("Row " + lineNum + ": Subject type mismatch - " + subjName + " is "
+                    + matchedSubject.getSubjectType() + ", not " + declaredType);
+        }
+
+        return ParsedLine.row(new CSVRow(sid, subjName, matchedSubject, gradeVal, lineNum));
     }
 
     private SubjectType parseSubjectType(String raw) {
@@ -128,6 +132,37 @@ public class CSVParser {
             return SubjectType.valueOf(raw.trim().toUpperCase());
         } catch (IllegalArgumentException e) {
             return null;
+        }
+    }
+
+    /** One parsed CSV line: exactly one of a valid {@link CSVRow} or an error message, never both. */
+    private static final class ParsedLine {
+        private final CSVRow row;
+        private final String error;
+
+        private ParsedLine(CSVRow row, String error) {
+            this.row = row;
+            this.error = error;
+        }
+
+        static ParsedLine row(CSVRow row) {
+            return new ParsedLine(row, null);
+        }
+
+        static ParsedLine error(String error) {
+            return new ParsedLine(null, error);
+        }
+
+        boolean isValid() {
+            return row != null;
+        }
+
+        CSVRow row() {
+            return row;
+        }
+
+        String error() {
+            return error;
         }
     }
 
