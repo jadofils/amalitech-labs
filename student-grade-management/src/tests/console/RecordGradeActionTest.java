@@ -1,21 +1,21 @@
 package tests.console;
 
-import console.RecordGradeAction;
-import exceptions.StudentNotFoundException;
-import manager.GradeManager;
-import manager.StudentManager;
-import model.enums.Role;
-import model.grade.Grade;
-import model.student.Student;
+import main.console.RecordGradeAction;
+import main.exceptions.StudentNotFoundException;
+import main.manager.GradeManager;
+import main.manager.StudentManager;
+import main.model.enums.Role;
+import main.model.grade.Grade;
+import main.model.student.Student;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import repository.student.StudentRepositoryImpl;
-import repository.subject.SubjectRepositoryImpl;
-import service.GradeService;
-import service.StudentService;
-import service.GradeServiceImpl;
-import service.StudentServiceImpl;
+import main.repository.student.StudentRepositoryImpl;
+import main.repository.subject.SubjectRepositoryImpl;
+import main.service.GradeService;
+import main.service.StudentService;
+import main.service.GradeServiceImpl;
+import main.service.StudentServiceImpl;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -31,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * uses) to verify RecordGradeAction's happy paths and validation branches
  * end-to-end. RecordGradeActionMockitoTest verifies the same behavior purely
  * through mocked collaborators, including the branch (no subjects available
- * for a type) that the real seeded repository can never actually produce.
+ * for a type) that the real seeded main.repository can never actually produce.
  */
 class RecordGradeActionTest {
 

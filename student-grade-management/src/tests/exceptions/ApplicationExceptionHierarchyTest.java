@@ -1,16 +1,16 @@
 package tests.exceptions;
 
-import exceptions.ApplicationException;
-import exceptions.CSVImportException;
-import exceptions.GradeException;
-import exceptions.ImportException;
-import exceptions.InvalidGradeException;
-import exceptions.StudentException;
-import exceptions.StudentNotFoundException;
-import exceptions.StudentValidationException;
-import exceptions.SubjectException;
-import exceptions.SubjectNotFoundException;
-import exceptions.SubjectValidationException;
+import main.exceptions.ApplicationException;
+import main.exceptions.CSVImportException;
+import main.exceptions.GradeException;
+import main.exceptions.ImportException;
+import main.exceptions.InvalidGradeException;
+import main.exceptions.StudentException;
+import main.exceptions.StudentNotFoundException;
+import main.exceptions.StudentValidationException;
+import main.exceptions.SubjectException;
+import main.exceptions.SubjectNotFoundException;
+import main.exceptions.SubjectValidationException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Directly exercises every custom exception's constructors and getters -
- * the pieces of the exceptions package that aren't already hit indirectly
+ * the pieces of the main.exceptions package that aren't already hit indirectly
  * through other classes' real failure paths (Grade, the repositories,
  * FileExporter, ...). Pure data classes with no collaborators - no
  * Mockito pair (see tests/README.md).

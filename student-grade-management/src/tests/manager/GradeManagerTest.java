@@ -1,18 +1,18 @@
 package tests.manager;
 
-import manager.GradeManager;
-import model.enums.SubjectType;
-import model.grade.Grade;
-import model.student.RegularStudent;
-import model.student.Student;
-import model.subject.Subject;
+import main.manager.GradeManager;
+import main.model.enums.SubjectType;
+import main.model.grade.Grade;
+import main.model.student.RegularStudent;
+import main.model.student.Student;
+import main.model.subject.Subject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import repository.student.StudentRepositoryImpl;
-import repository.subject.SubjectRepositoryImpl;
-import service.GradeService;
-import service.GradeServiceImpl;
+import main.repository.student.StudentRepositoryImpl;
+import main.repository.subject.SubjectRepositoryImpl;
+import main.service.GradeService;
+import main.service.GradeServiceImpl;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;

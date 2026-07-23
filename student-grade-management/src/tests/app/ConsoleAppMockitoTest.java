@@ -1,8 +1,8 @@
 package tests.app;
 
-import app.ConsoleApp;
-import console.MenuAction;
-import model.enums.Role;
+import main.app.ConsoleApp;
+import main.console.MenuAction;
+import main.model.enums.Role;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Scanner;
 
 import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Mocks every MenuAction to verify ConsoleApp's own dispatch logic in
@@ -93,7 +92,7 @@ class ConsoleAppMockitoTest {
     void retriesExecuteExactlyOnceMoreWhenUserConfirmsAfterInvalidGradeExceptionTest() {
         MenuAction recordGrade = mockAction(3, "Record Grade", true, false);
         MenuAction exit = mockAction(10, "Exit", true, true);
-        doThrow(new exceptions.InvalidGradeException("bad", 150))
+        doThrow(new main.exceptions.InvalidGradeException("bad", 150))
                 .doNothing()
                 .when(recordGrade).execute();
 

@@ -1,10 +1,10 @@
 package tests.validation;
 
-import exceptions.StudentValidationException;
-import model.enums.StudentStatus;
-import model.student.RegularStudent;
-import model.student.Student;
-import utils.validators.StudentValidator;
+import main.exceptions.StudentValidationException;
+import main.model.enums.StudentStatus;
+import main.model.student.RegularStudent;
+import main.model.student.Student;
+import main.utils.validators.StudentValidator;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

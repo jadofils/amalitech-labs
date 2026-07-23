@@ -1,12 +1,12 @@
 package tests.console;
 
-import console.ViewGradeReportAction;
-import exceptions.StudentNotFoundException;
-import manager.GradeManager;
-import manager.StudentManager;
-import model.enums.StudentStatus;
-import model.student.RegularStudent;
-import model.student.Student;
+import main.console.ViewGradeReportAction;
+import main.exceptions.StudentNotFoundException;
+import main.manager.GradeManager;
+import main.manager.StudentManager;
+import main.model.enums.StudentStatus;
+import main.model.student.RegularStudent;
+import main.model.student.Student;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

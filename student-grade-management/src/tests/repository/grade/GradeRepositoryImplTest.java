@@ -1,12 +1,12 @@
 package tests.repository.grade;
 
-import exceptions.GradeException;
-import model.grade.Grade;
-import model.subject.CoreSubject;
-import model.subject.Subject;
+import main.exceptions.GradeException;
+import main.model.grade.Grade;
+import main.model.subject.CoreSubject;
+import main.model.subject.Subject;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import repository.grade.GradeRepositoryImpl;
+import main.repository.grade.GradeRepositoryImpl;
 
 import java.util.List;
 
@@ -17,7 +17,7 @@ class GradeRepositoryImplTest {
     private final Subject math = new CoreSubject("Mathematics", "MATH01");
 
     @Test
-    @DisplayName("A new repository starts with no grades (nothing is seeded)")
+    @DisplayName("A new main.repository starts with no grades (nothing is seeded)")
     void startsEmptyTest() {
         GradeRepositoryImpl repository = new GradeRepositoryImpl();
         assertTrue(repository.getAllGrades().isEmpty());

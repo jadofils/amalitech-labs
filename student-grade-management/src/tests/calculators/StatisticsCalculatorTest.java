@@ -1,13 +1,13 @@
 package tests.calculators;
 
-import calculators.StatisticsCalculator;
-import model.grade.Grade;
-import model.student.HonorsStudent;
-import model.student.RegularStudent;
-import model.student.Student;
-import model.subject.CoreSubject;
-import model.subject.ElectiveSubject;
-import model.subject.Subject;
+import main.calculators.StatisticsCalculator;
+import main.model.grade.Grade;
+import main.model.student.HonorsStudent;
+import main.model.student.RegularStudent;
+import main.model.student.Student;
+import main.model.subject.CoreSubject;
+import main.model.subject.ElectiveSubject;
+import main.model.subject.Subject;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -25,8 +25,8 @@ class StatisticsCalculatorTest {
 
     // Regression test for CHANGELOG.md KI-5: the distribution used to bucket
     // by its own hardcoded 90/80/70/60 scale, disagreeing with
-    // model.enums.LetterGrade's 85/70/55/40 scale used everywhere else in
-    // the app. These boundaries must match LetterGrade.fromNumeric() exactly.
+    // main.model.enums.LetterGrade's 85/70/55/40 scale used everywhere else in
+    // the main.app. These boundaries must match LetterGrade.fromNumeric() exactly.
     @ParameterizedTest
     @CsvSource({"85, 0", "100, 0", "84, 1", "70, 1", "69, 2", "55, 2", "54, 3", "40, 3", "39, 4", "0, 4"})
     @DisplayName("calculateDistribution() buckets grades using LetterGrade's own thresholds")
@@ -104,9 +104,9 @@ class StatisticsCalculatorTest {
     @DisplayName("calculateStats() identifies which student/subject earned the highest and lowest grade")
     void calculateStatsIdentifiesMaxMinOwnerTest() {
         Student alice = new RegularStudent("STU001", "Alice Johnson", 16, "alice@school.edu",
-                "1234567890", model.enums.StudentStatus.ACTIVE);
+                "1234567890", main.model.enums.StudentStatus.ACTIVE);
         Student bob = new RegularStudent("STU002", "Bob Smith", 16, "bob@school.edu",
-                "1234567890", model.enums.StudentStatus.ACTIVE);
+                "1234567890", main.model.enums.StudentStatus.ACTIVE);
         List<Grade> grades = List.of(
                 new Grade(alice.getStudentId(), math, 95.0),
                 new Grade(bob.getStudentId(), music, 40.0)

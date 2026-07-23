@@ -1,0 +1,9 @@
+STUDENT GRADE REPORT - SUMMARY
+================================
+
+Student ID: STU003
+Name: Carol Martinez
+Overall Average: 74.0%
+
+================================
+Generated on: 22-07-2026 09:52

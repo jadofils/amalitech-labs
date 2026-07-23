@@ -1,7 +1,7 @@
 package tests.student;
 
-import model.enums.StudentStatus;
-import model.student.HonorsStudent;
+import main.model.enums.StudentStatus;
+import main.model.student.HonorsStudent;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;

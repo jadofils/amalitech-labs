@@ -1,11 +1,11 @@
 package tests.mapper;
 
-import dto.GradeDTO;
-import mapper.GradeMapper;
-import model.enums.SubjectType;
-import model.grade.Grade;
-import model.subject.CoreSubject;
-import model.subject.Subject;
+import main.dto.GradeDTO;
+import main.mapper.GradeMapper;
+import main.model.enums.SubjectType;
+import main.model.grade.Grade;
+import main.model.subject.CoreSubject;
+import main.model.subject.Subject;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

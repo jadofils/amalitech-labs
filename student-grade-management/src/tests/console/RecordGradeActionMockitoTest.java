@@ -1,16 +1,16 @@
 package tests.console;
 
-import console.RecordGradeAction;
-import manager.GradeManager;
-import manager.StudentManager;
-import model.enums.Role;
-import model.enums.StudentStatus;
-import model.enums.SubjectType;
-import model.grade.Grade;
-import model.student.RegularStudent;
-import model.student.Student;
-import model.subject.CoreSubject;
-import model.subject.Subject;
+import main.console.RecordGradeAction;
+import main.manager.GradeManager;
+import main.manager.StudentManager;
+import main.model.enums.Role;
+import main.model.enums.StudentStatus;
+import main.model.enums.SubjectType;
+import main.model.grade.Grade;
+import main.model.student.RegularStudent;
+import main.model.student.Student;
+import main.model.subject.CoreSubject;
+import main.model.subject.Subject;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

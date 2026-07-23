@@ -1,13 +1,13 @@
 package tests.manager;
 
-import manager.GradeManager;
-import model.enums.SubjectType;
-import model.grade.Grade;
-import model.subject.Subject;
+import main.manager.GradeManager;
+import main.model.enums.SubjectType;
+import main.model.grade.Grade;
+import main.model.subject.Subject;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import repository.subject.SubjectRepository;
-import service.GradeService;
+import main.repository.subject.SubjectRepository;
+import main.service.GradeService;
 
 import java.util.List;
 
@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Mocks GradeService and SubjectRepository so GradeManager's own filtering and
- * arithmetic can be verified independent of the real Grade/Subject/repository
+ * arithmetic can be verified independent of the real Grade/Subject/main.repository
  * implementations.
  */
 class GradeManagerMockitoTest {
@@ -35,7 +35,7 @@ class GradeManagerMockitoTest {
     }
 
     @Test
-    @DisplayName("getSubjectsByType() filters the repository's full list by type")
+    @DisplayName("getSubjectsByType() filters the main.repository's full list by type")
     void getSubjectsByTypeFiltersTest() {
         GradeService gradeService = mock(GradeService.class);
         SubjectRepository subjectRepository = mock(SubjectRepository.class);

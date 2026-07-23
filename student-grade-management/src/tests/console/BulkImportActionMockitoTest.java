@@ -1,9 +1,9 @@
 package tests.console;
 
-import console.BulkImportAction;
-import exceptions.ImportException;
-import imports.BulkImportService;
-import model.enums.Role;
+import main.console.BulkImportAction;
+import main.exceptions.ImportException;
+import main.imports.BulkImportService;
+import main.model.enums.Role;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -92,12 +92,12 @@ class BulkImportActionMockitoTest {
     void importExceptionIsCaughtAndPrintedTest() {
         BulkImportService bulkImportService = mock(BulkImportService.class);
         when(bulkImportService.importFromFile("missing"))
-                .thenThrow(new ImportException("File not found: imports/missing.csv", "imports/missing.csv", null));
+                .thenThrow(new ImportException("File not found: main.imports/missing.csv", "main.imports/missing.csv", null));
 
         String output = assertDoesNotThrow(() -> runWithInput(bulkImportService, "missing\n\n"));
 
-        assertTrue(output.contains("ERROR: File not found: imports/missing.csv"));
-        assertTrue(output.contains("File: imports/missing.csv"));
+        assertTrue(output.contains("ERROR: File not found: main.imports/missing.csv"));
+        assertTrue(output.contains("File: main.imports/missing.csv"));
     }
 
     @Test

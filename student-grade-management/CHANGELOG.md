@@ -12,7 +12,7 @@ Commit hashes refer to `develop`.
 
 ### Added
 
-- **Exception handling foundation** (`23a78d1`) — custom exceptions:
+- **Exception handling foundation** (`23a78d1`) — custom main.exceptions:
   `InvalidGradeException`, `ExportException`, `ImportException`,
   `InvalidFileFormatException`, plus a richer `StudentNotFoundException`
   (now carries `studentId` + `availableIds`).
@@ -29,7 +29,7 @@ Commit hashes refer to `develop`.
 - **Search Students** (`a6439f3`) — `Searchable` interface, `StudentSearcher`
   (by ID, name, grade range, type); menu option 9.
 - **JUnit 5 + Mockito test suite** (`f6e4820`, merged `6935b22`) — initially
-  28 files / 210 tests over the model/validation/repository/service/manager
+  28 files / 210 tests over the main.model/validation/main.repository/main.service/main.manager
   layers; grew to **48 files / 304 tests** (see Fixed, below) once every v2
   feature got its own coverage.
 - **Lightweight `Logger` utility** (`4bacefc`, merged `0df0ff5`) — DEBUG/
@@ -54,7 +54,7 @@ Commit hashes refer to `develop`.
 - Storage backing switched from `HashMap` to fixed-size arrays across all
   three repositories (`047cd2d`, `2556911`, `8452e2f`), per the assessment's
   array-based storage requirement.
-- Service implementations moved into `service.serviceimpl` (`6a0329e`) —
+- Service implementations moved into `main.service.serviceimpl` (`6a0329e`) —
   **later undone** by the package-flattening pass described in
   ["Professional structure & SOLID refactor"](#professional-structure--solid-refactor)
   below, once `serviceimpl` turned out to be an inconsistent, one-off split
@@ -118,7 +118,7 @@ a 90% grade now shows `3.7 (A-)`, not `A`. `GPACalculatorTest`'s
 parameterized `gpaToLetterMatchesTableTest` asserts every row of the
 documented table individually as a permanent regression guard.
 
-### KI-2 (RESOLVED — `feature/export-report`, `d086d63`): Exported summary report never contained the student's actual name
+### KI-2 (RESOLVED — `feature/main.export-report`, `d086d63`): Exported summary report never contained the student's actual name
 
 `ReportGenerator.exportSummary()` hardcoded the literal string
 `"Name: [name]\n"` — it was never passed a `Student`, only a `studentId`.
@@ -140,13 +140,13 @@ file: `Name: Alice Johnson`.
 
 ### KI-3 (RESOLVED, across four branches): Logging was not application-wide, and one exception path was silently swallowed
 
-The `Logger` utility only covered `service`/`repository`/`manager`/`Main`;
-`export`, `calculators`, `imports`, and `manager.StudentSearcher` had zero
+The `Logger` utility only covered `main.service`/`main.repository`/`main.manager`/`Main`;
+`main.export`, `main.calculators`, `main.imports`, and `main.manager.StudentSearcher` had zero
 log calls. `BulkImportService.writeImportLog()` caught `IOException` with
 only a comment - no log call, no rethrow - making that failure invisible.
 
 **Fix:** added `Logger` calls throughout `FileExporter`/`ReportGenerator`
-(`feature/export-report`), `CSVParser`/`BulkImportService`
+(`feature/main.export-report`), `CSVParser`/`BulkImportService`
 (`feature/bulk-import`, `4205831`), and `StudentSearcher`
 (`feature/search-students`, `84e100c`). The swallowed `IOException` in
 `writeImportLog()` now goes through `Logger.error()` before continuing
@@ -166,9 +166,9 @@ collaborators) and, where it has a collaborator worth isolating from, a
 class's other fixes. Suite grew from 210 to **304 tests** (48 test files
 total).
 
-### KI-5 (RESOLVED — `feature/class-statistics`, `ac173f7`): Two different, disagreeing letter-grade scales existed in the same app
+### KI-5 (RESOLVED — `feature/class-statistics`, `ac173f7`): Two different, disagreeing letter-grade scales existed in the same main.app
 
-`model.enums.LetterGrade.fromNumeric()` used `A≥85, B≥70, C≥55, D≥40, F<40`.
+`main.model.enums.LetterGrade.fromNumeric()` used `A≥85, B≥70, C≥55, D≥40, F<40`.
 `StatisticsCalculator`'s grade-distribution buckets hardcoded a different
 scale entirely: `A≥90, B≥80, C≥70, D≥60, F<60`. A grade of 87 was an "A" in
 View Grade Report and a "B" in View Class Statistics.
@@ -200,15 +200,15 @@ constructor injection and resolves both by `studentId` internally, matching
 the planned contract; `Main.calculateGPA()` dropped its manual
 class-averages assembly entirely.
 
-### KI-8 (RESOLVED — `feature/exception-handling`, `a9be3ee`): Custom exceptions still extended `RuntimeException`, and `Main` still had a generic catch
+### KI-8 (RESOLVED — `feature/exception-handling`, `a9be3ee`): Custom main.exceptions still extended `RuntimeException`, and `Main` still had a generic catch
 
 PBI-1 explicitly required "No generic Exception catching (replace
 RuntimeException extends)." Every custom exception extended
 `RuntimeException` directly, and `Main`'s menu loop still ended in
 `catch (Exception e) { ... }`.
 
-**Fix:** added `exceptions.ApplicationException` (abstract, extends
-`RuntimeException`) as the one common parent; all nine custom exceptions
+**Fix:** added `main.exceptions.ApplicationException` (abstract, extends
+`RuntimeException`) as the one common parent; all nine custom main.exceptions
 now extend it instead. `Main`'s final catch is now
 `catch (ApplicationException e)`, not `catch (Exception e)`.
 
@@ -287,7 +287,7 @@ with named constant arrays (`PERCENTAGE_THRESHOLDS`/`GPA_POINTS`/
 - All 6 new v2 user stories were wired up and reachable from the menu from
   the start.
 - Feature-branch workflow was genuinely followed from the beginning -
-  `feature/exception-handling`, `feature/export-report`,
+  `feature/exception-handling`, `feature/main.export-report`,
   `feature/gpa-calculation`, `feature/bulk-import`, `feature/class-statistics`,
   `feature/search-students` all exist in history with their own commits,
   and this review's fixes were made on those same branches rather than
@@ -303,7 +303,7 @@ with named constant arrays (`PERCENTAGE_THRESHOLDS`/`GPA_POINTS`/
 
 Requested as a follow-up once all 14 requirements-review issues above were
 resolved: make the package structure more professional (clear folders, a
-DTO/Mapper layer, enum-backed static data, a `utils` package for
+DTO/Mapper layer, enum-backed static data, a `main.utils` package for
 validators/sanitizers), then separately, a full SOLID-principles audit of
 the result. Three feature branches, each verified with the full suite and
 a green CI run before merging to `develop` — never straight to `main`.
@@ -312,15 +312,15 @@ a green CI run before merging to `develop` — never straight to `main`.
 
 **Package flattening** (`bb3da93`) — collapsed a set of one-off
 `impl`/`serviceimpl` subpackages that existed for no consistent reason,
-7 files moved via `git mv`, imports fixed up across 20 files:
+7 files moved via `git mv`, main.imports fixed up across 20 files:
 
 | Before | After |
 | --- | --- |
-| `exceptions.grades.GradeException` | `exceptions.GradeException` |
-| `exceptions.subjects.SubjectNotFoundException` / `SubjectValidationException` | `exceptions.SubjectNotFoundException` / `SubjectValidationException` |
-| `repository.subject.impl.SubjectRepositoryImpl` | `repository.subject.SubjectRepositoryImpl` |
-| `repository.grade.impl.GradeRepositoryImpl` | `repository.grade.GradeRepositoryImpl` |
-| `service.serviceimpl.StudentServiceImpl` / `GradeServiceImpl` | `service.StudentServiceImpl` / `GradeServiceImpl` |
+| `main.exceptions.grades.GradeException` | `main.exceptions.GradeException` |
+| `main.exceptions.subjects.SubjectNotFoundException` / `SubjectValidationException` | `main.exceptions.SubjectNotFoundException` / `SubjectValidationException` |
+| `main.repository.subject.impl.SubjectRepositoryImpl` | `main.repository.subject.SubjectRepositoryImpl` |
+| `main.repository.grade.impl.GradeRepositoryImpl` | `main.repository.grade.GradeRepositoryImpl` |
+| `main.service.serviceimpl.StudentServiceImpl` / `GradeServiceImpl` | `main.service.StudentServiceImpl` / `GradeServiceImpl` |
 
 Verified 304/304 passing before this commit — no behavior changed, only
 where each class lives.
@@ -328,12 +328,12 @@ where each class lives.
 **Enum-backed static data**, replacing booleans and parallel arrays
 (`60e36a8`):
 
-- New `model.enums.Role` (`TEACHER`, `STUDENT`) replaces `Main`'s
+- New `main.model.enums.Role` (`TEACHER`, `STUDENT`) replaces `Main`'s
   `boolean isTeacher` flag.
 - `LetterGrade` now carries its own `minPercentage` per constant, so
   `fromNumeric()` derives from the enum itself instead of a separately
   hand-maintained if-chain.
-- New `model.enums.GpaLetterGrade` — an 11-constant enum carrying
+- New `main.model.enums.GpaLetterGrade` — an 11-constant enum carrying
   percentage threshold, GPA points, and display label together on one
   object, replacing `GPACalculator`'s three parallel arrays
   (`PERCENTAGE_THRESHOLDS`/`GPA_POINTS`/`LETTER_GRADES`, added for the
@@ -345,17 +345,17 @@ where each class lives.
 - Added `GpaLetterGradeTest` (34 parameterized cases covering every
   documented percentage and GPA value in `ReadMe-v2.md`'s grading table).
 
-**New `utils` package** (`d44d825`):
+**New `main.utils` package** (`d44d825`):
 
 - `InputSanitizer.sanitize()` trims and strips control characters from
-  raw console input; wired into every raw name/email/phone/studentId/
+  raw main.console input; wired into every raw name/email/phone/studentId/
   search-input read in `Main`.
 - `DateFormats` centralizes the five `SimpleDateFormat` patterns that
   were previously copy-pasted independently into `Logger`, `Grade`,
   `ReportGenerator`, and `BulkImportService`.
 - `StudentValidator`/`SubjectValidator` later moved into
-  `utils.validators` (`c725026`, committed directly to `develop`) to sit
-  under the same `utils` package, replacing the standalone `validation`
+  `main.utils.validators` (`c725026`, committed directly to `develop`) to sit
+  under the same `main.utils` package, replacing the standalone `validation`
   package they used to live in.
 
 **DTO/Mapper layer** (`0a9127e`), deliberately scoped to read-only
@@ -363,9 +363,9 @@ display paths only — Add Student and Record Grade keep using real domain
 objects, since they need the full validation/business-rule surface a DTO
 doesn't carry:
 
-- `dto.StudentDTO` + `mapper.StudentMapper` — wired into Search Students'
+- `main.dto.StudentDTO` + `main.main.mapper.StudentMapper` — wired into Search Students'
   results table and its exported-search-results file.
-- `dto.GradeDTO` + `mapper.GradeMapper` — wired into
+- `main.dto.GradeDTO` + `main.main.mapper.GradeMapper` — wired into
   `ReportGenerator.exportDetailed()`'s grade-history table.
 
 Full suite green (350/350) after all four pieces above.
@@ -397,11 +397,11 @@ equivalent on the base `Student` contract, so there's no enum comparison
 that could replace them.)
 
 **SRP fix** (`3fab1b4`): `Main.java` had grown into a 760-line God
-Class — composition root, console I/O, business orchestration for all 9
+Class — composition root, main.console I/O, business orchestration for all 9
 menu features, role authorization, and exception-to-message translation,
 all in one file.
 
-**Fix:** extracted each feature into its own class under a new `console`
+**Fix:** extracted each feature into its own class under a new `main.console`
 package, implementing a `MenuAction` interface (`getOptionNumber`,
 `getLabel`, `execute`, `isAuthorizedFor(Role)`, `terminatesLoop`):
 `AddStudentAction`, `ViewStudentsAction`, `RecordGradeAction`,
@@ -419,7 +419,7 @@ denied" checks inside the old `addStudent()`/`recordGrade()` bodies:
 students before either method could ever run, so the checks never
 executed.
 
-`Main` itself has no automated test coverage (it's a console entry point
+`Main` itself has no automated test coverage (it's a main.console entry point
 reading `stdin`), so this one was verified by hand: full suite green
 (350/350) for every other class, plus manual smoke runs of the compiled
 jar covering add student, search by student ID, role-based access
@@ -428,33 +428,33 @@ output as before the split.
 
 ### `feature/BugFix-package-structure` (merged `d46330e`)
 
-A follow-up question about the resulting structure — "why is `calculators`
+A follow-up question about the resulting structure — "why is `main.calculators`
 not a subfolder of `interfaces`, if `GPACalculator` implements
-`Calculable`?" — surfaced a real inconsistency once traced through: `service`
-and `repository` already colocate each interface with its `Impl` in the
-same package (`service/StudentService.java` +
-`service/StudentServiceImpl.java`), but `Calculable`, `Exportable`, and
+`Calculable`?" — surfaced a real inconsistency once traced through: `main.service`
+and `main.repository` already colocate each interface with its `Impl` in the
+same package (`main.service/StudentService.java` +
+`main.service/StudentServiceImpl.java`), but `Calculable`, `Exportable`, and
 `Searchable` — each with exactly one implementer — were split out into a
 standalone `interfaces` package instead, a second, different convention
 for the identical relationship.
 
 **Fix** (`7c450fd`): moved each interface into its implementer's package
 to match the convention already used elsewhere — `Calculable` →
-`calculators` (implementer: `GPACalculator`), `Exportable` → `export`
-(implementer: `ReportGenerator`), `Searchable` → `manager` (implementer:
+`main.calculators` (implementer: `GPACalculator`), `Exportable` → `main.export`
+(implementer: `ReportGenerator`), `Searchable` → `main.manager` (implementer:
 `StudentSearcher`) — and deleted the now-empty `interfaces` package.
 
 Also renamed `tests/Students` → `tests/student`: the only test package in
 capitalized/plural form, breaking both standard Java package naming
 (lowercase) and `tests/README.md`'s own documented rule that test
 packages mirror their source package (the source package is
-`model/student`, singular and lowercase).
+`main.model/student`, singular and lowercase).
 
 No behavior changed; full suite green (350/350) after both fixes.
 
 ---
 
-## Role enforcement, build tooling, and console testability
+## Role enforcement, build tooling, and main.console testability
 
 ### `feature/BugFix-student-read-only` (merged `54a1943`)
 
@@ -485,7 +485,7 @@ modes. `docs/PROJECT_GUIDE.md`'s role table updated to match (`3691162`).
 
 ### Bulk-import CSV fixtures (`147c55f`)
 
-Added three CSV files under `imports/`, built against the real seed data,
+Added three CSV files under `main.imports/`, built against the real seed data,
 for manual runs of Bulk Import Grades and as reference data for further
 tests: `bulk_import_valid.csv` (7 all-valid rows), `bulk_import_mixed_errors.csv`
 (1 valid row plus one row for every distinct rejection `CSVParser`/
@@ -493,7 +493,7 @@ tests: `bulk_import_valid.csv` (7 all-valid rows), `bulk_import_mixed_errors.csv
 subject-type mismatch, out-of-range grade, non-numeric grade, wrong
 column count, unknown subject-type string), and `bulk_import_empty.csv`
 (header only). Each verified by actually running Bulk Import Grades
-against it through the compiled app.
+against it through the compiled main.app.
 
 ### `feature/BugFix-pom-jacoco-placement` (merged `2a9e6d8`)
 
@@ -507,7 +507,7 @@ specific one.
 existing compiler/surefire plugins. `mvn verify` now succeeds end-to-end
 — 350/350 tests, jar built, JaCoCo report generated for all 69 classes.
 Measured coverage at that point: **92.2%** on business logic (everything
-except the `console`/`Main` UI layer), **98.9%** on `calculators` alone —
+except the `main.console`/`Main` UI layer), **98.9%** on `main.calculators` alone —
 both comfortably clearing the assignment brief's 80%/95% targets.
 
 ### `feature/BugFix-sonar-plugin` (merged `afde6e6`)
@@ -519,49 +519,49 @@ matching the JaCoCo pattern. Not bound to any lifecycle phase, so
 configured. See `docs/PROJECT_GUIDE.md` §11 for how to start a local
 SonarQube server (`StartSonar.bat`) and run the analysis.
 
-### `feature/BugFix-console-testability` (in progress)
+### `feature/BugFix-main.console-testability` (in progress)
 
 Digging into the JaCoCo numbers above surfaced two more findings:
 
-**Dead code removed:** `exceptions.InvalidFileFormatException` was
+**Dead code removed:** `main.exceptions.InvalidFileFormatException` was
 referenced nowhere in `src` except its own file and a Javadoc mention in
 `CSVImportException` — it was superseded by `CSVImportException` during
 the KI-10 fix and never deleted. Removed; the stale `@link` reference in
 `CSVImportException`'s Javadoc updated to plain text.
 
 **Exception coverage gaps closed:** added
-`tests/exceptions/ApplicationExceptionHierarchyTest.java`, directly
+`tests/main.exceptions/ApplicationExceptionHierarchyTest.java`, directly
 exercising every constructor/getter on `StudentNotFoundException`,
 `StudentValidationException`, `SubjectNotFoundException`,
 `SubjectValidationException`, `GradeException`, `InvalidGradeException`,
 `ImportException` (all three constructors), and `CSVImportException`
-(both constructors) — the `exceptions` package's own instruction coverage
+(both constructors) — the `main.exceptions` package's own instruction coverage
 went from 39.7% to 95.6%. Added a `FileExporterTest` case that forces a
 *real* `IOException` (writing to a path that's actually an existing
 directory) to verify `ExportException` wraps it correctly with the file
 path attached, rather than only being reachable in theory.
 
-**`Main` split into `app.Main` (composition root) + `app.ConsoleApp` (the
+**`Main` split into `main.app.Main` (composition root) + `main.app.ConsoleApp` (the
 menu loop):** the old `Main` bound its `Scanner` to `System.in` in a
 `static final` field, and lived in the default (unnamed) package — no
 test in a named `tests.*` package could ever reference it even if it
 were otherwise testable, since Java doesn't allow importing a class from
 the unnamed package into a named one. `ConsoleApp` is now an ordinary
-instance class in the named `app` package, taking its `Scanner` via
-constructor exactly like every `console.*Action` already did; `Main`
+instance class in the named `main.app` package, taking its `Scanner` via
+constructor exactly like every `main.console.*Action` already did; `Main`
 shrank to composition-root wiring plus `new ConsoleApp(scanner, actions).run()`,
-too thin to need a test of its own. Added `tests/app/ConsoleAppTest.java`
+too thin to need a test of its own. Added `tests/main.app/ConsoleAppTest.java`
 (scripted `Scanner` input, captured `System.out`, real `MenuAction` test
-doubles) and `tests/app/ConsoleAppMockitoTest.java` (mocked `MenuAction`s,
+doubles) and `tests/main.app/ConsoleAppMockitoTest.java` (mocked `MenuAction`s,
 verifying dispatch/authorization/retry interactions) — 17 new tests,
 all passing, exercising every exception-translation branch, the
 role-based menu filter, the invalid-input paths, and the
 retry-on-`InvalidGradeException` flow.
 
 Entry point changed from `java -cp target/classes Main` to
-`java -cp target/classes app.Main` — updated in `docs/PROJECT_GUIDE.md`.
+`java -cp target/classes main.app.Main` — updated in `docs/PROJECT_GUIDE.md`.
 
-**Known, deliberately scoped-out gap:** the 10 individual `console/*Action`
+**Known, deliberately scoped-out gap:** the 10 individual `main.console/*Action`
 classes still have no automated tests of their own (0% in JaCoCo) — each
 already takes its `Scanner` via constructor, so the exact same technique
 used for `ConsoleAppTest` would work for each of them; it just hasn't
@@ -569,12 +569,12 @@ been done yet. Documented explicitly in `docs/PROJECT_GUIDE.md` §12
 rather than left implicit.
 
 Full suite: 377/377 passing (up from 350). Overall JaCoCo instruction
-coverage: 65.3% (up from 60.0%); excluding only `console/` (the
+coverage: 65.3% (up from 60.0%); excluding only `main.console/` (the
 remaining, explicitly-scoped-out gap): 92.3%.
 
-### `feature/BugFix-generic-exceptions` (generic-RuntimeException audit)
+### `feature/BugFix-generic-main.exceptions` (generic-RuntimeException audit)
 
-Requested audit: every service/repository throw site should use the
+Requested audit: every main.service/main.repository throw site should use the
 declared exception hierarchy under `ApplicationException`, never a raw
 `RuntimeException`. Grepped every `throw new RuntimeException(...)` in
 `src` (excluding tests) and found exactly two, both for the identical
@@ -590,7 +590,7 @@ those two call sites fell back to the generic root type instead.
 
 **Fix:** added `StudentException` (studentId) and `SubjectException`
 (subjectCode), mirroring `GradeException`'s existing shape and role
-exactly, and swapped both throw sites over. `app.ConsoleApp`'s
+exactly, and swapped both throw sites over. `main.app.ConsoleApp`'s
 warn-level catch group extended to include both (they're expected
 business conditions, not "genuinely unexpected" bugs, so they belong
 with `StudentValidationException`/`GradeException`/etc., not the final
@@ -600,7 +600,7 @@ catch-all). Added direct constructor/getter tests for both to
 assert the specific exception type instead of bare `RuntimeException`.
 
 Also fixed in passing: `StudentServiceImpl.getStudentById()`'s
-unreachable defensive branch (the repository already throws
+unreachable defensive branch (the main.repository already throws
 `StudentNotFoundException` on a miss, so this can never actually run)
 was still falling back to a plain `RuntimeException` instead of
 `StudentNotFoundException` - corrected for full consistency.
@@ -658,15 +658,15 @@ findings:
   shared constants on `ConsoleUtils` (`DIVIDER`, `WIDE_DIVIDER`).
 - **`java:S106` (System.out) — excluded, not converted** (`4d8e811`) —
   by far the largest volume of findings was "replace this use of
-  System.out by a logger" across every `console/*Action` and
-  `app.ConsoleApp`. Converting these would be wrong, not just noisy:
+  System.out by a logger" across every `main.console/*Action` and
+  `main.app.ConsoleApp`. Converting these would be wrong, not just noisy:
   `System.out` there *is* this application's user-facing menu/report
   output, deliberately kept off `Logger` (which writes diagnostics to
-  `System.err` — see `logging.Logger`'s own Javadoc); routing it through
+  `System.err` — see `main.logging.Logger`'s own Javadoc); routing it through
   `Logger` would prefix every menu line, table row, and report line with
-  a `[timestamp] LEVEL` tag, corrupting the console UI it's meant to
+  a `[timestamp] LEVEL` tag, corrupting the main.console UI it's meant to
   render. Documented as a `sonar.issue.ignore.multicriteria` rule
-  exclusion scoped to `src/console/**` and `src/app/**` in `pom.xml`,
+  exclusion scoped to `src/main.console/**` and `src/main.app/**` in `pom.xml`,
   with a comment explaining why, rather than suppressed issue-by-issue
   in the SonarQube UI — so the exception is itself reviewable in version
   control instead of living only as server-side state.
@@ -680,20 +680,20 @@ The JaCoCo report showed `StudentManager.viewAllStudents()`,
 `updateStudent(Student)`, and `deleteStudent(String)` at 0% — the three
 methods had simply never been exercised by any test. Added delegation
 tests (Mockito) for `updateStudent`/`deleteStudent` and the empty-roster
-branch of `viewAllStudents`, plus real-repository tests for
+branch of `viewAllStudents`, plus real-main.repository tests for
 `viewAllStudents`' populated-roster branch and for `updateStudent`/
 `deleteStudent` actually persisting through `StudentServiceImpl`.
 
 Full suite: 385/385 passing (up from 379).
 
-### `feature/BugFix-console-test-coverage` (merged `9c7447e`)
+### `feature/BugFix-main.console-test-coverage` (merged `9c7447e`)
 
-JaCoCo showed **64% overall instruction coverage**, with the `console`
+JaCoCo showed **64% overall instruction coverage**, with the `main.console`
 package's 10 `*Action` classes sitting at a combined 0% — by far the
 largest share of what was missed, and the one gap the project had
 deliberately scoped out until explicitly asked for (see §12 of
 `docs/PROJECT_GUIDE.md`, and KI-notes above). Asked the user whether
-the "get to ~85%" target meant overall (including console) or just the
+the "get to ~85%" target meant overall (including main.console) or just the
 already-~92%-covered business logic; the answer was overall, so this
 branch closes it.
 
@@ -703,11 +703,11 @@ Added the standard real-collaborator (`<Class>Test`) + mocked-collaborator
 `CalculateGpaAction`, `BulkImportAction`, `ClassStatisticsAction`, and
 `SearchStudentsAction`, plus a single `ExitActionTest` (no collaborators
 to mock, same exception as `LetterGradeTest`). Scripted `Scanner` input
-and captured `System.out`, following `tests/app/ConsoleAppTest.java`'s
+and captured `System.out`, following `tests/main.app/ConsoleAppTest.java`'s
 established pattern; real-collaborator tests that touch the filesystem
-(`ExportGradeReportAction`, `SearchStudentsAction`'s export sub-action,
+(`ExportGradeReportAction`, `SearchStudentsAction`'s main.export sub-action,
 `BulkImportAction`) redirect to a `target/test-*` temp directory or a
-disposable `imports/*.csv` fixture, cleaned up in `@AfterEach`, matching
+disposable `main.imports/*.csv` fixture, cleaned up in `@AfterEach`, matching
 `FileExporterTest`'s/`BulkImportServiceTest`'s existing pattern.
 
 Writing these tests surfaced two real bugs:
@@ -717,18 +717,18 @@ Writing these tests surfaced two real bugs:
   `CSVParser` itself had already rejected (bad format, unknown subject,
   subject-type mismatch, invalid/out-of-range grade) — even though
   those rows were already present in `failReasons`. That undercounted
-  `getFailedCount()` and, since the console UI only prints its "Failed
+  `getFailedCount()` and, since the main.console UI only prints its "Failed
   Records:" section when `getFailedCount() > 0`, silently hid those
   reasons from the user despite them being one `FileWriter` call away in
   the generated log file. Fixed by starting `failed` at
   `failReasons.size()` instead of `0`.
 - **Flagged, not fixed** — `ExportGradeReportAction`: the file actually
   written to disk always carries a `_summary.txt`/`_detailed.txt`
-  suffix, but the printed "File: ..." console message only adds that
+  suffix, but the printed "File: ..." main.console message only adds that
   suffix when *both* Summary and Detailed were requested. Exporting
   Summary-only, for example, writes `<name>_summary.txt` to disk but
   tells the user it wrote `<name>.txt`. Left as-is pending a decision on
   which side (the file name or the message) should change.
 
-Overall JaCoCo instruction coverage: **64% → 96.2%** (`console`: 0% →
+Overall JaCoCo instruction coverage: **64% → 96.2%** (`main.console`: 0% →
 99.7%). Full suite: 495/495 passing (up from 385).

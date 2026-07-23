@@ -1,17 +1,16 @@
 package tests.imports;
 
-import exceptions.CSVImportException;
-import imports.CSVParser;
+import main.exceptions.CSVImportException;
+import main.imports.CSVParser;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import repository.subject.SubjectRepositoryImpl;
+import main.repository.subject.SubjectRepositoryImpl;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.*;
 

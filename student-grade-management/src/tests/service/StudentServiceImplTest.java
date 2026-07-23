@@ -1,14 +1,14 @@
 package tests.service;
 
-import exceptions.StudentNotFoundException;
-import exceptions.StudentValidationException;
-import model.enums.StudentStatus;
-import model.student.RegularStudent;
-import model.student.Student;
+import main.exceptions.StudentNotFoundException;
+import main.exceptions.StudentValidationException;
+import main.model.enums.StudentStatus;
+import main.model.student.RegularStudent;
+import main.model.student.Student;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import repository.student.StudentRepositoryImpl;
-import service.StudentServiceImpl;
+import main.repository.student.StudentRepositoryImpl;
+import main.service.StudentServiceImpl;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * Uses a real StudentRepositoryImpl (not a mock) - these tests verify the
  * end-to-end outcome of validate-then-persist. StudentServiceImplMockitoTest
  * verifies the same behaviour purely through interactions with a mocked
- * repository.
+ * main.repository.
  */
 class StudentServiceImplTest {
 
@@ -35,7 +35,7 @@ class StudentServiceImplTest {
     }
 
     @Test
-    @DisplayName("An invalid student is rejected before it reaches the repository")
+    @DisplayName("An invalid student is rejected before it reaches the main.repository")
     void addInvalidStudentNeverPersistedTest() {
         StudentRepositoryImpl repository = new StudentRepositoryImpl();
         StudentServiceImpl service = new StudentServiceImpl(repository);
@@ -81,7 +81,7 @@ class StudentServiceImplTest {
     }
 
     @Test
-    @DisplayName("An invalid update is rejected before it reaches the repository")
+    @DisplayName("An invalid update is rejected before it reaches the main.repository")
     void updateInvalidStudentNeverPersistedTest() {
         StudentRepositoryImpl repository = new StudentRepositoryImpl();
         StudentServiceImpl service = new StudentServiceImpl(repository);

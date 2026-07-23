@@ -10,9 +10,9 @@ see [../CHANGELOG.md](../CHANGELOG.md) for the full history of both.
 
 ---
 
-## 1. What the app does
+## 1. What the main.app does
 
-A console (terminal) application for managing students and their grades,
+A main.console (terminal) application for managing students and their grades,
 via a 10-option menu:
 
 1. Add Student
@@ -52,13 +52,13 @@ don't assume "plain `javac`, no build tool" from the original plan below.
 
 ```
 src/
-├── app/
+├── main.app/
 │   ├── Main.java                  composition root: builds the dependency graph
 │   │                               and a List<MenuAction>, hands both to ConsoleApp
 │   └── ConsoleApp.java            the menu loop itself - constructed with a Scanner,
 │                                   so a test can hand it scripted input instead of
 │                                   the real System.in (see §11)
-├── console/                      one MenuAction implementation per menu feature
+├── main.console/                      one MenuAction implementation per menu feature
 │   ├── MenuAction.java            interface: getOptionNumber, getLabel, execute,
 │   │                               isAuthorizedFor(Role), terminatesLoop
 │   ├── AddStudentAction.java      ...RecordGradeAction, ViewGradeReportAction,
@@ -67,42 +67,42 @@ src/
 │   │                               SearchStudentsAction, ExitAction
 │   └── ConsoleUtils.java          promptEnter(), getAvailableStudentIds() - shared
 │                                  by more than one action
-├── model/
+├── main.model/
 │   ├── student/                  Student (abstract), RegularStudent, HonorsStudent
 │   ├── subject/                  Subject (abstract), CoreSubject, ElectiveSubject
 │   ├── grade/                    Grade, Gradable (interface)
 │   └── enums/                    Role, StudentType, StudentStatus, SubjectType,
 │                                  LetterGrade, GpaLetterGrade
-├── manager/
+├── main.manager/
 │   ├── StudentManager.java       facade over StudentService/GradeManager
 │   ├── GradeManager.java         facade over GradeService/SubjectRepository
 │   ├── StudentSearcher.java      implements Searchable (colocated, same package)
 │   └── Searchable.java
-├── service/                      StudentService + StudentServiceImpl,
+├── main.service/                      StudentService + StudentServiceImpl,
 │                                  GradeService + GradeServiceImpl -
 │                                  interface and Impl colocated in one package
-├── repository/
+├── main.repository/
 │   ├── student/                  StudentRepository + StudentRepositoryImpl
 │   │                               (Student[50] array)
 │   ├── grade/                    GradeRepository + GradeRepositoryImpl
 │   │                               (Grade[200] array)
 │   └── subject/                  SubjectRepository + SubjectRepositoryImpl
 │                                   (Subject[50] array)
-├── calculators/                  GPACalculator + Calculable (colocated),
+├── main.calculators/                  GPACalculator + Calculable (colocated),
 │                                  StatisticsCalculator
-├── export/                       ReportGenerator + Exportable (colocated),
+├── main.export/                       ReportGenerator + Exportable (colocated),
 │                                  FileExporter
-├── imports/                      CSVParser, BulkImportService
-├── dto/ + mapper/                StudentDTO/StudentMapper, GradeDTO/GradeMapper -
+├── main.imports/                      CSVParser, BulkImportService
+├── main.dto/ + main.main.mapper/                StudentDTO/StudentMapper, GradeDTO/GradeMapper -
 │                                  used only by Search Students and the exported
 │                                  detailed report; Add Student/Record Grade still
-│                                  use real model/ objects
-├── utils/                        InputSanitizer, DateFormats
+│                                  use real main.model/ objects
+├── main.utils/                        InputSanitizer, DateFormats
 │   └── validators/               StudentValidator, SubjectValidator
-├── logging/                      Logger (DEBUG/INFO/WARN/ERROR, no dependency)
-└── exceptions/                   ApplicationException (common abstract root) +
-                                   11 custom exceptions extending it - every
-                                   service/repository throw site uses one of
+├── main.logging/                      Logger (DEBUG/INFO/WARN/ERROR, no dependency)
+└── main.exceptions/                   ApplicationException (common abstract root) +
+                                   11 custom main.exceptions extending it - every
+                                   main.service/main.repository throw site uses one of
                                    these, never a raw RuntimeException
                                    (InvalidFileFormatException was removed - dead
                                    code, superseded by CSVImportException;
@@ -111,8 +111,8 @@ src/
                                    exception GradeException already had)
 ```
 
-No `interfaces/`, `validation/`, `service/serviceimpl/`, or
-`repository/*/impl/` package exists anymore — see CHANGELOG.md's
+No `interfaces/`, `validation/`, `main.service/serviceimpl/`, or
+`main.repository/*/impl/` package exists anymore — see CHANGELOG.md's
 "Professional structure & SOLID refactor" section for why each of those
 was folded into the layout above.
 
@@ -123,60 +123,60 @@ was folded into the layout above.
 Request flow for a menu action, e.g. **Record Grade** (option 3):
 
 ```
-app.Main (builds the dependency graph, exactly once)
-  -> app.ConsoleApp.run()                  the menu loop: print, read, dispatch,
-  |                                         translate exceptions - constructed
+main.app.Main (builds the dependency graph, exactly once)
+  -> main.app.ConsoleApp.run()                  the menu loop: print, read, dispatch,
+  |                                         translate main.exceptions - constructed
   |                                         with a Scanner, so it's unit-testable
-  -> console.RecordGradeAction.execute()   the only *Action doing Scanner I/O
-       -> manager.GradeManager               "what the app-level feature needs"
-            -> service.GradeService (interface)
-                 -> service.GradeServiceImpl   business rules: student exists?
+  -> main.console.RecordGradeAction.execute()   the only *Action doing Scanner I/O
+       -> main.manager.GradeManager               "what the main.app-level feature needs"
+            -> main.service.GradeService (interface)
+                 -> main.service.GradeServiceImpl   business rules: student exists?
                       subject exists? grade in range?
-                      -> repository.StudentRepository / SubjectRepository (existence checks)
-                      -> model.grade.Grade constructor (0-100 range check, via Gradable)
-                      -> repository.GradeRepository (interface)
-                           -> repository.grade.GradeRepositoryImpl (Grade[200] array)
+                      -> main.repository.StudentRepository / SubjectRepository (existence checks)
+                      -> main.model.grade.Grade constructor (0-100 range check, via Gradable)
+                      -> main.repository.GradeRepository (interface)
+                           -> main.repository.grade.GradeRepositoryImpl (Grade[200] array)
 ```
 
 Rules of the layering:
 
-- **`app.Main`** is the only class allowed to `new` up concrete
+- **`main.app.Main`** is the only class allowed to `new` up concrete
   implementations (`StudentRepositoryImpl`, `GradeServiceImpl`, etc.) and
-  wire them together. It has no business logic and no console formatting
+  wire them together. It has no business logic and no main.console formatting
   of its own — it builds the `List<MenuAction>` and one `ConsoleApp`, then
   calls `run()`, and does nothing else.
-- **`app.ConsoleApp`** owns the menu loop itself: printing the (role-filtered)
+- **`main.app.ConsoleApp`** owns the menu loop itself: printing the (role-filtered)
   menu, reading a choice, finding the matching action, checking
   authorization, calling `execute()`, and translating a thrown exception
-  into a console message. It used to be inlined directly into `Main` as
+  into a main.console message. It used to be inlined directly into `Main` as
   `static` fields bound to `System.in` - which made it untestable, since a
   test has no way to swap out a `static final Scanner` after the class has
   already loaded. Pulling it out into an ordinary instance class that takes
   its `Scanner` as a constructor argument means a test can hand it a
   `Scanner` wrapping scripted input and capture `System.out` to assert on
-  the exact output (see `tests/app/ConsoleAppTest.java` /
+  the exact output (see `tests/main.app/ConsoleAppTest.java` /
   `ConsoleAppMockitoTest.java`).
-- **`console/`** is the layer that actually touches `Scanner`/`System.out`
+- **`main.console/`** is the layer that actually touches `Scanner`/`System.out`
   for each individual feature. Each `MenuAction` owns exactly one menu
-  feature end-to-end (I/O, calling the right manager/calculator, printing
+  feature end-to-end (I/O, calling the right main.manager/calculator, printing
   the result), so adding, removing, or reordering a menu option never
   requires touching `Main` or `ConsoleApp`. Every individual `*Action`
   class is covered by automated tests the same way `ConsoleApp` is (see
   §12).
-- **`manager/`** is the layer `console/` actually depends on.
+- **`main.manager/`** is the layer `main.console/` actually depends on.
   `StudentManager` wraps `StudentService` and, on every read, asks
   `GradeManager` to "hydrate" a `Student` object's transient grade list
   (grades live in a separate `GradeRepository` — see
   [Section 6](#6-why-studentgetgrades-is-hydrated-on-read)) so
   `calculateAverageGrade()` / `isPassing()` / honors eligibility are
   correct without the caller having to know that.
-- **`service/`** holds the actual business rules (does the
+- **`main.service/`** holds the actual business rules (does the
   student/subject exist, is the grade in range) and is the only caller of
-  `utils.validators`. Its interface and `Impl` live in the same package.
-- **`repository/{student,grade,subject}/`** are the only place
+  `main.utils.validators`. Its interface and `Impl` live in the same package.
+- **`main.repository/{student,grade,subject}/`** are the only place
   data-access logic lives — each subpackage colocates its interface with
   its one `Impl`, which is backed by a fixed-size array, not a `HashMap`.
-- **`model/`** (`Student`, `Subject`, `Grade`, the enums) has no
+- **`main.model/`** (`Student`, `Subject`, `Grade`, the enums) has no
   dependency on anything else — it's pure data plus the domain rules that
   don't need any storage layer (e.g. `Student.isPassing()`,
   `Grade.getLetterGrade()`).
@@ -210,7 +210,7 @@ Grade
 │   ├── subjectCode: "MATH01"
 │   └── subjectName: "Mathematics"
 ├── gradeValue:  85.0
-└── date:        "07-07-2026"      ← dd-MM-yyyy, via utils.DateFormats.DISPLAY_DATE
+└── date:        "07-07-2026"      ← dd-MM-yyyy, via main.utils.DateFormats.DISPLAY_DATE
 ```
 
 The `studentId` is a `String` that must match a key already stored in
@@ -282,10 +282,10 @@ package, and a `config/` package. What actually shipped instead:
 
 | Planned | Actual | Why |
 |---|---|---|
-| PostgreSQL persistence | In-memory, fixed-size arrays in `repository/*` | The assessment brief required in-memory, array-based storage. No external DB needed. |
+| PostgreSQL persistence | In-memory, fixed-size arrays in `main.repository/*` | The assessment brief required in-memory, array-based storage. No external DB needed. |
 | `config/DatabaseConfig` / `ConnectionManager` | Not created | No database to configure. |
 | `HashMap` storage (an earlier interim step) | `Student[50]` / `Grade[200]` / `Subject[50]` arrays | Switched from `HashMap` to arrays to match the assessment brief's array-based storage requirement exactly. |
-| `controller/StudentController`, `controller/GradeController` | `console/*Action` classes, one per menu feature | Functionally the same role as a controller layer, but named/organized around "one class per menu option" rather than "one controller per entity" — see CHANGELOG.md's SRP fix for why `Main` itself stopped doing this directly. |
+| `controller/StudentController`, `controller/GradeController` | `main.console/*Action` classes, one per menu feature | Functionally the same role as a controller layer, but named/organized around "one class per menu option" rather than "one controller per entity" — see CHANGELOG.md's SRP fix for why `Main` itself stopped doing this directly. |
 | Role-based access always enabled | Optional role-based access control prompted on startup | Defaults to the full menu; user can opt into role-based mode. |
 | 9 required classes | ~40 classes across a layered architecture | Kept (and later tightened) the layered architecture rather than the original spec's flat 9-class design. |
 
@@ -305,12 +305,12 @@ primarily useful when seed data has been pre-loaded.
 
 ## 9. Role-Based Access (Optional)
 
-On startup, the app asks whether to enable role-based access control. If
+On startup, the main.app asks whether to enable role-based access control. If
 the user answers `N` (default), the full 10-option menu is shown with no
 restrictions.
 
 If the user answers `Y`, a role prompt appears, and the selected role
-(`TEACHER` or `STUDENT`, `model.enums.Role`) is preserved for the
+(`TEACHER` or `STUDENT`, `main.model.enums.Role`) is preserved for the
 session. Menu rendering and action authorization both depend on it.
 
 | Option | Action | Mutates data? | TEACHER | STUDENT |
@@ -364,8 +364,8 @@ never inside an action itself:
 ## 10. Running it
 
 1. **Via Maven:** `mvn test` from `student-grade-management/` runs the
-   full suite. To run the app itself, compile and run `app.Main` (e.g.
-   from an IDE, or `java -cp target/classes app.Main` after
+   full suite. To run the main.app itself, compile and run `main.app.Main` (e.g.
+   from an IDE, or `java -cp target/classes main.app.Main` after
    `mvn compile`).
 2. Optionally enable **role-based access** — if you answer `Y` at the
    prompt, you choose `TEACHER` or `STUDENT`, which determines available
@@ -373,7 +373,7 @@ never inside an action itself:
    ten features.
 3. As a **Teacher** you have full access: add students, view students,
    record grades, plus everything a Student can do.
-4. As a **Student** you can view/export/report/calculate GPA/view
+4. As a **Student** you can view/main.export/report/calculate GPA/view
    statistics/search (options 4, 5, 6, 8, 9) and exit, but cannot add
    students, view the full listing, record grades, or bulk-import grades
    (options 1, 2, 3, 7) — every write action is teacher-only.
@@ -407,7 +407,7 @@ mvn clean verify
 
 Current numbers (see CHANGELOG.md for the full package-by-package
 breakdown): **96.2%** overall instruction coverage (up from ~65%), with
-every `console/*Action` class now covered (see §12 — this used to be
+every `main.console/*Action` class now covered (see §12 — this used to be
 the one remaining, deliberately scoped-out gap; it no longer is).
 
 ### SonarQube — static analysis
@@ -456,8 +456,8 @@ complexity in `ConsoleApp.run()` and `SearchStudentsAction.execute()`,
 a `StatisticsCalculator` constructor with too many parameters, a nested
 ternary, duplicated string literals, and a test-lambda smell. One rule
 is deliberately excluded rather than fixed: `java:S106` ("replace
-`System.out` by a logger") is scoped out for `src/console/**` and
-`src/app/**` via `sonar.issue.ignore.multicriteria` in `pom.xml`,
+`System.out` by a logger") is scoped out for `src/main.console/**` and
+`src/main.app/**` via `sonar.issue.ignore.multicriteria` in `pom.xml`,
 because `System.out` there is the application's actual user-facing
 output, not a diagnostic that belongs on `Logger`/`System.err` — see
 the comment above that property block in `pom.xml` for the full
@@ -465,21 +465,21 @@ rationale.
 
 ---
 
-## 12. `console/*Action` Test Coverage
+## 12. `main.console/*Action` Test Coverage
 
-The 10 classes under `console/` (`AddStudentAction`, `RecordGradeAction`,
+The 10 classes under `main.console/` (`AddStudentAction`, `RecordGradeAction`,
 etc.) each take their `Scanner` via constructor injection, the same way
 `ConsoleApp` does — so each one is tested the same way `ConsoleAppTest`
 tests `ConsoleApp`: a scripted `Scanner` over a fake input script, with
-`System.out` captured and asserted on (see `tests/app/ConsoleAppTest.java`
+`System.out` captured and asserted on (see `tests/main.app/ConsoleAppTest.java`
 for the pattern). Every class has the standard real-collaborator
 (`<Class>Test`) + mocked-collaborator (`<Class>MockitoTest`) pair under
-`src/tests/console/`, except `ExitAction` (no collaborators to mock,
+`src/tests/main.console/`, except `ExitAction` (no collaborators to mock,
 same exception as `LetterGradeTest` — see `tests/README.md`).
 
 This closed what used to be this project's one remaining,
-deliberately-scoped-out coverage gap (the `console` package sat at 0%);
-see CHANGELOG.md's `feature/BugFix-console-test-coverage` entry for the
+deliberately-scoped-out coverage gap (the `main.console` package sat at 0%);
+see CHANGELOG.md's `feature/BugFix-main.console-test-coverage` entry for the
 before/after numbers and two bugs the effort turned up along the way
 (one fixed — `BulkImportService`'s failed-row count; one flagged but
 left as a judgment call — a filename/message mismatch in

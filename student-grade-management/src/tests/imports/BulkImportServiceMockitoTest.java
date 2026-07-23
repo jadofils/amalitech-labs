@@ -1,15 +1,15 @@
 package tests.imports;
 
-import imports.BulkImportService;
-import manager.GradeManager;
-import manager.StudentManager;
-import model.grade.Grade;
-import model.student.RegularStudent;
-import model.student.Student;
+import main.imports.BulkImportService;
+import main.manager.GradeManager;
+import main.manager.StudentManager;
+import main.model.grade.Grade;
+import main.model.student.RegularStudent;
+import main.model.student.Student;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import repository.subject.SubjectRepositoryImpl;
+import main.repository.subject.SubjectRepositoryImpl;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -33,10 +33,10 @@ class BulkImportServiceMockitoTest {
     private String logFilename;
 
     private void writeCsv(String filename, String content) throws IOException {
-        // imports/ is only tracked via .gitkeep (git doesn't track empty
+        // main.imports/ is only tracked via .gitkeep (git doesn't track empty
         // directories), so a fresh checkout - e.g. CI - won't have it yet.
-        new java.io.File("imports").mkdirs();
-        try (FileWriter writer = new FileWriter("imports/" + filename + ".csv")) {
+        new java.io.File("main.imports").mkdirs();
+        try (FileWriter writer = new FileWriter("main.imports/" + filename + ".csv")) {
             writer.write(content);
         }
     }
@@ -44,10 +44,10 @@ class BulkImportServiceMockitoTest {
     @AfterEach
     void cleanUp() throws IOException {
         if (csvFilename != null) {
-            Files.deleteIfExists(Path.of("imports/" + csvFilename + ".csv"));
+            Files.deleteIfExists(Path.of("main.imports/" + csvFilename + ".csv"));
         }
         if (logFilename != null) {
-            Files.deleteIfExists(Path.of("imports/" + logFilename));
+            Files.deleteIfExists(Path.of("main.imports/" + logFilename));
         }
     }
 
@@ -57,7 +57,7 @@ class BulkImportServiceMockitoTest {
         StudentManager studentManager = mock(StudentManager.class);
         GradeManager gradeManager = mock(GradeManager.class);
         Student student = new RegularStudent("STU001", "Musa Nkusi", 17, "musa@school.edu",
-                "1234567890", model.enums.StudentStatus.ACTIVE);
+                "1234567890", main.model.enums.StudentStatus.ACTIVE);
         when(studentManager.findStudent("STU001")).thenReturn(student);
         BulkImportService service = new BulkImportService(subjects, studentManager, gradeManager);
 

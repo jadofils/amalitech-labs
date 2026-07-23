@@ -1,7 +1,7 @@
 package tests.utils;
 
 import org.junit.jupiter.api.Test;
-import utils.DateFormats;
+import main.utils.DateFormats;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 

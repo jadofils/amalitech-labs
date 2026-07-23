@@ -1,23 +1,23 @@
 package tests.console;
 
-import console.SearchStudentsAction;
-import export.FileExporter;
-import manager.GradeManager;
-import manager.StudentManager;
-import manager.StudentSearcher;
-import model.grade.Grade;
-import model.student.Student;
-import model.subject.Subject;
+import main.console.SearchStudentsAction;
+import main.export.FileExporter;
+import main.manager.GradeManager;
+import main.manager.StudentManager;
+import main.manager.StudentSearcher;
+import main.model.grade.Grade;
+import main.model.student.Student;
+import main.model.subject.Subject;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import repository.student.StudentRepositoryImpl;
-import repository.subject.SubjectRepositoryImpl;
-import service.GradeService;
-import service.GradeServiceImpl;
-import service.StudentService;
-import service.StudentServiceImpl;
+import main.repository.student.StudentRepositoryImpl;
+import main.repository.subject.SubjectRepositoryImpl;
+import main.service.GradeService;
+import main.service.GradeServiceImpl;
+import main.service.StudentService;
+import main.service.StudentServiceImpl;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -38,7 +38,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * StudentSearcher and a real FileExporter redirected to a temp directory
  * (see FileExporterTest for that pattern). SearchStudentsActionMockitoTest
  * covers interaction verification, sanitization, delegation, and the
- * ApplicationException export-failure path through mocked collaborators.
+ * ApplicationException main.export-failure path through mocked collaborators.
  */
 class SearchStudentsActionTest {
 
@@ -188,7 +188,7 @@ class SearchStudentsActionTest {
     }
 
     @Test
-    @DisplayName("Result action 2 (export) with a filename writes the report and reports success")
+    @DisplayName("Result action 2 (main.export) with a filename writes the report and reports success")
     void exportWithFilenameWritesFileTest() throws IOException {
         Student alice = studentManager.getAllStudents().get(0);
 
@@ -202,7 +202,7 @@ class SearchStudentsActionTest {
     }
 
     @Test
-    @DisplayName("Result action 2 (export) with an empty filename writes nothing and does not crash")
+    @DisplayName("Result action 2 (main.export) with an empty filename writes nothing and does not crash")
     void exportWithEmptyFilenameNoOpTest() {
         Student alice = studentManager.getAllStudents().get(0);
 

@@ -1,22 +1,22 @@
 package tests.console;
 
-import console.CalculateGpaAction;
-import calculators.GPACalculator;
-import exceptions.StudentNotFoundException;
-import manager.GradeManager;
-import manager.StudentManager;
-import model.grade.Grade;
-import model.student.Student;
-import model.subject.Subject;
+import main.console.CalculateGpaAction;
+import main.calculators.GPACalculator;
+import main.exceptions.StudentNotFoundException;
+import main.manager.GradeManager;
+import main.manager.StudentManager;
+import main.model.grade.Grade;
+import main.model.student.Student;
+import main.model.subject.Subject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import repository.student.StudentRepositoryImpl;
-import repository.subject.SubjectRepositoryImpl;
-import service.GradeService;
-import service.StudentService;
-import service.GradeServiceImpl;
-import service.StudentServiceImpl;
+import main.repository.student.StudentRepositoryImpl;
+import main.repository.subject.SubjectRepositoryImpl;
+import main.service.GradeService;
+import main.service.StudentService;
+import main.service.GradeServiceImpl;
+import main.service.StudentServiceImpl;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -33,7 +33,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * CalculateGpaActionMockitoTest verifies the same branching purely through
  * mocked collaborators, including combinations (honors eligibility,
  * above/below class average) that are awkward to force through the real
- * seeded repository.
+ * seeded main.repository.
  */
 class CalculateGpaActionTest {
 

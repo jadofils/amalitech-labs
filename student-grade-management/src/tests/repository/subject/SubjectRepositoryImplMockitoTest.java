@@ -1,17 +1,16 @@
 package tests.repository.subject;
 
-import exceptions.SubjectException;
-import exceptions.SubjectNotFoundException;
-import model.subject.Subject;
+import main.exceptions.SubjectException;
+import main.model.subject.Subject;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import repository.subject.SubjectRepositoryImpl;
+import main.repository.subject.SubjectRepositoryImpl;
 
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Unlike StudentRepositoryImpl, this repository calls SubjectValidator on
+ * Unlike StudentRepositoryImpl, this main.repository calls SubjectValidator on
  * every addSubject(), so mocks used here must stub name/code with values that
  * satisfy SubjectValidator (see SubjectRepositoryImplTest's addSubjectValidatesTest
  * for the case where they don't).

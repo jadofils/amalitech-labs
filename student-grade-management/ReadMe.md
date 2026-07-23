@@ -19,7 +19,7 @@ By completing this project, you will be able to:
 
 ## What You'll Build
 
-A console application for managing student grades with these features:
+A main.console application for managing student grades with these features:
 
 ### Core Features
 
@@ -520,7 +520,7 @@ Goodbye!
 | Add Student | Both types with confirmation |
 | Record Grade | Core and elective subjects |
 | View Grade Report | Grade history per student |
-| Menu Navigation | Simple console menu |
+| Menu Navigation | Simple main.console menu |
 
 ---
 

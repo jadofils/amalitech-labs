@@ -1,7 +1,7 @@
 package tests.student;
 
-import model.enums.StudentStatus;
-import model.student.RegularStudent;
+import main.model.enums.StudentStatus;
+import main.model.student.RegularStudent;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;

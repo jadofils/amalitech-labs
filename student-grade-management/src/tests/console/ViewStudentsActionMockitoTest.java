@@ -1,10 +1,10 @@
 package tests.console;
 
-import console.ViewStudentsAction;
-import manager.StudentManager;
-import model.student.HonorsStudent;
-import model.student.RegularStudent;
-import model.student.Student;
+import main.console.ViewStudentsAction;
+import main.manager.StudentManager;
+import main.model.student.HonorsStudent;
+import main.model.student.RegularStudent;
+import main.model.student.Student;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -19,7 +19,7 @@ import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Mocks StudentManager to verify ViewStudentsAction's console output and its
+ * Mocks StudentManager to verify ViewStudentsAction's main.console output and its
  * interaction with the collaborator in isolation - in particular, that
  * getAllStudents() is queried exactly once per execute() and that the
  * division-by-zero guard around the class average is exercised for an empty

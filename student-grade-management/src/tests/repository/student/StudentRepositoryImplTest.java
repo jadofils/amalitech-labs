@@ -1,12 +1,12 @@
 package tests.repository.student;
 
-import exceptions.StudentNotFoundException;
-import model.enums.StudentStatus;
-import model.student.RegularStudent;
-import model.student.Student;
+import main.exceptions.StudentNotFoundException;
+import main.model.enums.StudentStatus;
+import main.model.student.RegularStudent;
+import main.model.student.Student;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import repository.student.StudentRepositoryImpl;
+import main.repository.student.StudentRepositoryImpl;
 
 import java.util.List;
 
@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class StudentRepositoryImplTest {
 
     @Test
-    @DisplayName("A new repository is pre-seeded with 5 students: 3 Regular, 2 Honors")
+    @DisplayName("A new main.repository is pre-seeded with 5 students: 3 Regular, 2 Honors")
     void seedsFiveStudentsTest() {
         StudentRepositoryImpl repository = new StudentRepositoryImpl();
         List<Student> students = repository.getAllStudents();

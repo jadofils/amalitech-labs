@@ -33,20 +33,22 @@
 
         <!--
             java:S106 ("Replace this use of System.out by a logger") is a
-            false positive by design in console/ and app/: System.out IS this
+            false positive by design in main.console/ and main.app/: System.out IS this
             application's user-facing menu/report output, deliberately kept
             on a separate stream from Logger (which writes diagnostics to
-            System.err - see logging.Logger's own class Javadoc). Routing
+            System.err - see main.logging.Logger's own class Javadoc). Routing
             every println through Logger would prefix every menu line, table
             row, and report with a "[timestamp] LEVEL" tag, corrupting the
-            actual console UI it's supposed to render. Excluded here, by
+            actual main.console UI it's supposed to render. Excluded here, by
             rule and by path, rather than suppressed issue-by-issue in the
             SonarQube UI, so the exception is itself reviewable in version
             control.
         -->
-        <sonar.issue.ignore.multicriteria>e1</sonar.issue.ignore.multicriteria>
+        <sonar.issue.ignore.multicriteria>e1,e2</sonar.issue.ignore.multicriteria>
         <sonar.issue.ignore.multicriteria.e1.ruleKey>java:S106</sonar.issue.ignore.multicriteria.e1.ruleKey>
-        <sonar.issue.ignore.multicriteria.e1.resourceKey>src/console/**/*.java,src/app/**/*.java</sonar.issue.ignore.multicriteria.e1.resourceKey>
+        <sonar.issue.ignore.multicriteria.e1.resourceKey>src/main/console/**/*.java</sonar.issue.ignore.multicriteria.e1.resourceKey>
+        <sonar.issue.ignore.multicriteria.e2.ruleKey>java:S106</sonar.issue.ignore.multicriteria.e2.ruleKey>
+        <sonar.issue.ignore.multicriteria.e2.resourceKey>src/main/app/**/*.java</sonar.issue.ignore.multicriteria.e2.resourceKey>
     </properties>
 
     <!--

@@ -1,12 +1,12 @@
 package tests.service;
 
-import exceptions.StudentValidationException;
-import model.student.RegularStudent;
-import model.student.Student;
+import main.exceptions.StudentValidationException;
+import main.model.student.RegularStudent;
+import main.model.student.Student;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import repository.student.StudentRepository;
-import service.StudentServiceImpl;
+import main.repository.student.StudentRepository;
+import main.service.StudentServiceImpl;
 
 import java.util.List;
 
@@ -15,13 +15,13 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Mocks StudentRepository to verify StudentServiceImpl's own logic - that it
- * validates before delegating, and never touches the repository when
+ * validates before delegating, and never touches the main.repository when
  * validation fails - independent of StudentRepositoryImpl's real behaviour.
  */
 class StudentServiceImplMockitoTest {
 
     @Test
-    @DisplayName("addStudent() delegates to the repository exactly once for a valid student")
+    @DisplayName("addStudent() delegates to the main.repository exactly once for a valid student")
     void addValidStudentDelegatesTest() {
         StudentRepository repository = mock(StudentRepository.class);
         StudentServiceImpl service = new StudentServiceImpl(repository);
@@ -33,7 +33,7 @@ class StudentServiceImplMockitoTest {
     }
 
     @Test
-    @DisplayName("addStudent() never reaches the repository for an invalid student")
+    @DisplayName("addStudent() never reaches the main.repository for an invalid student")
     void addInvalidStudentNeverCallsRepositoryTest() {
         StudentRepository repository = mock(StudentRepository.class);
         StudentServiceImpl service = new StudentServiceImpl(repository);
@@ -45,7 +45,7 @@ class StudentServiceImplMockitoTest {
     }
 
     @Test
-    @DisplayName("getStudentById() delegates to the repository")
+    @DisplayName("getStudentById() delegates to the main.repository")
     void getStudentByIdDelegatesTest() {
         StudentRepository repository = mock(StudentRepository.class);
         Student student = mock(Student.class);
@@ -57,7 +57,7 @@ class StudentServiceImplMockitoTest {
     }
 
     @Test
-    @DisplayName("getAllStudents() delegates to the repository")
+    @DisplayName("getAllStudents() delegates to the main.repository")
     void getAllStudentsDelegatesTest() {
         StudentRepository repository = mock(StudentRepository.class);
         List<Student> students = List.of(mock(Student.class), mock(Student.class));
@@ -68,7 +68,7 @@ class StudentServiceImplMockitoTest {
     }
 
     @Test
-    @DisplayName("updateStudent() never reaches the repository for an invalid update")
+    @DisplayName("updateStudent() never reaches the main.repository for an invalid update")
     void updateInvalidStudentNeverCallsRepositoryTest() {
         StudentRepository repository = mock(StudentRepository.class);
         StudentServiceImpl service = new StudentServiceImpl(repository);
@@ -80,7 +80,7 @@ class StudentServiceImplMockitoTest {
     }
 
     @Test
-    @DisplayName("deleteStudent() delegates to the repository with the given ID")
+    @DisplayName("deleteStudent() delegates to the main.repository with the given ID")
     void deleteStudentDelegatesTest() {
         StudentRepository repository = mock(StudentRepository.class);
         StudentServiceImpl service = new StudentServiceImpl(repository);

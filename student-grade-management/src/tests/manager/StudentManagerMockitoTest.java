@@ -1,16 +1,16 @@
 package tests.manager;
 
-import exceptions.StudentNotFoundException;
-import manager.GradeManager;
-import manager.StudentManager;
-import model.grade.Grade;
-import model.student.RegularStudent;
-import model.student.Student;
-import model.subject.CoreSubject;
-import model.subject.Subject;
+import main.exceptions.StudentNotFoundException;
+import main.manager.GradeManager;
+import main.manager.StudentManager;
+import main.model.grade.Grade;
+import main.model.student.RegularStudent;
+import main.model.student.Student;
+import main.model.subject.CoreSubject;
+import main.model.subject.Subject;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import service.StudentService;
+import main.service.StudentService;
 
 import java.util.List;
 
@@ -38,7 +38,7 @@ class StudentManagerMockitoTest {
         // be assumed to equal a hardcoded literal like "STU001" (see
         // src/tests/README.md).
         Student student = new RegularStudent("STU001", "Musa Nkusi", 17, "musa@school.edu",
-                "1234567890", model.enums.StudentStatus.ACTIVE);
+                "1234567890", main.model.enums.StudentStatus.ACTIVE);
         when(studentService.getStudentById("STU001")).thenReturn(student);
         when(gradeManager.getGradesForStudent("STU001")).thenReturn(
                 List.of(new Grade("STU001", subject, 80.0), new Grade("STU001", subject, 90.0)));
@@ -70,9 +70,9 @@ class StudentManagerMockitoTest {
         GradeManager gradeManager = mock(GradeManager.class);
         StudentManager manager = new StudentManager(studentService, gradeManager);
         Student first = new RegularStudent("STU001", "First Student", 17, "first@school.edu",
-                "1234567890", model.enums.StudentStatus.ACTIVE);
+                "1234567890", main.model.enums.StudentStatus.ACTIVE);
         Student second = new RegularStudent("STU002", "Second Student", 17, "second@school.edu",
-                "1234567890", model.enums.StudentStatus.ACTIVE);
+                "1234567890", main.model.enums.StudentStatus.ACTIVE);
         when(studentService.getAllStudents()).thenReturn(List.of(first, second));
         when(gradeManager.getGradesForStudent(anyString())).thenReturn(List.of());
 
@@ -102,7 +102,7 @@ class StudentManagerMockitoTest {
         GradeManager gradeManager = mock(GradeManager.class);
         StudentManager manager = new StudentManager(studentService, gradeManager);
         Student student = new RegularStudent("STU001", "Musa Nkusi", 17, "musa@school.edu",
-                "1234567890", model.enums.StudentStatus.ACTIVE);
+                "1234567890", main.model.enums.StudentStatus.ACTIVE);
 
         manager.updateStudent(student);
 

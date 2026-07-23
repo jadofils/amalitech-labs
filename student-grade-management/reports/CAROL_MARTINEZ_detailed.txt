@@ -1,0 +1,22 @@
+STUDENT GRADE REPORT - DETAILED
+================================
+
+Student ID: STU003
+Name: Carol Martinez
+
+GRADE HISTORY
+------------------------------------------------
+GRD ID   | DATE       | SUBJECT          | TYPE      | GRADE
+------------------------------------------------
+GRD003   | 22-07-2026 | English          | CORE      | 74.0%
+------------------------------------------------
+Total Grades: 1
+Core Average: 74.0%
+Elective Average: 0.0%
+Overall Average: 74.0%
+
+PERFORMANCE ANALYSIS
+------------------------------------------------
+Good performance
+================================
+Generated on: 22-07-2026 09:52

@@ -1,8 +1,8 @@
 package tests.grade;
 
-import model.enums.SubjectType;
-import model.grade.Grade;
-import model.subject.Subject;
+import main.model.enums.SubjectType;
+import main.model.grade.Grade;
+import main.model.subject.Subject;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

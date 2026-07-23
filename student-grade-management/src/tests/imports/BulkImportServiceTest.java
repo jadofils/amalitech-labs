@@ -1,19 +1,19 @@
 package tests.imports;
 
-import exceptions.ImportException;
-import imports.BulkImportService;
-import manager.GradeManager;
-import manager.StudentManager;
-import model.student.Student;
+import main.exceptions.ImportException;
+import main.imports.BulkImportService;
+import main.manager.GradeManager;
+import main.manager.StudentManager;
+import main.model.student.Student;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import repository.student.StudentRepositoryImpl;
-import repository.subject.SubjectRepositoryImpl;
-import service.GradeService;
-import service.StudentService;
-import service.GradeServiceImpl;
-import service.StudentServiceImpl;
+import main.repository.student.StudentRepositoryImpl;
+import main.repository.subject.SubjectRepositoryImpl;
+import main.service.GradeService;
+import main.service.StudentService;
+import main.service.GradeServiceImpl;
+import main.service.StudentServiceImpl;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -28,10 +28,10 @@ class BulkImportServiceTest {
     private String logFilename;
 
     private void writeCsv(String filename, String content) throws IOException {
-        // imports/ is only tracked via .gitkeep (git doesn't track empty
+        // main.imports/ is only tracked via .gitkeep (git doesn't track empty
         // directories), so a fresh checkout - e.g. CI - won't have it yet.
-        new java.io.File("imports").mkdirs();
-        try (FileWriter writer = new FileWriter("imports/" + filename + ".csv")) {
+        new java.io.File("main.imports").mkdirs();
+        try (FileWriter writer = new FileWriter("main.imports/" + filename + ".csv")) {
             writer.write(content);
         }
     }
@@ -39,10 +39,10 @@ class BulkImportServiceTest {
     @AfterEach
     void cleanUp() throws IOException {
         if (csvFilename != null) {
-            Files.deleteIfExists(Path.of("imports/" + csvFilename + ".csv"));
+            Files.deleteIfExists(Path.of("main.imports/" + csvFilename + ".csv"));
         }
         if (logFilename != null) {
-            Files.deleteIfExists(Path.of("imports/" + logFilename));
+            Files.deleteIfExists(Path.of("main.imports/" + logFilename));
         }
     }
 
@@ -69,7 +69,7 @@ class BulkImportServiceTest {
         assertEquals(1, result.getSuccessCount());
         assertEquals(1, result.getFailedCount());
         assertEquals(1, gradeManager.getGradeCount());
-        assertTrue(Files.exists(Path.of("imports/" + logFilename)));
+        assertTrue(Files.exists(Path.of("main.imports/" + logFilename)));
     }
 
     @Test
@@ -106,7 +106,7 @@ class BulkImportServiceTest {
         BulkImportService.ImportResult result = bulkImportService.importFromFile(csvFilename);
         logFilename = result.getLogFilename();
 
-        String logContent = Files.readString(Path.of("imports/" + logFilename));
+        String logContent = Files.readString(Path.of("main.imports/" + logFilename));
         assertTrue(logContent.contains("Successfully Imported: 1"));
         assertTrue(logContent.contains("Failed: 0"));
     }

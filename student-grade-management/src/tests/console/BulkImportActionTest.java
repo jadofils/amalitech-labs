@@ -1,21 +1,21 @@
 package tests.console;
 
-import console.BulkImportAction;
-import imports.BulkImportService;
-import manager.GradeManager;
-import manager.StudentManager;
-import model.enums.Role;
-import model.student.Student;
+import main.console.BulkImportAction;
+import main.imports.BulkImportService;
+import main.manager.GradeManager;
+import main.manager.StudentManager;
+import main.model.enums.Role;
+import main.model.student.Student;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import repository.student.StudentRepositoryImpl;
-import repository.subject.SubjectRepositoryImpl;
-import service.GradeService;
-import service.GradeServiceImpl;
-import service.StudentService;
-import service.StudentServiceImpl;
+import main.repository.student.StudentRepositoryImpl;
+import main.repository.subject.SubjectRepositoryImpl;
+import main.service.GradeService;
+import main.service.GradeServiceImpl;
+import main.service.StudentService;
+import main.service.StudentServiceImpl;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -37,7 +37,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * validation branches end-to-end. BulkImportActionMockitoTest verifies the
  * same behavior purely through a mocked BulkImportService, including
  * branches (e.g. a non-zero fail count, an ImportException) that are
- * awkward to construct through the real CSV/service stack.
+ * awkward to construct through the real CSV/main.service stack.
  */
 class BulkImportActionTest {
 
@@ -64,10 +64,10 @@ class BulkImportActionTest {
     }
 
     private void writeCsv(String filename, String content) throws IOException {
-        // imports/ is only tracked via .gitkeep (git doesn't track empty
+        // main.imports/ is only tracked via .gitkeep (git doesn't track empty
         // directories), so a fresh checkout - e.g. CI - won't have it yet.
-        new java.io.File("imports").mkdirs();
-        try (FileWriter writer = new FileWriter("imports/" + filename + ".csv")) {
+        new java.io.File("main.imports").mkdirs();
+        try (FileWriter writer = new FileWriter("main.imports/" + filename + ".csv")) {
             writer.write(content);
         }
     }
@@ -80,10 +80,10 @@ class BulkImportActionTest {
     @AfterEach
     void cleanUp() throws IOException {
         if (csvFilename != null) {
-            Files.deleteIfExists(Path.of("imports/" + csvFilename + ".csv"));
+            Files.deleteIfExists(Path.of("main.imports/" + csvFilename + ".csv"));
         }
         if (logFilename != null) {
-            Files.deleteIfExists(Path.of("imports/" + logFilename));
+            Files.deleteIfExists(Path.of("main.imports/" + logFilename));
         }
     }
 
@@ -101,7 +101,7 @@ class BulkImportActionTest {
     }
 
     @Test
-    @DisplayName("Happy path: a CSV with one valid row for a seeded student imports successfully")
+    @DisplayName("Happy path: a CSV with one valid row for a seeded student main.imports successfully")
     void validCsvImportsSuccessfullyTest() throws IOException {
         Student student = studentRepository.getAllStudents().get(0);
         csvFilename = "action-test-" + System.nanoTime();
@@ -139,7 +139,7 @@ class BulkImportActionTest {
     }
 
     @Test
-    @DisplayName("Empty filename prints 'Filename cannot be empty.' and never touches the import service")
+    @DisplayName("Empty filename prints 'Filename cannot be empty.' and never touches the import main.service")
     void emptyFilenamePrintsMessageTest() {
         String output = runWithInput("\n");
 
@@ -155,7 +155,7 @@ class BulkImportActionTest {
         String output = runWithInput(missingFilename + "\n\n");
 
         assertTrue(output.contains("ERROR: "));
-        assertTrue(output.contains("File: imports/" + missingFilename + ".csv"));
+        assertTrue(output.contains("File: main.imports/" + missingFilename + ".csv"));
     }
 
     @Test

@@ -1,12 +1,11 @@
 package tests.subject;
 
-import model.subject.CoreSubject;
-import model.subject.ElectiveSubject;
+import main.model.subject.CoreSubject;
+import main.model.subject.ElectiveSubject;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Subject has no external collaborators to mock, so these tests use a spy on

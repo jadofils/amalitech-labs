@@ -1,13 +1,13 @@
 package tests.calculators;
 
-import calculators.GPACalculator;
-import manager.GradeManager;
-import manager.StudentManager;
-import model.grade.Grade;
-import model.student.RegularStudent;
-import model.student.Student;
-import model.subject.CoreSubject;
-import model.subject.Subject;
+import main.calculators.GPACalculator;
+import main.manager.GradeManager;
+import main.manager.StudentManager;
+import main.model.grade.Grade;
+import main.model.student.RegularStudent;
+import main.model.student.Student;
+import main.model.subject.CoreSubject;
+import main.model.subject.Subject;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

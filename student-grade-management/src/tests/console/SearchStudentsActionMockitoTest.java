@@ -1,13 +1,13 @@
 package tests.console;
 
-import console.SearchStudentsAction;
-import exceptions.ExportException;
-import export.FileExporter;
-import manager.StudentManager;
-import manager.StudentSearcher;
-import model.enums.StudentType;
-import model.student.RegularStudent;
-import model.student.Student;
+import main.console.SearchStudentsAction;
+import main.exceptions.ExportException;
+import main.export.FileExporter;
+import main.manager.StudentManager;
+import main.manager.StudentSearcher;
+import main.model.enums.StudentType;
+import main.model.student.RegularStudent;
+import main.model.student.Student;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -26,7 +26,7 @@ import static org.mockito.Mockito.*;
  * Verifies SearchStudentsAction's own control flow (branch selection, input
  * sanitization/parsing, delegation to its collaborators) with StudentManager,
  * StudentSearcher, and FileExporter all mocked - including the
- * ApplicationException export-failure path that SearchStudentsActionTest
+ * ApplicationException main.export-failure path that SearchStudentsActionTest
  * cannot exercise with a real FileExporter. Happy-path search results and
  * real file writes are covered there instead.
  */

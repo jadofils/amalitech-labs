@@ -1,10 +1,10 @@
 package tests.repository.grade;
 
-import exceptions.GradeException;
-import model.grade.Grade;
+import main.exceptions.GradeException;
+import main.model.grade.Grade;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import repository.grade.GradeRepositoryImpl;
+import main.repository.grade.GradeRepositoryImpl;
 
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;

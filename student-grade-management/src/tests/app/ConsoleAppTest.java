@@ -1,8 +1,8 @@
 package tests.app;
 
-import app.ConsoleApp;
-import console.MenuAction;
-import model.enums.Role;
+import main.app.ConsoleApp;
+import main.console.MenuAction;
+import main.model.enums.Role;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * it impossible to hand it scripted input in a test; ConsoleApp takes its
  * Scanner as a constructor argument instead, so a test can wrap a
  * ByteArrayInputStream and capture System.out to assert on the exact
- * console output, the same way a real session would look.
+ * main.console output, the same way a real session would look.
  */
 class ConsoleAppTest {
 
@@ -87,7 +87,7 @@ class ConsoleAppTest {
     @Test
     void invalidGradeExceptionOffersRetryAndDeclinesCorrectlyTest() {
         StubAction alwaysFails = new StubAction(3, "Record Grade", null, false,
-                count -> new exceptions.InvalidGradeException("Grade must be between 0 and 100.", 150));
+                count -> new main.exceptions.InvalidGradeException("Grade must be between 0 and 100.", 150));
 
         String output = runWithInput(List.of(alwaysFails, exit()), "N\n3\nN\n10\n");
 
@@ -98,7 +98,7 @@ class ConsoleAppTest {
     @Test
     void invalidGradeExceptionRetriesAndSucceedsOnYTest() {
         StubAction failsOnce = new StubAction(3, "Record Grade", null, false,
-                count -> count == 1 ? new exceptions.InvalidGradeException("bad grade", 150) : null);
+                count -> count == 1 ? new main.exceptions.InvalidGradeException("bad grade", 150) : null);
 
         String output = runWithInput(List.of(failsOnce, exit()), "N\n3\nY\n10\n");
 
@@ -109,7 +109,7 @@ class ConsoleAppTest {
     @Test
     void studentNotFoundExceptionPrintsAvailableIdsTest() {
         StubAction notFound = new StubAction(4, "View Grade Report", null, false,
-                count -> new exceptions.StudentNotFoundException("not found", "STU999", List.of("STU001", "STU002")));
+                count -> new main.exceptions.StudentNotFoundException("not found", "STU999", List.of("STU001", "STU002")));
 
         String output = runWithInput(List.of(notFound, exit()), "N\n4\n10\n");
 
@@ -120,7 +120,7 @@ class ConsoleAppTest {
     @Test
     void exportExceptionPrintsTheFilePathTest() {
         StubAction exportFails = new StubAction(5, "Export Grade Report", null, false,
-                count -> new exceptions.ExportException("write failed", "reports/x.txt", new RuntimeException("io")));
+                count -> new main.exceptions.ExportException("write failed", "reports/x.txt", new RuntimeException("io")));
 
         String output = runWithInput(List.of(exportFails, exit()), "N\n5\n10\n");
 
@@ -131,18 +131,18 @@ class ConsoleAppTest {
     @Test
     void importExceptionPrintsTheFilePathTest() {
         StubAction importFails = new StubAction(7, "Bulk Import Grades", null, false,
-                count -> new exceptions.ImportException("read failed", "imports/x.csv", new RuntimeException("io")));
+                count -> new main.exceptions.ImportException("read failed", "main.imports/x.csv", new RuntimeException("io")));
 
         String output = runWithInput(List.of(importFails, exit()), "N\n7\n10\n");
 
         assertTrue(output.contains("ERROR: ImportException"));
-        assertTrue(output.contains("File: imports/x.csv"));
+        assertTrue(output.contains("File: main.imports/x.csv"));
     }
 
     @Test
     void unnamedApplicationExceptionStillReachesTheFinalCatchAllTest() {
         StubAction genericFailure = new StubAction(8, "View Class Statistics", null, false,
-                count -> new exceptions.CSVImportException("unexpected failure"));
+                count -> new main.exceptions.CSVImportException("unexpected failure"));
 
         String output = runWithInput(List.of(genericFailure, exit()), "N\n8\n10\n");
 

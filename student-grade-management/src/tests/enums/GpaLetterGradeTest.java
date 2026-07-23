@@ -1,6 +1,6 @@
 package tests.enums;
 
-import model.enums.GpaLetterGrade;
+import main.model.enums.GpaLetterGrade;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;

@@ -1,14 +1,14 @@
 package tests.repository.subject;
 
-import exceptions.SubjectNotFoundException;
-import exceptions.SubjectValidationException;
-import model.enums.SubjectType;
-import model.subject.CoreSubject;
-import model.subject.ElectiveSubject;
-import model.subject.Subject;
+import main.exceptions.SubjectNotFoundException;
+import main.exceptions.SubjectValidationException;
+import main.model.enums.SubjectType;
+import main.model.subject.CoreSubject;
+import main.model.subject.ElectiveSubject;
+import main.model.subject.Subject;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import repository.subject.SubjectRepositoryImpl;
+import main.repository.subject.SubjectRepositoryImpl;
 
 import java.util.List;
 
@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class SubjectRepositoryImplTest {
 
     @Test
-    @DisplayName("A new repository is pre-seeded with 6 subjects: 3 core, 3 elective")
+    @DisplayName("A new main.repository is pre-seeded with 6 subjects: 3 core, 3 elective")
     void seedsSixSubjectsTest() {
         SubjectRepositoryImpl repository = new SubjectRepositoryImpl();
         List<Subject> subjects = repository.getAllSubjects();
@@ -43,8 +43,8 @@ class SubjectRepositoryImplTest {
     }
 
     // Unlike StudentRepositoryImpl.addStudent() and GradeRepositoryImpl.addGrade(),
-    // this repository calls SubjectValidator directly - so a malformed subject is
-    // rejected here, at the storage layer, not only at the service layer above it.
+    // this main.repository calls SubjectValidator directly - so a malformed subject is
+    // rejected here, at the storage layer, not only at the main.service layer above it.
     @Test
     @DisplayName("addSubject() enforces SubjectValidator's rules directly")
     void addSubjectValidatesTest() {

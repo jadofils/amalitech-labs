@@ -1,12 +1,12 @@
 package tests.grade;
 
-import exceptions.InvalidGradeException;
-import model.enums.LetterGrade;
-import model.enums.SubjectType;
-import model.grade.Grade;
-import model.subject.CoreSubject;
-import model.subject.ElectiveSubject;
-import model.subject.Subject;
+import main.exceptions.InvalidGradeException;
+import main.model.enums.LetterGrade;
+import main.model.enums.SubjectType;
+import main.model.grade.Grade;
+import main.model.subject.CoreSubject;
+import main.model.subject.ElectiveSubject;
+import main.model.subject.Subject;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;

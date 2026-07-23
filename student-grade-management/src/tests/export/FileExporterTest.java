@@ -1,7 +1,7 @@
 package tests.export;
 
-import exceptions.ExportException;
-import export.FileExporter;
+import main.exceptions.ExportException;
+import main.export.FileExporter;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -69,7 +69,7 @@ class FileExporterTest {
                 () -> exporter.exportToFile("already_a_directory.txt", "content"));
 
         assertEquals(testDir + "/already_a_directory.txt", ex.getFilePath());
-        assertTrue(ex.getMessage().contains("Failed to export report"));
+        assertTrue(ex.getMessage().contains("Failed to main.export report"));
         assertNotNull(ex.getCause());
     }
 }

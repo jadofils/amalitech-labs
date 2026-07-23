@@ -14,12 +14,12 @@ Estimated: 5-6 hours
 
 ### PBI-1: Enhanced Exception Handling (3 SP)
 **Subtasks:**
-- Remove generic RuntimeException extends from existing exceptions
+- Remove generic RuntimeException extends from existing main.exceptions
 - Add InvalidGradeException
 - Add ExportException
 - Add InvalidFileFormatException
 - Add ImportException
-- Ensure all exceptions have useful messages
+- Ensure all main.exceptions have useful messages
 
 ### PBI-2: SOLID Interfaces + New Classes (2 SP)
 
@@ -41,7 +41,7 @@ Estimated: 5-6 hours
 - Create `ReportGenerator` class
 - Create `FileExporter` class
 - Add method to GradeManager for gathering report data
-- Wire up export option in Main menu (option 5)
+- Wire up main.export option in Main menu (option 5)
 - Test with various report types
 
 ### PBI-3: GPA Calculator (5 SP)
@@ -59,7 +59,7 @@ Estimated: 5-6 hours
 
 - All code compiles and runs
 - No generic Exception/Error catches
-- Custom exceptions thrown for all error states
+- Custom main.exceptions thrown for all error states
 - Export creates valid text file in reports/ directory
 - GPA calculations match the reference table
 - SOLID interfaces implemented and used

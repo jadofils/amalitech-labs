@@ -1,17 +1,17 @@
 package tests.console;
 
-import calculators.GPACalculator;
-import console.CalculateGpaAction;
-import exceptions.StudentNotFoundException;
-import manager.GradeManager;
-import manager.StudentManager;
-import model.enums.StudentStatus;
-import model.grade.Grade;
-import model.student.HonorsStudent;
-import model.student.RegularStudent;
-import model.student.Student;
-import model.subject.CoreSubject;
-import model.subject.Subject;
+import main.calculators.GPACalculator;
+import main.console.CalculateGpaAction;
+import main.exceptions.StudentNotFoundException;
+import main.manager.GradeManager;
+import main.manager.StudentManager;
+import main.model.enums.StudentStatus;
+import main.model.grade.Grade;
+import main.model.student.HonorsStudent;
+import main.model.student.RegularStudent;
+import main.model.student.Student;
+import main.model.subject.CoreSubject;
+import main.model.subject.Subject;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -32,7 +32,7 @@ import static org.mockito.Mockito.*;
  * HonorsStudent that is eligible vs. one that is not, and a plain
  * RegularStudent that never shows the line at all), and the
  * above/below-class-average comparison - plus the short-circuit on an
- * unknown student ID that the real seeded repository can never actually
+ * unknown student ID that the real seeded main.repository can never actually
  * produce (findStudent() there returns null instead of throwing, but
  * CalculateGpaAction itself is what turns that null into the exception).
  */
