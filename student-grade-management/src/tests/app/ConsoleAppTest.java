@@ -130,12 +130,12 @@ class ConsoleAppTest {
     @Test
     void importExceptionPrintsTheFilePathTest() {
         StubAction importFails = new StubAction(7, "Bulk Import Grades", null, false,
-                count -> new main.exceptions.ImportException("read failed", "main.imports/x.csv", new RuntimeException("io")));
+                count -> new main.exceptions.ImportException("read failed", "imports/x.csv", new RuntimeException("io")));
 
         String output = runWithInput(List.of(importFails, exit()), "N\n7\n10\n");
 
         assertTrue(output.contains("ERROR: ImportException"));
-        assertTrue(output.contains("File: main.imports/x.csv"));
+        assertTrue(output.contains("File: imports/x.csv"));
     }
 
     @Test

@@ -18,7 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Imports grades in bulk from a CSV file under {@code main.imports/}, skipping
+ * Imports grades in bulk from a CSV file under {@code imports/}, skipping
  * (not aborting on) invalid rows, and writes a log file summarizing the run.
  */
 public class BulkImportService {
@@ -35,7 +35,7 @@ public class BulkImportService {
     }
 
     public ImportResult importFromFile(String filename) {
-        String path = "main.imports/" + filename + ".csv";
+        String path = "imports/" + filename + ".csv";
         File file = new File(path);
 
         if (!file.exists()) {
@@ -72,7 +72,7 @@ public class BulkImportService {
                                    int total, List<String> failReasons) {
         String timestamp = DateFormats.now(DateFormats.FILE_SAFE_TIMESTAMP);
         String logFilename = "import_log_" + timestamp + ".txt";
-        String logPath = "main.imports/" + logFilename;
+        String logPath = "imports/" + logFilename;
 
         try (FileWriter writer = new FileWriter(logPath)) {
             writer.write("IMPORT LOG\n");

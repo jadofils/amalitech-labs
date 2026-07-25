@@ -28,10 +28,10 @@ class BulkImportServiceTest {
     private String logFilename;
 
     private void writeCsv(String filename, String content) throws IOException {
-        // main.imports/ is only tracked via .gitkeep (git doesn't track empty
+        // imports/ is only tracked via .gitkeep (git doesn't track empty
         // directories), so a fresh checkout - e.g. CI - won't have it yet.
-        new java.io.File("main.imports").mkdirs();
-        try (FileWriter writer = new FileWriter("main.imports/" + filename + ".csv")) {
+        new java.io.File("imports").mkdirs();
+        try (FileWriter writer = new FileWriter("imports/" + filename + ".csv")) {
             writer.write(content);
         }
     }
@@ -39,10 +39,10 @@ class BulkImportServiceTest {
     @AfterEach
     void cleanUp() throws IOException {
         if (csvFilename != null) {
-            Files.deleteIfExists(Path.of("main.imports/" + csvFilename + ".csv"));
+            Files.deleteIfExists(Path.of("imports/" + csvFilename + ".csv"));
         }
         if (logFilename != null) {
-            Files.deleteIfExists(Path.of("main.imports/" + logFilename));
+            Files.deleteIfExists(Path.of("imports/" + logFilename));
         }
     }
 
@@ -69,7 +69,7 @@ class BulkImportServiceTest {
         assertEquals(1, result.getSuccessCount());
         assertEquals(1, result.getFailedCount());
         assertEquals(1, gradeManager.getGradeCount());
-        assertTrue(Files.exists(Path.of("main.imports/" + logFilename)));
+        assertTrue(Files.exists(Path.of("imports/" + logFilename)));
     }
 
     @Test
@@ -106,7 +106,7 @@ class BulkImportServiceTest {
         BulkImportService.ImportResult result = bulkImportService.importFromFile(csvFilename);
         logFilename = result.getLogFilename();
 
-        String logContent = Files.readString(Path.of("main.imports/" + logFilename));
+        String logContent = Files.readString(Path.of("imports/" + logFilename));
         assertTrue(logContent.contains("Successfully Imported: 1"));
         assertTrue(logContent.contains("Failed: 0"));
     }

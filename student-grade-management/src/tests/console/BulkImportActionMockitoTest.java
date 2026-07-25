@@ -91,12 +91,12 @@ class BulkImportActionMockitoTest {
     void importExceptionIsCaughtAndPrintedTest() {
         BulkImportService bulkImportService = mock(BulkImportService.class);
         when(bulkImportService.importFromFile("missing"))
-                .thenThrow(new ImportException("File not found: main.imports/missing.csv", "main.imports/missing.csv", null));
+                .thenThrow(new ImportException("File not found: imports/missing.csv", "imports/missing.csv", null));
 
         String output = assertDoesNotThrow(() -> runWithInput(bulkImportService, "missing\n\n"));
 
-        assertTrue(output.contains("ERROR: File not found: main.imports/missing.csv"));
-        assertTrue(output.contains("File: main.imports/missing.csv"));
+        assertTrue(output.contains("ERROR: File not found: imports/missing.csv"));
+        assertTrue(output.contains("File: imports/missing.csv"));
     }
 
     @Test

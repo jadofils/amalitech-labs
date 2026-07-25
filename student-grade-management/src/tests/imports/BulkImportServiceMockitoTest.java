@@ -33,10 +33,10 @@ class BulkImportServiceMockitoTest {
     private String logFilename;
 
     private void writeCsv(String filename, String content) throws IOException {
-        // main.imports/ is only tracked via .gitkeep (git doesn't track empty
+        // imports/ is only tracked via .gitkeep (git doesn't track empty
         // directories), so a fresh checkout - e.g. CI - won't have it yet.
-        new java.io.File("main.imports").mkdirs();
-        try (FileWriter writer = new FileWriter("main.imports/" + filename + ".csv")) {
+        new java.io.File("imports").mkdirs();
+        try (FileWriter writer = new FileWriter("imports/" + filename + ".csv")) {
             writer.write(content);
         }
     }
@@ -44,10 +44,10 @@ class BulkImportServiceMockitoTest {
     @AfterEach
     void cleanUp() throws IOException {
         if (csvFilename != null) {
-            Files.deleteIfExists(Path.of("main.imports/" + csvFilename + ".csv"));
+            Files.deleteIfExists(Path.of("imports/" + csvFilename + ".csv"));
         }
         if (logFilename != null) {
-            Files.deleteIfExists(Path.of("main.imports/" + logFilename));
+            Files.deleteIfExists(Path.of("imports/" + logFilename));
         }
     }
 
