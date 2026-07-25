@@ -2,6 +2,7 @@ package tests.dataio;
 
 import main.dataio.GradeRecord;
 import main.dataio.GradeRecordMapper;
+import main.exceptions.InvalidGradeException;
 import main.model.grade.Grade;
 import main.model.subject.Subject;
 import org.junit.jupiter.api.DisplayName;
@@ -60,5 +61,19 @@ class GradeRecordMapperTest {
         assertEquals(original.getSubject().getSubjectCode(), rebuilt.getSubject().getSubjectCode());
         assertEquals(original.getGrade(), rebuilt.getGrade());
         assertEquals(original.getDate(), rebuilt.getDate());
+    }
+
+    @Test
+    @DisplayName("toGrade() rejects a malformed gradeId before ever looking up the subject (US-3/PBI-3)")
+    void toGradeRejectsMalformedGradeIdTest() {
+        GradeRecord record = new GradeRecord("BADID", "STU001", "MATH01", 85.0, "01-01-2026");
+        assertThrows(InvalidGradeException.class, () -> GradeRecordMapper.toGrade(record, subjectRepository));
+    }
+
+    @Test
+    @DisplayName("toGrade() rejects a malformed studentId before ever looking up the subject (US-3/PBI-3)")
+    void toGradeRejectsMalformedStudentIdTest() {
+        GradeRecord record = new GradeRecord("GRD001", "BADID", "MATH01", 85.0, "01-01-2026");
+        assertThrows(InvalidGradeException.class, () -> GradeRecordMapper.toGrade(record, subjectRepository));
     }
 }
