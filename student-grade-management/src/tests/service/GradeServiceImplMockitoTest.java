@@ -1,18 +1,18 @@
 package tests.service;
 
-import exceptions.StudentNotFoundException;
-import exceptions.GradeException;
-import exceptions.SubjectNotFoundException;
-import model.grade.Grade;
-import model.subject.CoreSubject;
-import model.subject.Subject;
+import main.exceptions.StudentNotFoundException;
+import main.exceptions.GradeException;
+import main.exceptions.SubjectNotFoundException;
+import main.model.grade.Grade;
+import main.model.subject.CoreSubject;
+import main.model.subject.Subject;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
-import repository.grade.GradeRepository;
-import repository.student.StudentRepository;
-import repository.subject.SubjectRepository;
-import service.GradeServiceImpl;
+import main.repository.grade.GradeRepository;
+import main.repository.student.StudentRepository;
+import main.repository.subject.SubjectRepository;
+import main.service.GradeServiceImpl;
 
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -76,7 +76,7 @@ class GradeServiceImplMockitoTest {
     }
 
     @Test
-    @DisplayName("getGradeById() wraps a null repository result in a GradeException")
+    @DisplayName("getGradeById() wraps a null main.repository result in a GradeException")
     void getGradeByIdWrapsNullTest() {
         // The real GradeRepositoryImpl can never actually return null here (it
         // throws first) - this defensive branch is only reachable with a mock,
@@ -91,7 +91,7 @@ class GradeServiceImplMockitoTest {
     }
 
     @Test
-    @DisplayName("getGradesByStudentId() delegates to the grade repository")
+    @DisplayName("getGradesByStudentId() delegates to the grade main.repository")
     void getGradesByStudentIdDelegatesTest() {
         GradeRepository grades = mock(GradeRepository.class);
         GradeServiceImpl service = new GradeServiceImpl(grades, mock(StudentRepository.class), mock(SubjectRepository.class));
@@ -102,7 +102,7 @@ class GradeServiceImplMockitoTest {
     }
 
     @Test
-    @DisplayName("deleteGrade() delegates to the grade repository with the given ID")
+    @DisplayName("deleteGrade() delegates to the grade main.repository with the given ID")
     void deleteGradeDelegatesTest() {
         GradeRepository grades = mock(GradeRepository.class);
         GradeServiceImpl service = new GradeServiceImpl(grades, mock(StudentRepository.class), mock(SubjectRepository.class));

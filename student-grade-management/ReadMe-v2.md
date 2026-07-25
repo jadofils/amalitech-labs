@@ -32,12 +32,12 @@ An **enhanced** Student Grade Management System with:
 
 ### Quality Improvements
 
-- **Exception Handling** - Custom exceptions for all error scenarios
+- **Exception Handling** - Custom main.exceptions for all error scenarios
 - **Unit Tests** - Comprehensive JUnit tests with 80%+ coverage
 - **SOLID Principles** - Refactored code following SOLID
 - **Git Workflow** - Feature branch workflow with proper commits
 - **Input Validation** - Robust validation with helpful error messages
-- **Logging** - Application-wide logging for debugging
+- **Logging** - Application-wide main.logging for debugging
 
 ---
 
@@ -141,7 +141,7 @@ Enter choice: 7
 BULK IMPORT GRADES
 ─────────────────────────────────────────────
 
-Place your CSV file in: ./imports/
+Place your CSV file in: ./main.imports/
 
 CSV Format Required:
 StudentID,SubjectName,SubjectType,Grade
@@ -316,18 +316,18 @@ Enter grade (0-100): 95
 
 **Acceptance Criteria:**
 
-- Custom exceptions for all error scenarios
+- Custom main.exceptions for all error scenarios
 - Informative error messages with recovery suggestions
 - No use of generic Exception catching
-- All exceptions logged with timestamps
-- Input validation prevents most exceptions before they occur
+- All main.exceptions logged with timestamps
+- Input validation prevents most main.exceptions before they occur
 
 ---
 
 ### US-2: Export Grade Report (NEW)
 
 **As a** teacher
-**I want to** export grade reports to files
+**I want to** main.export grade reports to files
 **So that** I can share them with students and parents
 
 **Acceptance Criteria:**
@@ -335,8 +335,8 @@ Enter grade (0-100): 95
 - Export summary or detailed reports
 - Save to text files in `reports/` directory
 - Include student info, all grades, averages, and performance analysis
-- Handle file I/O exceptions properly
-- Confirm export success with file location and size
+- Handle file I/O main.exceptions properly
+- Confirm main.export success with file location and size
 
 ---
 
@@ -380,7 +380,7 @@ Enter grade (0-100): 95
 
 **Acceptance Criteria:**
 
-- Read CSV files from `imports/` directory
+- Read CSV files from `main.imports/` directory
 - Validate file format before processing
 - Validate each row (student exists, grade in range, subject valid)
 - Skip invalid rows but continue processing
@@ -427,7 +427,7 @@ STU001,Music,Elective,78
 - Search by grade range (e.g., 80-90%)
 - Search by student type (Regular/Honors)
 - Display search results in a table
-- Allow actions on search results (view details, export)
+- Allow actions on search results (view details, main.export)
 
 ---
 
@@ -462,7 +462,7 @@ STU001,Music,Elective,78
 #### Dependency Inversion Principle (DIP)
 
 - High-level modules (`BulkImportService`) depend on abstractions (`CSVParser` interface)
-- Use dependency injection in service classes
+- Use dependency injection in main.service classes
 
 ---
 
@@ -485,7 +485,7 @@ STU001,Music,Elective,78
 
 - `main`: Production-ready code (protected)
 - `develop`: Integration branch
-- `feature/*`: Feature branches (e.g., `feature/export-reports`, `feature/bulk-import`)
+- `feature/*`: Feature branches (e.g., `feature/main.export-reports`, `feature/bulk-import`)
 - `bugfix/*`: Bug fix branches
 - `hotfix/*`: Emergency fixes
 
@@ -516,12 +516,12 @@ test: add unit tests for statistics calculator
 
 ### Implementation
 
-- [ ] All custom exceptions implemented
+- [ ] All custom main.exceptions implemented
 - [ ] All 6 new user stories working
 - [ ] SOLID principles applied throughout
 - [ ] Exception handling on all user inputs and file operations
 - [ ] Logging implemented for debugging
-- [ ] All service classes use dependency injection
+- [ ] All main.service classes use dependency injection
 
 ### Testing
 
@@ -564,11 +564,11 @@ test: add unit tests for statistics calculator
 
 | # | Criteria | Points | What We're Looking For |
 |---|----------|--------|----------------------|
-| 1 | Exception Handling | 15 | All custom exceptions implemented, proper error handling, informative messages, no generic catches |
+| 1 | Exception Handling | 15 | All custom main.exceptions implemented, proper error handling, informative messages, no generic catches |
 | 2 | Testing (JUnit/Mockito) | 20 | 80%+ coverage, meaningful tests, proper mocking, tests pass, integration tests included |
 | 3 | SOLID Principles | 15 | SRP evident, OCP in hierarchies, LSP maintained, ISP with focused interfaces, DIP with injection |
 | 4 | Git Workflow | 15 | Feature branches, 20+ commits, conventional messages, pull requests, proper branching strategy |
-| 5 | New Functionality | 20 | All 6 user stories work correctly, export reports, GPA calculation, bulk import, statistics, search |
+| 5 | New Functionality | 20 | All 6 user stories work correctly, main.export reports, GPA calculation, bulk import, statistics, search |
 | 6 | Code Quality | 10 | Clean code, no duplication, proper naming, JavaDoc comments, constants used |
 | 7 | Documentation | 5 | README, CHANGELOG, test instructions, Git workflow docs |
 | 8 | **Total** | **100** | |
@@ -610,7 +610,7 @@ test: add unit tests for statistics calculator
 
 1. Create CSV file with 10 valid records
 2. Add 2 invalid records (invalid student ID, grade > 100)
-3. Place file in `imports/` directory
+3. Place file in `main.imports/` directory
 4. Select option 7 (Bulk Import Grades)
 5. Enter filename
 6. Verify 10 succeed, 2 fail

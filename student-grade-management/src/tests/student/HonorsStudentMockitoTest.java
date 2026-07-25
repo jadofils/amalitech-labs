@@ -1,6 +1,6 @@
 package tests.student;
 
-import model.student.HonorsStudent;
+import main.model.student.HonorsStudent;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

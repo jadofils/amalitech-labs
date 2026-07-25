@@ -1,0 +1,19 @@
+package main.exceptions;
+
+/**
+ * Thrown when a CSV file cannot be read at all - as opposed to an individual
+ * row being invalid, which {@code main.imports.CSVParser} collects as a per-row
+ * error message instead of throwing. This is the class
+ * {@code docs/v2-backlog.md}'s PBI-4 names explicitly; the parser previously
+ * reused a since-removed {@code InvalidFileFormatException} for this instead.
+ */
+public class CSVImportException extends ApplicationException {
+
+    public CSVImportException(String message) {
+        super(message);
+    }
+
+    public CSVImportException(String message, Throwable cause) {
+        super(message, cause);
+    }
+}

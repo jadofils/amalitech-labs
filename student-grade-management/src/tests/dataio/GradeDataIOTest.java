@@ -1,9 +1,9 @@
 package tests.dataio;
 
-import dataio.GradeDataExporter;
-import dataio.GradeDataImporter;
-import dataio.GradeRecord;
-import exceptions.ImportException;
+import main.dataio.GradeDataExporter;
+import main.dataio.GradeDataImporter;
+import main.dataio.GradeRecord;
+import main.exceptions.ImportException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

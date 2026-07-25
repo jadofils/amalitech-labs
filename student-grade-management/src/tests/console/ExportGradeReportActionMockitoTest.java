@@ -1,14 +1,14 @@
 package tests.console;
 
-import console.ExportGradeReportAction;
-import exceptions.StudentNotFoundException;
-import export.FileExporter;
-import export.ReportGenerator;
-import manager.GradeManager;
-import manager.StudentManager;
-import model.enums.StudentStatus;
-import model.student.RegularStudent;
-import model.student.Student;
+import main.console.ExportGradeReportAction;
+import main.exceptions.StudentNotFoundException;
+import main.export.FileExporter;
+import main.export.ReportGenerator;
+import main.manager.GradeManager;
+import main.manager.StudentManager;
+import main.model.enums.StudentStatus;
+import main.model.student.RegularStudent;
+import main.model.student.Student;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
@@ -25,7 +25,7 @@ import static org.mockito.Mockito.*;
 /**
  * Mocks StudentManager, GradeManager, ReportGenerator and FileExporter to
  * verify ExportGradeReportAction's branching in isolation: the student-not-found
- * and empty-filename short-circuits (report/export methods must never be
+ * and empty-filename short-circuits (report/main.export methods must never be
  * called), the summary-only and detailed-only paths delegating to exactly the
  * right ReportGenerator/FileExporter method, and the "both" path invoking
  * summary before detailed in order.

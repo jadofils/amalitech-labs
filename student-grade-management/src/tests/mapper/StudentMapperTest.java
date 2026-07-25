@@ -1,10 +1,10 @@
 package tests.mapper;
 
-import dto.StudentDTO;
-import mapper.StudentMapper;
-import model.student.HonorsStudent;
-import model.student.RegularStudent;
-import model.student.Student;
+import main.dto.StudentDTO;
+import main.mapper.StudentMapper;
+import main.model.student.HonorsStudent;
+import main.model.student.RegularStudent;
+import main.model.student.Student;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

@@ -1,10 +1,10 @@
 package tests.console;
 
-import console.AddStudentAction;
-import manager.StudentManager;
-import model.student.HonorsStudent;
-import model.student.RegularStudent;
-import model.student.Student;
+import main.console.AddStudentAction;
+import main.manager.StudentManager;
+import main.model.student.HonorsStudent;
+import main.model.student.RegularStudent;
+import main.model.student.Student;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -27,10 +27,9 @@ import static org.junit.jupiter.api.Assertions.*;
 class AddStudentActionMockitoTest {
 
     private String runAddStudent(StudentManager studentManager, String scriptedInput) {
-        Scanner scanner = new Scanner(new ByteArrayInputStream(scriptedInput.getBytes(StandardCharsets.UTF_8)));
         PrintStream originalOut = System.out;
         ByteArrayOutputStream captured = new ByteArrayOutputStream();
-        try {
+        try (Scanner scanner = new Scanner(new ByteArrayInputStream(scriptedInput.getBytes(StandardCharsets.UTF_8)))) {
             System.setOut(new PrintStream(captured, true, StandardCharsets.UTF_8));
             new AddStudentAction(scanner, studentManager).execute();
         } finally {

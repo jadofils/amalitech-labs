@@ -1,23 +1,23 @@
 package tests.calculators;
 
-import calculators.GPACalculator;
-import manager.GradeManager;
-import manager.StudentManager;
-import model.grade.Grade;
-import model.student.RegularStudent;
-import model.student.Student;
-import model.subject.CoreSubject;
-import model.subject.Subject;
+import main.calculators.GPACalculator;
+import main.manager.GradeManager;
+import main.manager.StudentManager;
+import main.model.grade.Grade;
+import main.model.student.RegularStudent;
+import main.model.student.Student;
+import main.model.subject.CoreSubject;
+import main.model.subject.Subject;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import repository.student.StudentRepositoryImpl;
-import repository.subject.SubjectRepositoryImpl;
-import service.GradeService;
-import service.StudentService;
-import service.GradeServiceImpl;
-import service.StudentServiceImpl;
+import main.repository.student.StudentRepositoryImpl;
+import main.repository.subject.SubjectRepositoryImpl;
+import main.service.GradeService;
+import main.service.StudentService;
+import main.service.GradeServiceImpl;
+import main.service.StudentServiceImpl;
 
 import java.util.List;
 import java.util.Map;
@@ -29,8 +29,7 @@ class GPACalculatorTest {
 
     private final Subject subject = new CoreSubject("Mathematics", "MATH01");
 
-    private GPACalculator newCalculator(StudentRepositoryImpl students, SubjectRepositoryImpl subjects,
-                                         GradeManager gradeManager) {
+    private GPACalculator newCalculator(StudentRepositoryImpl students, GradeManager gradeManager) {
         StudentService studentService = new StudentServiceImpl(students);
         StudentManager studentManager = new StudentManager(studentService, gradeManager);
         return new GPACalculator(gradeManager, studentManager);
@@ -57,7 +56,7 @@ class GPACalculatorTest {
         SubjectRepositoryImpl subjects = new SubjectRepositoryImpl();
         GradeService gradeService = new GradeServiceImpl(students, subjects);
         GradeManager gradeManager = new GradeManager(gradeService, subjects);
-        GPACalculator calculator = newCalculator(students, subjects, gradeManager);
+        GPACalculator calculator = newCalculator(students, gradeManager);
 
         assertEquals(expectedGPA, calculator.percentageToGPA(percentage), 0.0001);
     }
@@ -77,7 +76,7 @@ class GPACalculatorTest {
         SubjectRepositoryImpl subjects = new SubjectRepositoryImpl();
         GradeService gradeService = new GradeServiceImpl(students, subjects);
         GradeManager gradeManager = new GradeManager(gradeService, subjects);
-        GPACalculator calculator = newCalculator(students, subjects, gradeManager);
+        GPACalculator calculator = newCalculator(students, gradeManager);
 
         assertEquals(expectedLetter, calculator.gpaToLetter(gpa));
     }
@@ -89,7 +88,7 @@ class GPACalculatorTest {
         SubjectRepositoryImpl subjects = new SubjectRepositoryImpl();
         GradeService gradeService = new GradeServiceImpl(students, subjects);
         GradeManager gradeManager = new GradeManager(gradeService, subjects);
-        GPACalculator calculator = newCalculator(students, subjects, gradeManager);
+        GPACalculator calculator = newCalculator(students, gradeManager);
         Student student = students.getAllStudents().get(0);
 
         gradeManager.addGrade(new Grade(student.getStudentId(), subject, 95.0)); // 4.0
@@ -105,7 +104,7 @@ class GPACalculatorTest {
         SubjectRepositoryImpl subjects = new SubjectRepositoryImpl();
         GradeService gradeService = new GradeServiceImpl(students, subjects);
         GradeManager gradeManager = new GradeManager(gradeService, subjects);
-        GPACalculator calculator = newCalculator(students, subjects, gradeManager);
+        GPACalculator calculator = newCalculator(students, gradeManager);
         Student student = students.getAllStudents().get(0);
 
         assertEquals(0.0, calculator.cumulativeGPA(student.getStudentId()));
@@ -118,7 +117,7 @@ class GPACalculatorTest {
         SubjectRepositoryImpl subjects = new SubjectRepositoryImpl();
         GradeService gradeService = new GradeServiceImpl(students, subjects);
         GradeManager gradeManager = new GradeManager(gradeService, subjects);
-        GPACalculator calculator = newCalculator(students, subjects, gradeManager);
+        GPACalculator calculator = newCalculator(students, gradeManager);
 
         Student top = new RegularStudent("Top Student", 16, "top@school.edu", "1234567890");
         Student middle = new RegularStudent("Middle Student", 16, "middle@school.edu", "1234567890");
@@ -138,7 +137,7 @@ class GPACalculatorTest {
         SubjectRepositoryImpl subjects = new SubjectRepositoryImpl();
         GradeService gradeService = new GradeServiceImpl(students, subjects);
         GradeManager gradeManager = new GradeManager(gradeService, subjects);
-        GPACalculator calculator = newCalculator(students, subjects, gradeManager);
+        GPACalculator calculator = newCalculator(students, gradeManager);
 
         Student top = new RegularStudent("Top Student", 16, "top@school.edu", "1234567890");
         Student alsoTop = new RegularStudent("Also Top Student", 16, "alsotop@school.edu", "1234567890");

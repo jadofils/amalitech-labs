@@ -1,18 +1,17 @@
 package tests.service;
 
-import exceptions.StudentNotFoundException;
-import exceptions.GradeException;
-import exceptions.SubjectNotFoundException;
-import model.grade.Grade;
-import model.student.RegularStudent;
-import model.student.Student;
-import model.subject.CoreSubject;
-import model.subject.Subject;
+import main.exceptions.StudentNotFoundException;
+import main.exceptions.GradeException;
+import main.exceptions.SubjectNotFoundException;
+import main.model.grade.Grade;
+import main.model.student.Student;
+import main.model.subject.CoreSubject;
+import main.model.subject.Subject;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import repository.student.StudentRepositoryImpl;
-import repository.subject.SubjectRepositoryImpl;
-import service.GradeServiceImpl;
+import main.repository.student.StudentRepositoryImpl;
+import main.repository.subject.SubjectRepositoryImpl;
+import main.service.GradeServiceImpl;
 
 import java.util.List;
 
@@ -61,7 +60,7 @@ class GradeServiceImplTest {
     }
 
     @Test
-    @DisplayName("recordGrade() rejects a subject that was never registered in the repository")
+    @DisplayName("recordGrade() rejects a subject that was never registered in the main.repository")
     void recordGradeUnknownSubjectTest() {
         StudentRepositoryImpl students = new StudentRepositoryImpl();
         SubjectRepositoryImpl subjects = new SubjectRepositoryImpl();
@@ -69,7 +68,7 @@ class GradeServiceImplTest {
         String studentId = students.getAllStudents().get(0).getStudentId();
 
         // A real Subject instance, but one that was constructed directly and
-        // never added to subjects - GradeService still checks the repository,
+        // never added to subjects - GradeService still checks the main.repository,
         // not the reference on the Grade object itself.
         Subject unregisteredSubject = new CoreSubject("Philosophy", "PHIL01");
         Grade grade = new Grade(studentId, unregisteredSubject, 85.0);

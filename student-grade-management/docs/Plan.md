@@ -7,15 +7,15 @@
 
 This plan extends the original **Student Grade Management** lab spec
 (`Java Basics/Student-Grade-Mgt-I.md`), which asked for an in-memory
-console app with 9 classes and arrays as storage. We keep an in-memory
+main.console main.app with 9 classes and arrays as storage. We keep an in-memory
 approach with array-based repositories, organized in a layered architecture.
 
 **Key conventions:**
-- Storage: a **repository layer** (array-backed) replaces the simple array
+- Storage: a **main.repository layer** (array-backed) replaces the simple array
   approach from the original spec with proper separation of concerns.
   `StudentManager` / `GradeManager`.
-- Two packages beyond the original list: **`repository`** (data access)
-  and **`manager`** (facade over services).
+- Two packages beyond the original list: **`main.repository`** (data access)
+  and **`main.manager`** (facade over services).
 - **`Main`** does menu I/O directly (no separate `controller` package).
 - Plain Java, no build tools, no external dependencies.
 
@@ -26,7 +26,7 @@ I review and explain, no finished classes handed to you.
 
 ## 1. Tech Stack
 
-Plain Java (JDK 17+), `Scanner` for console I/O, `HashMap` for in-memory
+Plain Java (JDK 17+), `Scanner` for main.console I/O, `HashMap` for in-memory
 storage. No build tools, no databases, no external dependencies.
 
 ---
@@ -35,14 +35,14 @@ storage. No build tools, no databases, no external dependencies.
 
 ```
 com.amalitech.studentgrades
-├── model/            -> Student, RegularStudent, HonorsStudent, Subject, CoreSubject, ElectiveSubject, Grade, Gradable
+├── main.model/            -> Student, RegularStudent, HonorsStudent, Subject, CoreSubject, ElectiveSubject, Grade, Gradable
 ├── validation/         -> StudentValidator, GradeValidator
-├── exceptions/         -> custom exception hierarchy
-├── repository/         -> interfaces + in-memory HashMap impls
+├── main.exceptions/         -> custom exception hierarchy
+├── main.repository/         -> interfaces + in-memory HashMap impls
 │   └── impl/
-├── service/            -> business-logic interfaces
+├── main.service/            -> business-logic interfaces
 ├── serviceimpl/        -> business-logic implementations
-├── manager/            -> facade over services (what Main actually calls)
+├── main.manager/            -> facade over services (what Main actually calls)
 └── Main.java           -> composition root, menu loop
 ```
 
@@ -52,27 +52,27 @@ com.amalitech.studentgrades
 
 | Original class (spec) | New location | Notes |
 |---|---|---|---|
-| `Student` (abstract) | `model` | unchanged role |
-| `RegularStudent`, `HonorsStudent` | `model` | unchanged role |
-| `Subject` (abstract) | `model` | unchanged role |
-| `CoreSubject`, `ElectiveSubject` | `model` | unchanged role |
-| `Gradable` (interface) | `model` | kept with the domain objects it describes |
-| `Grade` | `model` | unchanged role |
-| `StudentManager` | split -> `repository.StudentRepository` (+ impl) and `service`/`serviceimpl` | array storage becomes `HashMap`-backed repository; class-average logic moves to service |
-| `GradeManager` | split -> `repository.GradeRepository` (+ impl) and `service`/`serviceimpl` | same pattern |
-| *(new)* `SubjectRepository` | `repository` | subjects seeded as reference data in-memory |
+| `Student` (abstract) | `main.model` | unchanged role |
+| `RegularStudent`, `HonorsStudent` | `main.model` | unchanged role |
+| `Subject` (abstract) | `main.model` | unchanged role |
+| `CoreSubject`, `ElectiveSubject` | `main.model` | unchanged role |
+| `Gradable` (interface) | `main.model` | kept with the domain objects it describes |
+| `Grade` | `main.model` | unchanged role |
+| `StudentManager` | split -> `main.repository.StudentRepository` (+ impl) and `main.service`/`serviceimpl` | array storage becomes `HashMap`-backed main.repository; class-average logic moves to main.service |
+| `GradeManager` | split -> `main.repository.GradeRepository` (+ impl) and `main.service`/`serviceimpl` | same pattern |
+| *(new)* `SubjectRepository` | `main.repository` | subjects seeded as reference data in-memory |
 | *(new)* validators | `validation` | grade range (0-100), student existence, required fields |
-| *(new)* exceptions | `exceptions` | e.g. "invalid grade", "student not found" -- implied by spec, never named |
-| *(new)* `StudentManager`, `GradeManager` | `manager` | facades that Main actually calls; hydrate grades, compute averages |
+| *(new)* main.exceptions | `main.exceptions` | e.g. "invalid grade", "student not found" -- implied by spec, never named |
+| *(new)* `StudentManager`, `GradeManager` | `main.manager` | facades that Main actually calls; hydrate grades, compute averages |
 | `Main` | root | wiring + menu loop only |
 
-**Class count grows from 9 to roughly 20-22**: 3 repositories (+3 impls), 2 services (+2 impls), 2 managers, 2 validators, 3-4 exception types, plus the original 8 model classes (`Student` hierarchy, `Subject` hierarchy, `Grade`, `Gradable`).
+**Class count grows from 9 to roughly 20-22**: 3 repositories (+3 impls), 2 services (+2 impls), 2 managers, 2 validators, 3-4 exception types, plus the original 8 main.model classes (`Student` hierarchy, `Subject` hierarchy, `Grade`, `Gradable`).
 
 ---
 
 ## 4. In-Memory Storage Design
 
-Three repository interfaces, each backed by a `HashMap`:
+Three main.repository interfaces, each backed by a `HashMap`:
 
 - **`StudentRepositoryImpl`** — `HashMap<String, Student>` keyed by student ID.
 - **`SubjectRepositoryImpl`** — `HashMap<String, Subject>` keyed by subject code.
@@ -104,7 +104,7 @@ duration of the JVM process — no persistence across restarts.
 - Init git, `.gitignore`, first commit
   **Definition of done:** `Main.java` compiles with `javac` and prints a hello-world.
 
-### Phase 1 -- Domain Model (`model`)
+### Phase 1 -- Domain Model (`main.model`)
 **Goal:** the class hierarchy from the original spec.
 - `Student` (abstract) -> `RegularStudent`, `HonorsStudent`
 - `Subject` (abstract) -> `CoreSubject`, `ElectiveSubject`
@@ -113,7 +113,7 @@ duration of the JVM process — no persistence across restarts.
 - Implement `Student.calculateAverageGrade()` / `isPassing()`
   **Definition of done:** in a scratch `main`, build a `HonorsStudent` with a few `Grade` objects and correctly print their average and passing status.
 
-### Phase 2 -- Exceptions (`exceptions`)
+### Phase 2 -- Exceptions (`main.exceptions`)
 **Goal:** a small, purposeful hierarchy.
 - `StudentNotFoundException`, `SubjectNotFoundException`, `GradeException` (grade outside 0-100)
 - Decide checked vs. unchecked per scenario
@@ -123,10 +123,10 @@ duration of the JVM process — no persistence across restarts.
 **Goal:** keep bad data out before it reaches services.
 - `StudentValidator`: name/email/phone non-blank, age in a sane range
 - `GradeValidator`: grade must be within 0-100, student ID and subject code must be well-formed
-- Validators throw Phase 2 exceptions
-  **Definition of done:** bad input (e.g. grade = 150) reliably throws `GradeException` before any repository call.
+- Validators throw Phase 2 main.exceptions
+  **Definition of done:** bad input (e.g. grade = 150) reliably throws `GradeException` before any main.repository call.
 
-### Phase 4 -- Repository Layer (`repository`)
+### Phase 4 -- Repository Layer (`main.repository`)
 **Goal:** in-memory persistence.
 - `StudentRepository`, `SubjectRepository`, `GradeRepository` (interfaces)
 - `StudentRepositoryImpl` — `HashMap<String, Student>`
@@ -135,7 +135,7 @@ duration of the JVM process — no persistence across restarts.
 - Solve ID generation (seed static counters from existing entries on startup)
   **Definition of done:** from a scratch main, insert a student and a grade and read them back through repositories only.
 
-### Phase 5 -- Service Interfaces (`service`)
+### Phase 5 -- Service Interfaces (`main.service`)
 **Goal:** define the business contract.
 - `StudentService`: `addStudent(...)`, `getAllStudents()`, `getAverageClassGrade()`
 - `GradeService`: `recordGrade(...)`, `getGradeReport(studentId)`, `calculateCoreAverage(studentId)`, `calculateElectiveAverage(studentId)`, `calculateOverallAverage(studentId)`
@@ -149,7 +149,7 @@ duration of the JVM process — no persistence across restarts.
 - Averages computed in Java
   **Definition of done:** recording a grade that pushes an Honors student's average past 85% flips their eligibility on the next "View Students" call.
 
-### Phase 7 -- Manager Layer (`manager`)
+### Phase 7 -- Manager Layer (`main.manager`)
 **Goal:** facades that Main actually calls.
 - `StudentManager`: facade over `StudentService` + `GradeManager`; hydrates transient `grades` list on every read, syncs `studentCounter`
 - `GradeManager`: facade over `GradeService` + `SubjectRepository`; computes core/elective/overall averages, formats grade reports
@@ -159,7 +159,7 @@ duration of the JVM process — no persistence across restarts.
 **Goal:** wire it all together.
 - `Main.java`: construct repositories -> services -> managers by hand
 - Menu loop (8 options, loop until exit, invalid-input handling)
-  **Definition of done:** full app runs end-to-end, matching all expected console screenshots.
+  **Definition of done:** full main.app runs end-to-end, matching all expected main.console screenshots.
 
 ### Phase 9 -- Testing
 **Goal:** confidence the rules hold.
@@ -177,7 +177,7 @@ duration of the JVM process — no persistence across restarts.
 
 ## 6. Stretch Goals
 
-- Swap the `HashMap` repositories for a different storage engine (e.g., a file-backed store or a real database) by implementing the same repository interfaces — no other layer needs to change.
+- Swap the `HashMap` repositories for a different storage engine (e.g., a file-backed store or a real database) by implementing the same main.repository interfaces — no other layer needs to change.
 - Add persistence by serializing the HashMaps to a JSON file on shutdown and reloading on startup.
 - Sort grade history in reverse chronological order (already implemented in `GradeManager.viewGradesByStudent`).
 - Write JUnit 5 tests for `GradeValidator` bounds and the honors-eligibility recomputation logic.

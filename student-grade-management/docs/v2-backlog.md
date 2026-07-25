@@ -2,7 +2,7 @@
 
 ## Product Vision
 
-An enhanced student grade management system that extends Lab 1 with file export, GPA calculation, bulk CSV import, class statistics, and student search — all built with SOLID principles, comprehensive testing, and proper Git workflow.
+An enhanced student grade management system that extends Lab 1 with file main.export, GPA calculation, bulk CSV import, class statistics, and student search — all built with SOLID principles, comprehensive testing, and proper Git workflow.
 
 ---
 
@@ -16,15 +16,15 @@ An enhanced student grade management system that extends Lab 1 with file export,
 | **Sprint** | 1 |
 
 > **As a** developer
-> **I want to** handle all errors with custom exceptions
+> **I want to** handle all errors with custom main.exceptions
 > **So that** the application never crashes unexpectedly
 
 **Acceptance Criteria:**
-- [ ] Custom exceptions for all error scenarios (StudentNotFoundException, GradeNotFoundException, InvalidGradeException, InvalidFileFormatException, ExportException, ImportException)
+- [ ] Custom main.exceptions for all error scenarios (StudentNotFoundException, GradeNotFoundException, InvalidGradeException, InvalidFileFormatException, ExportException, ImportException)
 - [ ] Informative error messages with recovery suggestions
 - [ ] No generic Exception catching (replace RuntimeException extends)
-- [ ] All exceptions logged with timestamps
-- [ ] Input validation prevents most exceptions before they occur
+- [ ] All main.exceptions logged with timestamps
+- [ ] Input validation prevents most main.exceptions before they occur
 
 ### PBI-2: Export Grade Report
 | Field | Value |
@@ -34,15 +34,15 @@ An enhanced student grade management system that extends Lab 1 with file export,
 | **Sprint** | 1 |
 
 > **As a** teacher
-> **I want to** export grade reports to files
+> **I want to** main.export grade reports to files
 > **So that** I can share them with students and parents
 
 **Acceptance Criteria:**
 - [ ] Export summary, detailed, or both report types
 - [ ] Save to text files in `reports/` directory
 - [ ] Include student info, all grades, averages, performance analysis
-- [ ] Handle file I/O exceptions properly
-- [ ] Confirm export success with file location and size
+- [ ] Handle file I/O main.exceptions properly
+- [ ] Confirm main.export success with file location and size
 
 **New Classes:** `ReportGenerator`, `FileExporter`, `Exportable` interface
 
@@ -79,7 +79,7 @@ An enhanced student grade management system that extends Lab 1 with file export,
 > **So that** I can efficiently enter grades for the whole class
 
 **Acceptance Criteria:**
-- [ ] Read CSV files from `imports/` directory
+- [ ] Read CSV files from `main.imports/` directory
 - [ ] Validate file format before processing
 - [ ] Validate each row (student exists, grade in range, subject valid)
 - [ ] Skip invalid rows but continue processing
@@ -126,7 +126,7 @@ An enhanced student grade management system that extends Lab 1 with file export,
 - [ ] Search by grade range (e.g., 80-90%)
 - [ ] Search by student type (Regular/Honors)
 - [ ] Display search results in a formatted table
-- [ ] Actions on search results: view details, export, new search
+- [ ] Actions on search results: view details, main.export, new search
 
 **New Classes:** `Searchable` interface, enhanced StudentManager
 

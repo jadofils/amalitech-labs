@@ -35,3 +35,7 @@ bin/
 ### Environment ###
 .env
 src/.env
+
+### Generated at runtime (exported reports / bulk-import logs) ###
+imports/import_log_*.txt
+reports/*.txt

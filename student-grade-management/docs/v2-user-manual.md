@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Student Grade Management System v2 extends the original with export, GPA calculation, bulk CSV import, class statistics, and student search. All errors are handled with custom exceptions.
+The Student Grade Management System v2 extends the original with main.export, GPA calculation, bulk CSV import, class statistics, and student search. All errors are handled with custom main.exceptions.
 
 ## Getting Started
 
@@ -147,7 +147,7 @@ Class Rank: 2 of 5
 
 ### 7. Bulk Import Grades
 
-Import grades from a CSV file placed in `imports/`.
+Import grades from a CSV file placed in `main.imports/`.
 
 **CSV Format:**
 
@@ -159,7 +159,7 @@ STU001,Music,Elective,78
 ```
 
 ```
-Place your CSV file in: ./imports/
+Place your CSV file in: ./main.imports/
 
 Enter filename (without extension): october_grades
 ```
@@ -202,7 +202,7 @@ Exits the application.
 | Directory | Purpose |
 |-----------|---------|
 | `reports/` | Exported grade report files |
-| `imports/` | CSV files for bulk import + import logs |
+| `main.imports/` | CSV files for bulk import + import logs |
 
 ---
 
@@ -227,13 +227,13 @@ All errors display the exception type and a descriptive message with recovery su
 
 | Package | Responsibility |
 |---------|---------------|
-| `model` | Student, Grade, Subject hierarchies |
-| `repository` | Data storage (array-based) |
-| `service` | Business logic layer |
-| `manager` | Coordination layer (StudentManager, GradeManager, StudentSearcher) |
-| `export` | ReportGenerator, FileExporter |
-| `calculators` | GPACalculator, StatisticsCalculator |
-| `imports` | CSVParser, BulkImportService |
+| `main.model` | Student, Grade, Subject hierarchies |
+| `main.repository` | Data storage (array-based) |
+| `main.service` | Business logic layer |
+| `main.manager` | Coordination layer (StudentManager, GradeManager, StudentSearcher) |
+| `main.export` | ReportGenerator, FileExporter |
+| `main.calculators` | GPACalculator, StatisticsCalculator |
+| `main.imports` | CSVParser, BulkImportService |
 | `interfaces` | Exportable, Calculable, Searchable |
-| `exceptions` | Custom exception classes |
+| `main.exceptions` | Custom exception classes |
 | `validation` | StudentValidator, SubjectValidator |

@@ -1,9 +1,9 @@
 package tests.dataio;
 
-import dataio.StudentDataExporter;
-import dataio.StudentDataImporter;
-import dataio.StudentRecord;
-import exceptions.ImportException;
+import main.dataio.StudentDataExporter;
+import main.dataio.StudentDataImporter;
+import main.dataio.StudentRecord;
+import main.exceptions.ImportException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

@@ -1,6 +1,6 @@
 package tests.logging;
 
-import logging.Logger;
+import main.logging.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

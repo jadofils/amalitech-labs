@@ -1,15 +1,15 @@
 package tests.imports;
 
-import imports.BulkImportService;
-import manager.GradeManager;
-import manager.StudentManager;
-import model.grade.Grade;
-import model.student.RegularStudent;
-import model.student.Student;
+import main.imports.BulkImportService;
+import main.manager.GradeManager;
+import main.manager.StudentManager;
+import main.model.grade.Grade;
+import main.model.student.RegularStudent;
+import main.model.student.Student;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import repository.subject.SubjectRepositoryImpl;
+import main.repository.subject.SubjectRepositoryImpl;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -57,7 +57,7 @@ class BulkImportServiceMockitoTest {
         StudentManager studentManager = mock(StudentManager.class);
         GradeManager gradeManager = mock(GradeManager.class);
         Student student = new RegularStudent("STU001", "Musa Nkusi", 17, "musa@school.edu",
-                "1234567890", model.enums.StudentStatus.ACTIVE);
+                "1234567890", main.model.enums.StudentStatus.ACTIVE);
         when(studentManager.findStudent("STU001")).thenReturn(student);
         BulkImportService service = new BulkImportService(subjects, studentManager, gradeManager);
 

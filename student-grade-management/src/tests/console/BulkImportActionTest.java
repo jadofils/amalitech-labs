@@ -1,21 +1,21 @@
 package tests.console;
 
-import console.BulkImportAction;
-import imports.BulkImportService;
-import manager.GradeManager;
-import manager.StudentManager;
-import model.enums.Role;
-import model.student.Student;
+import main.console.BulkImportAction;
+import main.imports.BulkImportService;
+import main.manager.GradeManager;
+import main.manager.StudentManager;
+import main.model.enums.Role;
+import main.model.student.Student;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import repository.student.StudentRepositoryImpl;
-import repository.subject.SubjectRepositoryImpl;
-import service.GradeService;
-import service.GradeServiceImpl;
-import service.StudentService;
-import service.StudentServiceImpl;
+import main.repository.student.StudentRepositoryImpl;
+import main.repository.subject.SubjectRepositoryImpl;
+import main.service.GradeService;
+import main.service.GradeServiceImpl;
+import main.service.StudentService;
+import main.service.StudentServiceImpl;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -37,7 +37,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * validation branches end-to-end. BulkImportActionMockitoTest verifies the
  * same behavior purely through a mocked BulkImportService, including
  * branches (e.g. a non-zero fail count, an ImportException) that are
- * awkward to construct through the real CSV/service stack.
+ * awkward to construct through the real CSV/main.service stack.
  */
 class BulkImportActionTest {
 
@@ -88,10 +88,9 @@ class BulkImportActionTest {
     }
 
     private String runWithInput(String scriptedInput) {
-        Scanner scanner = new Scanner(new ByteArrayInputStream(scriptedInput.getBytes(StandardCharsets.UTF_8)));
         PrintStream originalOut = System.out;
         ByteArrayOutputStream captured = new ByteArrayOutputStream();
-        try {
+        try (Scanner scanner = new Scanner(new ByteArrayInputStream(scriptedInput.getBytes(StandardCharsets.UTF_8)))) {
             System.setOut(new PrintStream(captured, true, StandardCharsets.UTF_8));
             new BulkImportAction(scanner, bulkImportService).execute();
         } finally {
@@ -139,7 +138,7 @@ class BulkImportActionTest {
     }
 
     @Test
-    @DisplayName("Empty filename prints 'Filename cannot be empty.' and never touches the import service")
+    @DisplayName("Empty filename prints 'Filename cannot be empty.' and never touches the import main.service")
     void emptyFilenamePrintsMessageTest() {
         String output = runWithInput("\n");
 

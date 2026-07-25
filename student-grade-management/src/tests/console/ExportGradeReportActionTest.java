@@ -1,22 +1,22 @@
 package tests.console;
 
-import console.ExportGradeReportAction;
-import exceptions.StudentNotFoundException;
-import export.FileExporter;
-import export.ReportGenerator;
-import manager.GradeManager;
-import manager.StudentManager;
-import model.student.Student;
+import main.console.ExportGradeReportAction;
+import main.exceptions.StudentNotFoundException;
+import main.export.FileExporter;
+import main.export.ReportGenerator;
+import main.manager.GradeManager;
+import main.manager.StudentManager;
+import main.model.student.Student;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import repository.student.StudentRepositoryImpl;
-import repository.subject.SubjectRepositoryImpl;
-import service.GradeService;
-import service.GradeServiceImpl;
-import service.StudentService;
-import service.StudentServiceImpl;
+import main.repository.student.StudentRepositoryImpl;
+import main.repository.subject.SubjectRepositoryImpl;
+import main.service.GradeService;
+import main.service.GradeServiceImpl;
+import main.service.StudentService;
+import main.service.StudentServiceImpl;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -42,7 +42,7 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 class ExportGradeReportActionTest {
 
-    private final String testDir = "target/test-export-grade-report-" + System.nanoTime();
+    private final String testDir = "target/test-main.export-grade-report-" + System.nanoTime();
 
     private StudentManager studentManager;
     private GradeManager gradeManager;
@@ -116,7 +116,7 @@ class ExportGradeReportActionTest {
 
     @Test
     @DisplayName("Option 3 (both) writes both a '_summary.txt' and a '_detailed.txt' file")
-    void exportBothTest() throws IOException {
+    void exportBothTest() {
         Student student = studentManager.getAllStudents().get(0);
         ExportGradeReportAction action = actionWithInput(student.getStudentId() + "\n3\nmyreport\n\n");
 

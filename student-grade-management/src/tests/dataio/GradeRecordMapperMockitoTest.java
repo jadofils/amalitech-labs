@@ -1,14 +1,14 @@
 package tests.dataio;
 
-import dataio.GradeRecord;
-import dataio.GradeRecordMapper;
-import exceptions.SubjectNotFoundException;
-import model.grade.Grade;
-import model.subject.CoreSubject;
-import model.subject.Subject;
+import main.dataio.GradeRecord;
+import main.dataio.GradeRecordMapper;
+import main.exceptions.SubjectNotFoundException;
+import main.model.grade.Grade;
+import main.model.subject.CoreSubject;
+import main.model.subject.Subject;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import repository.subject.SubjectRepository;
+import main.repository.subject.SubjectRepository;
 
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -43,7 +43,7 @@ class GradeRecordMapperMockitoTest {
     void toRecordReadsSubjectCodeDirectlyTest() {
         Subject subject = mock(Subject.class);
         when(subject.getSubjectCode()).thenReturn("ENGL01");
-        when(subject.getSubjectType()).thenReturn(model.enums.SubjectType.CORE);
+        when(subject.getSubjectType()).thenReturn(main.model.enums.SubjectType.CORE);
         Grade grade = new Grade("STU001", subject, 70.0);
 
         GradeRecord record = GradeRecordMapper.toRecord(grade);

@@ -1,8 +1,8 @@
 package tests.subject;
 
-import model.enums.SubjectType;
-import model.subject.CoreSubject;
-import model.subject.ElectiveSubject;
+import main.model.enums.SubjectType;
+import main.model.subject.CoreSubject;
+import main.model.subject.ElectiveSubject;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

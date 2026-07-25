@@ -1,12 +1,12 @@
 package tests.dataio;
 
-import dataio.GradeRecord;
-import dataio.GradeRecordMapper;
-import model.grade.Grade;
-import model.subject.Subject;
+import main.dataio.GradeRecord;
+import main.dataio.GradeRecordMapper;
+import main.model.grade.Grade;
+import main.model.subject.Subject;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import repository.subject.SubjectRepositoryImpl;
+import main.repository.subject.SubjectRepositoryImpl;
 
 import static org.junit.jupiter.api.Assertions.*;
 

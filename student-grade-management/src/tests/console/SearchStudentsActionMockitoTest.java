@@ -1,13 +1,13 @@
 package tests.console;
 
-import console.SearchStudentsAction;
-import exceptions.ExportException;
-import export.FileExporter;
-import manager.StudentManager;
-import manager.StudentSearcher;
-import model.enums.StudentType;
-import model.student.RegularStudent;
-import model.student.Student;
+import main.console.SearchStudentsAction;
+import main.exceptions.ExportException;
+import main.export.FileExporter;
+import main.manager.StudentManager;
+import main.manager.StudentSearcher;
+import main.model.enums.StudentType;
+import main.model.student.RegularStudent;
+import main.model.student.Student;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -26,7 +26,7 @@ import static org.mockito.Mockito.*;
  * Verifies SearchStudentsAction's own control flow (branch selection, input
  * sanitization/parsing, delegation to its collaborators) with StudentManager,
  * StudentSearcher, and FileExporter all mocked - including the
- * ApplicationException export-failure path that SearchStudentsActionTest
+ * ApplicationException main.export-failure path that SearchStudentsActionTest
  * cannot exercise with a real FileExporter. Happy-path search results and
  * real file writes are covered there instead.
  */
@@ -43,11 +43,10 @@ class SearchStudentsActionMockitoTest {
 
     private String runWithInput(StudentManager studentManager, StudentSearcher studentSearcher,
                                  FileExporter fileExporter, String scriptedInput) {
-        Scanner scanner = new Scanner(new ByteArrayInputStream(scriptedInput.getBytes(StandardCharsets.UTF_8)));
-        SearchStudentsAction action = new SearchStudentsAction(scanner, studentManager, studentSearcher, fileExporter);
         PrintStream originalOut = System.out;
         ByteArrayOutputStream captured = new ByteArrayOutputStream();
-        try {
+        try (Scanner scanner = new Scanner(new ByteArrayInputStream(scriptedInput.getBytes(StandardCharsets.UTF_8)))) {
+            SearchStudentsAction action = new SearchStudentsAction(scanner, studentManager, studentSearcher, fileExporter);
             System.setOut(new PrintStream(captured, true, StandardCharsets.UTF_8));
             action.execute();
         } finally {
@@ -127,7 +126,7 @@ class SearchStudentsActionMockitoTest {
         StudentSearcher studentSearcher = mock(StudentSearcher.class);
         FileExporter fileExporter = mock(FileExporter.class);
         when(studentSearcher.searchByGradeRange(70.5, 95.0)).thenReturn(List.of());
-        when(studentSearcher.getSearchDescription(eq("3"), eq("70-95%"))).thenReturn("Grade range: 70-95%");
+        when(studentSearcher.getSearchDescription("3", "70-95%")).thenReturn("Grade range: 70-95%");
 
         runWithInput(studentManager, studentSearcher, fileExporter, "3\n70.5\n95\n4\n\n");
 

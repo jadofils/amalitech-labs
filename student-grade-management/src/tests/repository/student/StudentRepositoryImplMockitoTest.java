@@ -1,20 +1,20 @@
 package tests.repository.student;
 
-import exceptions.StudentException;
-import exceptions.StudentNotFoundException;
-import model.student.Student;
+import main.exceptions.StudentException;
+import main.exceptions.StudentNotFoundException;
+import main.model.student.Student;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import repository.student.StudentRepositoryImpl;
+import main.repository.student.StudentRepositoryImpl;
 
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Uses mocked Student objects so the repository's storage/lookup logic can be
+ * Uses mocked Student objects so the main.repository's storage/lookup logic can be
  * tested in isolation from any concrete Student subclass, and so the fixed
  * capacity (50) can be exhausted without needing 50 validator-passing real
- * students (the repository never calls StudentValidator - only the service
+ * students (the main.repository never calls StudentValidator - only the main.service
  * layer does).
  */
 class StudentRepositoryImplMockitoTest {

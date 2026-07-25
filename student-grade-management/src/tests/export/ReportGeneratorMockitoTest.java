@@ -1,10 +1,10 @@
 package tests.export;
 
-import export.ReportGenerator;
-import manager.GradeManager;
-import manager.StudentManager;
-import model.student.RegularStudent;
-import model.student.Student;
+import main.export.ReportGenerator;
+import main.manager.GradeManager;
+import main.manager.StudentManager;
+import main.model.student.RegularStudent;
+import main.model.student.Student;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -27,7 +27,7 @@ class ReportGeneratorMockitoTest {
         StudentManager studentManager = mock(StudentManager.class);
         ReportGenerator generator = new ReportGenerator(gradeManager, studentManager);
         Student student = new RegularStudent("STU001", "Musa Nkusi", 17, "musa@school.edu",
-                "1234567890", model.enums.StudentStatus.ACTIVE);
+                "1234567890", main.model.enums.StudentStatus.ACTIVE);
         when(studentManager.findStudent("STU001")).thenReturn(student);
         when(gradeManager.calculateOverallAverage("STU001")).thenReturn(72.5);
 

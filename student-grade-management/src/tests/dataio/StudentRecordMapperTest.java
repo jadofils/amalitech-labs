@@ -1,11 +1,11 @@
 package tests.dataio;
 
-import dataio.StudentRecord;
-import dataio.StudentRecordMapper;
-import model.enums.StudentStatus;
-import model.student.HonorsStudent;
-import model.student.RegularStudent;
-import model.student.Student;
+import main.dataio.StudentRecord;
+import main.dataio.StudentRecordMapper;
+import main.model.enums.StudentStatus;
+import main.model.student.HonorsStudent;
+import main.model.student.RegularStudent;
+import main.model.student.Student;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

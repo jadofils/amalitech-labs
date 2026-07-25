@@ -1,9 +1,9 @@
 package tests.console;
 
-import console.BulkImportAction;
-import exceptions.ImportException;
-import imports.BulkImportService;
-import model.enums.Role;
+import main.console.BulkImportAction;
+import main.exceptions.ImportException;
+import main.imports.BulkImportService;
+import main.model.enums.Role;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -27,10 +27,9 @@ import static org.junit.jupiter.api.Assertions.*;
 class BulkImportActionMockitoTest {
 
     private String runWithInput(BulkImportService bulkImportService, String scriptedInput) {
-        Scanner scanner = new Scanner(new ByteArrayInputStream(scriptedInput.getBytes(StandardCharsets.UTF_8)));
         PrintStream originalOut = System.out;
         ByteArrayOutputStream captured = new ByteArrayOutputStream();
-        try {
+        try (Scanner scanner = new Scanner(new ByteArrayInputStream(scriptedInput.getBytes(StandardCharsets.UTF_8)))) {
             System.setOut(new PrintStream(captured, true, StandardCharsets.UTF_8));
             new BulkImportAction(scanner, bulkImportService).execute();
         } finally {

@@ -1,10 +1,10 @@
 package tests.repository.grade;
 
-import exceptions.GradeException;
-import model.grade.Grade;
+import main.exceptions.GradeException;
+import main.model.grade.Grade;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import repository.grade.GradeRepositoryImpl;
+import main.repository.grade.GradeRepositoryImpl;
 
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -55,8 +55,8 @@ class GradeRepositoryImplMockitoTest {
         }
         assertEquals(200, repository.getGradeCount());
 
-        RuntimeException ex = assertThrows(GradeException.class,
-                () -> repository.addGrade(mockGradeWithId("ONE-TOO-MANY")));
+        Grade oneTooMany = mockGradeWithId("ONE-TOO-MANY");
+        RuntimeException ex = assertThrows(GradeException.class, () -> repository.addGrade(oneTooMany));
         assertEquals("Cannot add more grades. Storage is full.", ex.getMessage());
     }
 }
