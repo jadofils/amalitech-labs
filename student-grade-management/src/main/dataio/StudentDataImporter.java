@@ -10,7 +10,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -29,7 +28,7 @@ public final class StudentDataImporter {
                     .skip(1) // header
                     .filter(line -> !line.isBlank())
                     .map(this::parseCsvRow)
-                    .collect(Collectors.toList());
+                    .toList();
         } catch (IOException e) {
             throw new ImportException("Failed to import students from CSV: " + e.getMessage(), path.toString(), e);
         }

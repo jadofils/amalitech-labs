@@ -61,7 +61,7 @@ class BatchReportServiceMockitoTest {
 
     @Test
     @DisplayName("Concurrent generation over a fixed thread pool is measurably faster than sequential, for simulated per-student work")
-    void concurrentGenerationIsFasterThanSequentialTest() throws InterruptedException {
+    void concurrentGenerationIsFasterThanSequentialTest() {
         int studentCount = 16;
         int threadCount = 8;
 
@@ -117,8 +117,9 @@ class BatchReportServiceMockitoTest {
         BatchReportService service = new BatchReportService(studentManager, reportGenerator, fileExporter,
                 BatchReportService.MIN_THREADS, () -> mockExecutor);
 
+        List<String> studentIds = List.of("STU001");
         assertThrows(RejectedExecutionException.class,
-                () -> service.generateBatch(List.of("STU001"), ReportKind.SUMMARY, "batch_"));
+                () -> service.generateBatch(studentIds, ReportKind.SUMMARY, "batch_"));
 
         verify(mockExecutor, times(1)).shutdown();
     }
@@ -138,10 +139,11 @@ class BatchReportServiceMockitoTest {
         // Future.get() (like ExecutorService.awaitTermination()) throws InterruptedException
         // immediately if the calling thread is already interrupted when it's called - no need to
         // race a real interrupt against real work.
+        List<String> studentIds = List.of(student.getStudentId());
         Thread.currentThread().interrupt();
         try {
             assertThrows(IllegalStateException.class,
-                    () -> service.generateBatch(List.of(student.getStudentId()), ReportKind.SUMMARY, "batch_"));
+                    () -> service.generateBatch(studentIds, ReportKind.SUMMARY, "batch_"));
             assertTrue(Thread.interrupted(), "interrupt flag should be restored after awaitOutcome() catches InterruptedException");
         } finally {
             Thread.interrupted();
@@ -162,8 +164,9 @@ class BatchReportServiceMockitoTest {
         BatchReportService service = new BatchReportService(studentManager, reportGenerator, fileExporter,
                 BatchReportService.MIN_THREADS, () -> mockExecutor);
 
+        List<String> studentIds = List.of("STU001");
         IllegalStateException ex = assertThrows(IllegalStateException.class,
-                () -> service.generateBatch(List.of("STU001"), ReportKind.SUMMARY, "batch_"));
+                () -> service.generateBatch(studentIds, ReportKind.SUMMARY, "batch_"));
         assertEquals("root cause", ex.getCause().getMessage());
     }
 

@@ -1,7 +1,6 @@
 package main.console;
 
 import main.calculators.GPACalculator;
-import main.exceptions.StudentNotFoundException;
 import main.manager.GradeManager;
 import main.manager.StudentManager;
 import main.model.grade.Grade;
@@ -46,11 +45,7 @@ public class CalculateGpaAction implements MenuAction {
         System.out.print("Enter Student ID: ");
         String studentId = InputSanitizer.sanitize(scanner.nextLine());
 
-        Student student = studentManager.findStudent(studentId);
-        if (student == null) {
-            throw new StudentNotFoundException("Student with ID '" + studentId + "' not found.",
-                    studentId, ConsoleUtils.getAvailableStudentIds(studentManager));
-        }
+        Student student = ConsoleUtils.requireStudent(studentManager, studentId);
 
         System.out.println("\nStudent: " + studentId + " - " + student.getName());
         System.out.println("Type: " + student.getStudentType() + " Student");

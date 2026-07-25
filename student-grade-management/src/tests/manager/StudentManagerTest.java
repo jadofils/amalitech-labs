@@ -198,7 +198,7 @@ class StudentManagerTest {
     }
 
     private void drain(AuditTrail auditTrail) throws InterruptedException, ExecutionException, TimeoutException {
-        auditTrail.record("ADD", "STUDENT", "__drain__", "").get(5, TimeUnit.SECONDS);
+        auditTrail.append("ADD", "STUDENT", "__drain__", "").get(5, TimeUnit.SECONDS);
     }
 
     private String captureStdOut(Runnable action) {

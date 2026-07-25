@@ -21,24 +21,24 @@ class StudentRecordMapperTest {
         Student student = new RegularStudent("STU001", "Musa Nkusi", 17, "musa@school.edu",
                 "1234567890", StudentStatus.ACTIVE);
 
-        StudentRecord record = StudentRecordMapper.toRecord(student);
+        StudentRecord studentRecord = StudentRecordMapper.toRecord(student);
 
-        assertEquals("STU001", record.studentId());
-        assertEquals("Musa Nkusi", record.name());
-        assertEquals("REGULAR", record.studentType());
-        assertEquals(17, record.age());
-        assertEquals("musa@school.edu", record.email());
-        assertEquals("1234567890", record.phone());
-        assertEquals("ACTIVE", record.status());
+        assertEquals("STU001", studentRecord.studentId());
+        assertEquals("Musa Nkusi", studentRecord.name());
+        assertEquals("REGULAR", studentRecord.studentType());
+        assertEquals(17, studentRecord.age());
+        assertEquals("musa@school.edu", studentRecord.email());
+        assertEquals("1234567890", studentRecord.phone());
+        assertEquals("ACTIVE", studentRecord.status());
     }
 
     @Test
     @DisplayName("toStudent() reconstructs a RegularStudent from its record")
     void toStudentReconstructsRegularStudentTest() {
-        StudentRecord record = new StudentRecord("STU002", "Alice Johnson", "REGULAR", 16,
+        StudentRecord studentRecord = new StudentRecord("STU002", "Alice Johnson", "REGULAR", 16,
                 "alice@school.edu", "1234567890", "ACTIVE");
 
-        Student student = StudentRecordMapper.toStudent(record);
+        Student student = StudentRecordMapper.toStudent(studentRecord);
 
         assertInstanceOf(RegularStudent.class, student);
         assertEquals("STU002", student.getStudentId());
@@ -52,10 +52,10 @@ class StudentRecordMapperTest {
     @Test
     @DisplayName("toStudent() reconstructs an HonorsStudent (not a RegularStudent) when studentType is HONORS")
     void toStudentReconstructsHonorsStudentTest() {
-        StudentRecord record = new StudentRecord("STU003", "Bob Smith", "HONORS", 18,
+        StudentRecord studentRecord = new StudentRecord("STU003", "Bob Smith", "HONORS", 18,
                 "bob@school.edu", "1234567890", "ACTIVE");
 
-        Student student = StudentRecordMapper.toStudent(record);
+        Student student = StudentRecordMapper.toStudent(studentRecord);
 
         assertInstanceOf(HonorsStudent.class, student);
         assertEquals(60.0, student.getPassingGrade());

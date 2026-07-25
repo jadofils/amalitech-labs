@@ -91,7 +91,7 @@ class StatisticsDashboardTest {
 
     @Test
     @DisplayName("A running dashboard refreshes automatically at least twice within a few intervals, then stops cleanly")
-    void refreshesAutomaticallyOnScheduleTest() throws InterruptedException {
+    void refreshesAutomaticallyOnScheduleTest() {
         StatisticsDashboard dashboard = new StatisticsDashboard(studentManager, gradeManager, statisticsCalculator, SHORT_INTERVAL_MILLIS);
 
         String output = captureStdOut(() -> {

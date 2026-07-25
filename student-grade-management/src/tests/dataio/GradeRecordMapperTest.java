@@ -26,21 +26,21 @@ class GradeRecordMapperTest {
     void toRecordCapturesGradeFieldsTest() {
         Grade grade = new Grade("STU001", subject, 85.0);
 
-        GradeRecord record = GradeRecordMapper.toRecord(grade);
+        GradeRecord gradeRecord = GradeRecordMapper.toRecord(grade);
 
-        assertEquals(grade.getGradeId(), record.gradeId());
-        assertEquals("STU001", record.studentId());
-        assertEquals("MATH01", record.subjectCode());
-        assertEquals(85.0, record.grade());
-        assertEquals(grade.getDate(), record.date());
+        assertEquals(grade.getGradeId(), gradeRecord.gradeId());
+        assertEquals("STU001", gradeRecord.studentId());
+        assertEquals("MATH01", gradeRecord.subjectCode());
+        assertEquals(85.0, gradeRecord.grade());
+        assertEquals(grade.getDate(), gradeRecord.date());
     }
 
     @Test
     @DisplayName("toGrade() resolves subjectCode via the repository and rebuilds the Grade")
     void toGradeResolvesSubjectAndRebuildsTest() {
-        GradeRecord record = new GradeRecord("GRD099", "STU002", "MATH01", 92.0, "01-01-2026");
+        GradeRecord gradeRecord = new GradeRecord("GRD099", "STU002", "MATH01", 92.0, "01-01-2026");
 
-        Grade rebuilt = GradeRecordMapper.toGrade(record, subjectRepository);
+        Grade rebuilt = GradeRecordMapper.toGrade(gradeRecord, subjectRepository);
 
         assertEquals("GRD099", rebuilt.getGradeId());
         assertEquals("STU002", rebuilt.getStudentId());
@@ -66,14 +66,14 @@ class GradeRecordMapperTest {
     @Test
     @DisplayName("toGrade() rejects a malformed gradeId before ever looking up the subject (US-3/PBI-3)")
     void toGradeRejectsMalformedGradeIdTest() {
-        GradeRecord record = new GradeRecord("BADID", "STU001", "MATH01", 85.0, "01-01-2026");
-        assertThrows(InvalidGradeException.class, () -> GradeRecordMapper.toGrade(record, subjectRepository));
+        GradeRecord gradeRecord = new GradeRecord("BADID", "STU001", "MATH01", 85.0, "01-01-2026");
+        assertThrows(InvalidGradeException.class, () -> GradeRecordMapper.toGrade(gradeRecord, subjectRepository));
     }
 
     @Test
     @DisplayName("toGrade() rejects a malformed studentId before ever looking up the subject (US-3/PBI-3)")
     void toGradeRejectsMalformedStudentIdTest() {
-        GradeRecord record = new GradeRecord("GRD001", "BADID", "MATH01", 85.0, "01-01-2026");
-        assertThrows(InvalidGradeException.class, () -> GradeRecordMapper.toGrade(record, subjectRepository));
+        GradeRecord gradeRecord = new GradeRecord("GRD001", "BADID", "MATH01", 85.0, "01-01-2026");
+        assertThrows(InvalidGradeException.class, () -> GradeRecordMapper.toGrade(gradeRecord, subjectRepository));
     }
 }

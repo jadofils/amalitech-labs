@@ -22,9 +22,9 @@ public final class GradeRecordMapper {
     }
 
     /** Resolves {@code subjectCode} back into a real {@link Subject} via the repository, then rebuilds the persisted Grade. */
-    public static Grade toGrade(GradeRecord record, SubjectRepository subjectRepository) {
-        GradeValidator.validateForImport(record.gradeId(), record.studentId(), record.grade());
-        Subject subject = subjectRepository.findSubjectByCode(record.subjectCode());
-        return Grade.reconstruct(record.gradeId(), record.studentId(), subject, record.grade(), record.date());
+    public static Grade toGrade(GradeRecord gradeRecord, SubjectRepository subjectRepository) {
+        GradeValidator.validateForImport(gradeRecord.gradeId(), gradeRecord.studentId(), gradeRecord.grade());
+        Subject subject = subjectRepository.findSubjectByCode(gradeRecord.subjectCode());
+        return Grade.reconstruct(gradeRecord.gradeId(), gradeRecord.studentId(), subject, gradeRecord.grade(), gradeRecord.date());
     }
 }

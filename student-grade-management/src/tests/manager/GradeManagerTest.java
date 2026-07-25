@@ -169,7 +169,7 @@ class GradeManagerTest {
 
             auditedManager.addGrade(grade);
             auditedManager.deleteGrade(grade.getGradeId());
-            auditTrail.record("ADD", "STUDENT", "__drain__", "").get(5, TimeUnit.SECONDS);
+            auditTrail.append("ADD", "STUDENT", "__drain__", "").get(5, TimeUnit.SECONDS);
 
             var actions = auditTrail.getEntries().stream().map(e -> e.action() + ":" + e.entityId()).toList();
             assertTrue(actions.contains("ADD:" + grade.getGradeId()));

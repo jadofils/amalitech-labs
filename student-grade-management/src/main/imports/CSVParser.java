@@ -12,7 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Objects;
 import java.util.stream.IntStream;
 
 /**
@@ -50,7 +50,7 @@ public class CSVParser {
         Logger.debug("Parsing CSV file: " + path);
         List<String> lines;
         try (var lineStream = Files.lines(path, StandardCharsets.UTF_8)) {
-            lines = lineStream.collect(Collectors.toList());
+            lines = lineStream.toList();
         } catch (IOException e) {
             Logger.error("Failed to read CSV file: " + path, e);
             throw new CSVImportException("Failed to read CSV file: " + e.getMessage(), e);
@@ -59,11 +59,11 @@ public class CSVParser {
         // Index 0 is the header; data rows are 1-based line numbers starting at 2.
         List<ParsedLine> parsed = lines.isEmpty() ? List.of() : IntStream.range(1, lines.size())
                 .mapToObj(i -> parseLine(i + 1, lines.get(i).trim()))
-                .filter(line -> line != null) // blank data lines are silently skipped, same as v2
-                .collect(Collectors.toList());
+                .filter(Objects::nonNull) // blank data lines are silently skipped, same as v2
+                .toList();
 
-        List<CSVRow> rows = parsed.stream().filter(ParsedLine::isValid).map(ParsedLine::row).collect(Collectors.toList());
-        List<String> errors = parsed.stream().filter(line -> !line.isValid()).map(ParsedLine::error).collect(Collectors.toList());
+        List<CSVRow> rows = parsed.stream().filter(ParsedLine::isValid).map(ParsedLine::row).toList();
+        List<String> errors = parsed.stream().filter(line -> !line.isValid()).map(ParsedLine::error).toList();
 
         Logger.info("Parsed " + path + ": " + rows.size() + " valid row(s), " + errors.size() + " error(s)");
         return new CSVParseResult(rows, errors);

@@ -12,6 +12,8 @@ import java.util.List;
 
 // Backed by the database (StudentService/StudentRepository) instead of an in-memory array for now.
 public class StudentManager {
+    private static final String AUDIT_ENTITY_STUDENT = "STUDENT";
+
     private final StudentService studentService;
     private final GradeManager gradeManager;
     private final AuditTrail auditTrail;
@@ -46,7 +48,7 @@ public class StudentManager {
 
     public void addStudent(Student student) {
         studentService.addStudent(student);
-        auditTrail.record("ADD", "STUDENT", student.getStudentId(), "Added student " + student.getName());
+        auditTrail.append("ADD", AUDIT_ENTITY_STUDENT, student.getStudentId(), "Added student " + student.getName());
     }
 
     public Student findStudent(String studentId) {
@@ -100,12 +102,12 @@ public class StudentManager {
 
     public void updateStudent(Student student) {
         studentService.updateStudent(student);
-        auditTrail.record("UPDATE", "STUDENT", student.getStudentId(), "Updated student " + student.getName());
+        auditTrail.append("UPDATE", AUDIT_ENTITY_STUDENT, student.getStudentId(), "Updated student " + student.getName());
     }
 
     public void deleteStudent(String studentId) {
         studentService.deleteStudent(studentId);
-        auditTrail.record("DELETE", "STUDENT", studentId, "Deleted student " + studentId);
+        auditTrail.append("DELETE", AUDIT_ENTITY_STUDENT, studentId, "Deleted student " + studentId);
     }
 
     // Grades live in their own table, so a freshly loaded Student needs its

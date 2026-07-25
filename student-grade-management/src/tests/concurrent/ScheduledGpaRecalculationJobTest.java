@@ -98,13 +98,15 @@ class ScheduledGpaRecalculationJobTest {
 
         job.start();
         Instant firstObserved = awaitFirstRun(job);
-        Thread.sleep(SHORT_PERIOD_MILLIS * 5);
-        Instant laterObserved = job.getLastRunAt().orElseThrow();
+        Instant laterObserved = awaitRunAfter(job, firstObserved);
         assertTrue(laterObserved.isAfter(firstObserved), "expected at least one more scheduled run after the first");
 
         job.stop();
         assertTrue(job.getNextRunAt().isEmpty());
         Instant atStop = job.getLastRunAt().orElseThrow();
+        // A negative assertion ("nothing further happens") has no condition to poll for - it
+        // genuinely requires letting a real interval pass and then checking nothing changed.
+        //noinspection BusyWait
         Thread.sleep(SHORT_PERIOD_MILLIS * 5);
         assertEquals(atStop, job.getLastRunAt().orElseThrow(), "no further runs should happen after stop()");
     }
@@ -193,5 +195,18 @@ class ScheduledGpaRecalculationJobTest {
             Thread.sleep(5);
         }
         throw new AssertionError("job did not run within the expected time");
+    }
+
+    /** Polls until lastRunAt advances past {@code baseline}, instead of sleeping a fixed guess at how long that should take. */
+    private Instant awaitRunAfter(ScheduledGpaRecalculationJob job, Instant baseline) throws InterruptedException {
+        long deadline = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(5);
+        while (System.currentTimeMillis() < deadline) {
+            Instant lastRunAt = job.getLastRunAt().orElse(baseline);
+            if (lastRunAt.isAfter(baseline)) {
+                return lastRunAt;
+            }
+            Thread.sleep(5);
+        }
+        throw new AssertionError("job did not run again after " + baseline + " within the expected time");
     }
 }

@@ -53,7 +53,7 @@
             SonarQube UI, so the exception is itself reviewable in version
             control.
         -->
-        <sonar.issue.ignore.multicriteria>e1,e2,e3,e4,e5,e6</sonar.issue.ignore.multicriteria>
+        <sonar.issue.ignore.multicriteria>e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11</sonar.issue.ignore.multicriteria>
         <sonar.issue.ignore.multicriteria.e1.ruleKey>java:S106</sonar.issue.ignore.multicriteria.e1.ruleKey>
         <sonar.issue.ignore.multicriteria.e1.resourceKey>src/main/console/**/*.java</sonar.issue.ignore.multicriteria.e1.resourceKey>
         <sonar.issue.ignore.multicriteria.e2.ruleKey>java:S106</sonar.issue.ignore.multicriteria.e2.ruleKey>
@@ -93,6 +93,47 @@
         -->
         <sonar.issue.ignore.multicriteria.e6.ruleKey>java:S106</sonar.issue.ignore.multicriteria.e6.ruleKey>
         <sonar.issue.ignore.multicriteria.e6.resourceKey>src/main/logging/Logger.java</sonar.issue.ignore.multicriteria.e6.resourceKey>
+        <!--
+            java:S106 also flags StatisticsDashboard's own print() (US-5/PBI-5) - its
+            System.out lines ARE the live dashboard's user-facing display, the exact same
+            "this is the UI, not diagnostics" rationale as e1/e2 above for console/app,
+            just for a v3 background-refresh feature instead of a menu action.
+        -->
+        <sonar.issue.ignore.multicriteria.e7.ruleKey>java:S106</sonar.issue.ignore.multicriteria.e7.ruleKey>
+        <sonar.issue.ignore.multicriteria.e7.resourceKey>src/main/concurrent/StatisticsDashboard.java</sonar.issue.ignore.multicriteria.e7.resourceKey>
+        <!--
+            java:S3077 flags ScheduledGpaRecalculationJob.lastResult - a volatile
+            NavigableMap<Double, List<Student>> - for not being a "thread-safe type". The rule's
+            general concern is real (volatile doesn't make a mutable collection's own methods safe
+            to call from multiple threads), but doesn't apply to how this field is actually used:
+            every write replaces the whole reference with a brand-new TreeMap built in one
+            uninterrupted pass (see runOnce()) - nothing ever mutates a map another thread might be
+            reading. volatile's happens-before guarantee on the reference itself is exactly what's
+            needed for that publish-once pattern.
+        -->
+        <sonar.issue.ignore.multicriteria.e8.ruleKey>java:S3077</sonar.issue.ignore.multicriteria.e8.ruleKey>
+        <sonar.issue.ignore.multicriteria.e8.resourceKey>src/main/concurrent/ScheduledGpaRecalculationJob.java</sonar.issue.ignore.multicriteria.e8.resourceKey>
+        <!--
+            java:S2925 ("Remove this use of Thread.sleep()") flags three test files where a real
+            wait is the point, not a smell to poll away:
+            - ScheduledGpaRecalculationJobTest: confirming a job produces *no further* runs after
+              stop() is a negative assertion with no condition to poll for - it can only be proven
+              by letting a real interval pass and checking nothing changed (the *positive* "wait
+              for the next run" case in the same file already uses polling instead, see
+              awaitFirstRun()/awaitRunAfter())
+            - StatisticsDashboardTest: waits for >=2 real background refreshes while stdout is being
+              captured mid-flight - the captured buffer isn't readable until capture ends, so there
+              is nothing to poll on until the wait is already over
+            - BatchReportServiceMockitoTest: simulates realistic per-student work duration inside a
+              mocked answer, specifically to measure the sequential-vs-parallel speedup (US-4/PBI-4)
+              - the sleep IS the workload being measured, not something waiting on it
+        -->
+        <sonar.issue.ignore.multicriteria.e9.ruleKey>java:S2925</sonar.issue.ignore.multicriteria.e9.ruleKey>
+        <sonar.issue.ignore.multicriteria.e9.resourceKey>src/tests/concurrent/ScheduledGpaRecalculationJobTest.java</sonar.issue.ignore.multicriteria.e9.resourceKey>
+        <sonar.issue.ignore.multicriteria.e10.ruleKey>java:S2925</sonar.issue.ignore.multicriteria.e10.ruleKey>
+        <sonar.issue.ignore.multicriteria.e10.resourceKey>src/tests/concurrent/StatisticsDashboardTest.java</sonar.issue.ignore.multicriteria.e10.resourceKey>
+        <sonar.issue.ignore.multicriteria.e11.ruleKey>java:S2925</sonar.issue.ignore.multicriteria.e11.ruleKey>
+        <sonar.issue.ignore.multicriteria.e11.resourceKey>src/tests/concurrent/BatchReportServiceMockitoTest.java</sonar.issue.ignore.multicriteria.e11.resourceKey>
     </properties>
 
     <!--

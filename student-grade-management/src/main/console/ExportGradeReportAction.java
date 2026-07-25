@@ -1,6 +1,5 @@
 package main.console;
 
-import main.exceptions.StudentNotFoundException;
 import main.export.FileExporter;
 import main.export.ReportGenerator;
 import main.manager.GradeManager;
@@ -46,11 +45,7 @@ public class ExportGradeReportAction implements MenuAction {
         System.out.print("Enter Student ID: ");
         String studentId = InputSanitizer.sanitize(scanner.nextLine());
 
-        Student student = studentManager.findStudent(studentId);
-        if (student == null) {
-            throw new StudentNotFoundException("Student with ID '" + studentId + "' not found.",
-                    studentId, ConsoleUtils.getAvailableStudentIds(studentManager));
-        }
+        Student student = ConsoleUtils.requireStudent(studentManager, studentId);
 
         System.out.println("\nStudent: " + studentId + " - " + student.getName());
         System.out.println("Type: " + student.getStudentType() + " Student");

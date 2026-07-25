@@ -24,7 +24,7 @@ class AuditTrailTest {
     void noOpDoesNothingTest() throws Exception {
         AuditTrail auditTrail = AuditTrail.noOp();
 
-        Future<?> future = auditTrail.record("ADD", "STUDENT", "STU001", "should be discarded");
+        Future<?> future = auditTrail.append("ADD", "STUDENT", "STU001", "should be discarded");
         future.get(1, TimeUnit.SECONDS); // already completed - must not hang
 
         assertTrue(auditTrail.getEntries().isEmpty());
@@ -36,7 +36,7 @@ class AuditTrailTest {
     void activeRecordsEntryTest() throws InterruptedException, ExecutionException, TimeoutException {
         AuditTrail auditTrail = AuditTrail.active();
         try {
-            auditTrail.record("ADD", "STUDENT", "STU001", "Added student Alice Johnson")
+            auditTrail.append("ADD", "STUDENT", "STU001", "Added student Alice Johnson")
                     .get(2, TimeUnit.SECONDS);
 
             List<AuditEntry> entries = auditTrail.getEntries();
@@ -65,7 +65,7 @@ class AuditTrailTest {
                 int callerId = c;
                 new Thread(() -> {
                     for (int i = 0; i < recordsPerCaller; i++) {
-                        auditTrail.record("ADD", "GRADE", "GRD" + callerId + "-" + i, "detail " + callerId + "-" + i);
+                        auditTrail.append("ADD", "GRADE", "GRD" + callerId + "-" + i, "detail " + callerId + "-" + i);
                     }
                     done.countDown();
                 }).start();
@@ -89,7 +89,7 @@ class AuditTrailTest {
     @DisplayName("shutdown() completes cleanly and can be called more than once without throwing")
     void shutdownIsCleanAndIdempotentTest() {
         AuditTrail auditTrail = AuditTrail.active();
-        auditTrail.record("ADD", "STUDENT", "STU001", "irrelevant");
+        auditTrail.append("ADD", "STUDENT", "STU001", "irrelevant");
 
         assertDoesNotThrow(auditTrail::shutdown);
         assertDoesNotThrow(auditTrail::shutdown);
@@ -124,7 +124,7 @@ class AuditTrailTest {
     /** Drains the single-thread executor's queue by submitting one more record() and waiting for it. */
     private void waitForPendingWrites(AuditTrail auditTrail) throws InterruptedException {
         try {
-            auditTrail.record("ADD", "STUDENT", "__drain__", "").get(5, TimeUnit.SECONDS);
+            auditTrail.append("ADD", "STUDENT", "__drain__", "").get(5, TimeUnit.SECONDS);
         } catch (ExecutionException | TimeoutException e) {
             throw new AssertionError("pending audit writes did not drain in time", e);
         }

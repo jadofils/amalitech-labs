@@ -20,9 +20,9 @@ class GradeRecordMapperMockitoTest {
     void toGradeThrowsWhenSubjectMissingTest() {
         SubjectRepository subjectRepository = mock(SubjectRepository.class);
         when(subjectRepository.findSubjectByCode("GONE01")).thenThrow(new SubjectNotFoundException("not found"));
-        GradeRecord record = new GradeRecord("GRD001", "STU001", "GONE01", 80.0, "01-01-2026");
+        GradeRecord gradeRecord = new GradeRecord("GRD001", "STU001", "GONE01", 80.0, "01-01-2026");
 
-        assertThrows(SubjectNotFoundException.class, () -> GradeRecordMapper.toGrade(record, subjectRepository));
+        assertThrows(SubjectNotFoundException.class, () -> GradeRecordMapper.toGrade(gradeRecord, subjectRepository));
     }
 
     @Test
@@ -31,9 +31,9 @@ class GradeRecordMapperMockitoTest {
         SubjectRepository subjectRepository = mock(SubjectRepository.class);
         Subject subject = new CoreSubject("Mathematics", "MATH01");
         when(subjectRepository.findSubjectByCode("MATH01")).thenReturn(subject);
-        GradeRecord record = new GradeRecord("GRD001", "STU001", "MATH01", 80.0, "01-01-2026");
+        GradeRecord gradeRecord = new GradeRecord("GRD001", "STU001", "MATH01", 80.0, "01-01-2026");
 
-        GradeRecordMapper.toGrade(record, subjectRepository);
+        GradeRecordMapper.toGrade(gradeRecord, subjectRepository);
 
         verify(subjectRepository, times(1)).findSubjectByCode("MATH01");
     }
@@ -46,9 +46,9 @@ class GradeRecordMapperMockitoTest {
         when(subject.getSubjectType()).thenReturn(main.model.enums.SubjectType.CORE);
         Grade grade = new Grade("STU001", subject, 70.0);
 
-        GradeRecord record = GradeRecordMapper.toRecord(grade);
+        GradeRecord gradeRecord = GradeRecordMapper.toRecord(grade);
 
-        assertEquals("ENGL01", record.subjectCode());
+        assertEquals("ENGL01", gradeRecord.subjectCode());
         verify(subject, atLeastOnce()).getSubjectCode();
     }
 }

@@ -56,11 +56,11 @@ public final class AuditTrail {
     }
 
     /**
-     * Records one entry asynchronously - the returned {@link Future} is there for callers (mainly
+     * Appends one entry asynchronously - the returned {@link Future} is there for callers (mainly
      * tests) that need to wait for it to actually be written; ordinary business-code call sites are
      * expected to ignore it and move on, exactly like {@link main.logging.Logger} calls do.
      */
-    public Future<?> record(String action, String entityType, String entityId, String details) {
+    public Future<Boolean> append(String action, String entityType, String entityId, String details) {
         if (executor == null) {
             return CompletableFuture.completedFuture(null);
         }

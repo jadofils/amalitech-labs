@@ -10,7 +10,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Writes a list of {@link StudentRecord}s to CSV, JSON, or Java binary serialization - the three
@@ -28,7 +27,7 @@ public final class StudentDataExporter {
     public void exportCsv(List<StudentRecord> students, Path path) {
         List<String> lines = new ArrayList<>();
         lines.add("studentId,name,studentType,age,email,phone,status");
-        lines.addAll(students.stream().map(this::toCsvRow).collect(Collectors.toList()));
+        lines.addAll(students.stream().map(this::toCsvRow).toList());
         try {
             Files.write(path, lines, StandardCharsets.UTF_8);
         } catch (IOException e) {

@@ -31,14 +31,14 @@ public final class StudentRecordMapper {
     }
 
     /** Reconstructs the concrete {@link Student} subclass indicated by {@link StudentRecord#studentType()}. */
-    public static Student toStudent(StudentRecord record) {
-        StudentStatus status = StudentStatus.valueOf(record.status());
-        StudentType type = StudentType.valueOf(record.studentType());
+    public static Student toStudent(StudentRecord studentRecord) {
+        StudentStatus status = StudentStatus.valueOf(studentRecord.status());
+        StudentType type = StudentType.valueOf(studentRecord.studentType());
         if (type == StudentType.HONORS) {
-            return new HonorsStudent(record.studentId(), record.name(), record.age(),
-                    record.email(), record.phone(), status);
+            return new HonorsStudent(studentRecord.studentId(), studentRecord.name(), studentRecord.age(),
+                    studentRecord.email(), studentRecord.phone(), status);
         }
-        return new RegularStudent(record.studentId(), record.name(), record.age(),
-                record.email(), record.phone(), status);
+        return new RegularStudent(studentRecord.studentId(), studentRecord.name(), studentRecord.age(),
+                studentRecord.email(), studentRecord.phone(), status);
     }
 }

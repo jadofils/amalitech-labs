@@ -18,6 +18,7 @@ import java.util.function.Supplier;
 // Backed by the database (GradeService/GradeRepository) instead of an in-memory array for now.
 public class GradeManager {
     private static final String DIVIDER = "───────────────────────────────────────────────────────────────────────";
+    private static final String AUDIT_ENTITY_GRADE = "GRADE";
 
     private final GradeService gradeService;
     private final SubjectRepository subjectRepository;
@@ -70,7 +71,7 @@ public class GradeManager {
         try {
             gradeService.recordGrade(grade);
             gradeCache.invalidate(grade.getStudentId());
-            auditTrail.record("ADD", "GRADE", grade.getGradeId(),
+            auditTrail.append("ADD", AUDIT_ENTITY_GRADE, grade.getGradeId(),
                     "Recorded grade " + grade.getGradeId() + " (" + grade.getGrade() + "%) for student " + grade.getStudentId());
         } finally {
             lock.writeLock().unlock();
@@ -86,7 +87,7 @@ public class GradeManager {
             Grade grade = gradeService.getGradeById(gradeId);
             gradeService.deleteGrade(gradeId);
             gradeCache.invalidate(grade.getStudentId());
-            auditTrail.record("DELETE", "GRADE", gradeId, "Deleted grade " + gradeId + " for student " + grade.getStudentId());
+            auditTrail.append("DELETE", AUDIT_ENTITY_GRADE, gradeId, "Deleted grade " + gradeId + " for student " + grade.getStudentId());
         } finally {
             lock.writeLock().unlock();
         }

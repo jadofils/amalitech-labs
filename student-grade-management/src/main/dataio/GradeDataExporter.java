@@ -10,7 +10,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /** Writes a list of {@link GradeRecord}s to CSV, JSON, or Java binary - mirrors {@link StudentDataExporter}. */
 public final class GradeDataExporter {
@@ -20,7 +19,7 @@ public final class GradeDataExporter {
     public void exportCsv(List<GradeRecord> grades, Path path) {
         List<String> lines = new ArrayList<>();
         lines.add("gradeId,studentId,subjectCode,grade,date");
-        lines.addAll(grades.stream().map(this::toCsvRow).collect(Collectors.toList()));
+        lines.addAll(grades.stream().map(this::toCsvRow).toList());
         try {
             Files.write(path, lines, StandardCharsets.UTF_8);
         } catch (IOException e) {

@@ -76,7 +76,7 @@ class FileExporterTest {
     @Test
     @DisplayName("The no-argument constructor doesn't throw (defaults to the \"reports\" directory)")
     void noArgConstructorConstructsSuccessfullyTest() {
-        assertDoesNotThrow(() -> { new FileExporter(); });
+        assertDoesNotThrow((org.junit.jupiter.api.function.Executable) FileExporter::new);
     }
 
     @Test

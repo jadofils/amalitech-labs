@@ -1,5 +1,6 @@
 package main.console;
 
+import main.exceptions.StudentNotFoundException;
 import main.manager.StudentManager;
 import main.model.student.Student;
 
@@ -30,5 +31,19 @@ public final class ConsoleUtils {
             ids.add(s.getStudentId());
         }
         return ids;
+    }
+
+    /**
+     * Looks up {@code studentId}, throwing {@link StudentNotFoundException} (with the currently
+     * available IDs attached) if there's no match - the same "find or throw" a handful of menu
+     * actions each need before they can do anything else with a student.
+     */
+    public static Student requireStudent(StudentManager studentManager, String studentId) {
+        Student student = studentManager.findStudent(studentId);
+        if (student == null) {
+            throw new StudentNotFoundException("Student with ID '" + studentId + "' not found.",
+                    studentId, getAvailableStudentIds(studentManager));
+        }
+        return student;
     }
 }
