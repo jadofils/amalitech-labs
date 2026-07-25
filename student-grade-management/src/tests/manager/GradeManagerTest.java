@@ -120,6 +120,38 @@ class GradeManagerTest {
         assertTrue(output.indexOf(second.getGradeId()) < output.indexOf(first.getGradeId()));
     }
 
+    @Test
+    @DisplayName("getGradesForStudent() reflects a grade added after the first (cache-populating) read, not a stale cached result")
+    void addGradeInvalidatesCachedReadTest() {
+        Student student = studentRepository.getAllStudents().get(0);
+        String studentId = student.getStudentId();
+        Subject subject = gradeManager.getSubjectsByType(SubjectType.CORE).get(0);
+
+        assertTrue(gradeManager.getGradesForStudent(studentId).isEmpty(), "populates the cache with the pre-write (empty) state");
+
+        gradeManager.addGrade(new Grade(studentId, subject, 88.0));
+
+        List<Grade> afterWrite = gradeManager.getGradesForStudent(studentId);
+        assertEquals(1, afterWrite.size(), "must not serve the stale, pre-write cached result");
+        assertEquals(88.0, afterWrite.get(0).getGrade(), 0.0001);
+    }
+
+    @Test
+    @DisplayName("getGradeCacheHitRate() is 0.0 before any read, and increases once a repeated read hits the cache")
+    void gradeCacheHitRateReflectsRepeatedReadsTest() {
+        Student student = studentRepository.getAllStudents().get(0);
+        String studentId = student.getStudentId();
+
+        assertEquals(0.0, gradeManager.getGradeCacheHitRate(), 0.0001);
+
+        gradeManager.getGradesForStudent(studentId); // miss - populates the cache
+        double afterMiss = gradeManager.getGradeCacheHitRate();
+        gradeManager.getGradesForStudent(studentId); // hit
+        double afterHit = gradeManager.getGradeCacheHitRate();
+
+        assertTrue(afterHit > afterMiss, "a cache hit must raise the hit rate above its post-miss value");
+    }
+
     private String captureStdOut(Runnable action) {
         PrintStream original = System.out;
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();

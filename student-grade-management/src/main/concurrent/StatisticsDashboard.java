@@ -27,6 +27,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * <p>Race-safety against a concurrent grade-entry action (this story's specific concern) comes
  * from reading through {@link GradeManager#readLocked}, which shares a lock with
  * {@link GradeManager#addGrade} - a refresh can never observe a grade addition mid-write.
+ *
+ * <p>Also prints {@link GradeManager#getGradeCacheHitRate()} (US-8/PBI-8) each tick - the
+ * dashboard's own repeated per-student reads are exactly the workload that cache is meant to
+ * speed up, so its hit rate climbing across ticks is a direct, visible measure of the cache doing
+ * its job.
  */
 public class StatisticsDashboard {
 
@@ -113,12 +118,14 @@ public class StatisticsDashboard {
         }
         StatisticsCalculator.StatsResult stats = statisticsCalculator.calculateStats(allGrades, allStudents);
         int activeThreads = executor == null ? 0 : executor.getActiveCount();
-        return new DashboardSnapshot(allStudents.size(), allGrades.size(), stats.getMean(), activeThreads);
+        return new DashboardSnapshot(allStudents.size(), allGrades.size(), stats.getMean(), activeThreads,
+                gradeManager.getGradeCacheHitRate());
     }
 
     private void print(DashboardSnapshot snapshot) {
         System.out.println("\nREAL-TIME STATISTICS DASHBOARD");
         System.out.println("Active Threads: " + snapshot.activeThreadCount());
+        System.out.println("Cache Hit Rate: " + String.format("%.1f%%", snapshot.gradeCacheHitRate() * 100));
         System.out.println("Students: " + snapshot.studentCount() + " | Grades: " + snapshot.gradeCount()
                 + " | Mean: " + String.format("%.1f%%", snapshot.meanGrade()));
         System.out.println("Grade Distribution updating live");
@@ -139,6 +146,7 @@ public class StatisticsDashboard {
     }
 
     /** One dashboard refresh's numbers. */
-    public record DashboardSnapshot(int studentCount, int gradeCount, double meanGrade, int activeThreadCount) {
+    public record DashboardSnapshot(int studentCount, int gradeCount, double meanGrade, int activeThreadCount,
+                                     double gradeCacheHitRate) {
     }
 }
