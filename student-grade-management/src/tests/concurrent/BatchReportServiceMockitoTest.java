@@ -14,8 +14,12 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.RejectedExecutionException;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 class BatchReportServiceMockitoTest {
@@ -94,5 +98,23 @@ class BatchReportServiceMockitoTest {
         // "record actual measured speedup instead" guidance.
         assertTrue(result.elapsedMillis() < sequentialMillis,
                 "parallel (" + result.elapsedMillis() + "ms) should be faster than sequential (" + sequentialMillis + "ms)");
+    }
+
+    @Test
+    @DisplayName("generateBatch() still shuts the executor down even when task submission itself fails (PBI-10: mocked ExecutorService, no real threads)")
+    void shutsDownExecutorEvenWhenSubmissionFailsTest() {
+        ExecutorService mockExecutor = mock(ExecutorService.class);
+        when(mockExecutor.submit(any(Callable.class))).thenThrow(new RejectedExecutionException("pool exhausted"));
+
+        StudentManager studentManager = mock(StudentManager.class);
+        ReportGenerator reportGenerator = mock(ReportGenerator.class);
+        FileExporter fileExporter = mock(FileExporter.class);
+        BatchReportService service = new BatchReportService(studentManager, reportGenerator, fileExporter,
+                BatchReportService.MIN_THREADS, () -> mockExecutor);
+
+        assertThrows(RejectedExecutionException.class,
+                () -> service.generateBatch(List.of("STU001"), ReportKind.SUMMARY, "batch_"));
+
+        verify(mockExecutor, times(1)).shutdown();
     }
 }
