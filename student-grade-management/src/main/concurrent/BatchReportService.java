@@ -13,6 +13,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 /**
  * Generates and exports grade reports for many students at once, one task per student on a
@@ -41,9 +42,22 @@ public class BatchReportService {
     private final ReportGenerator reportGenerator;
     private final FileExporter fileExporter;
     private final int threadCount;
+    private final Supplier<ExecutorService> executorFactory;
 
     public BatchReportService(StudentManager studentManager, ReportGenerator reportGenerator,
                                FileExporter fileExporter, int threadCount) {
+        this(studentManager, reportGenerator, fileExporter, threadCount,
+                () -> Executors.newFixedThreadPool(threadCount));
+    }
+
+    /**
+     * PBI-10: lets a test substitute a mocked {@link ExecutorService} for the real thread pool -
+     * e.g. to verify shutdown always happens even when a submitted task fails, deterministically,
+     * without depending on real thread timing. Ordinary callers should use the four-argument
+     * constructor above; this one exists for tests.
+     */
+    public BatchReportService(StudentManager studentManager, ReportGenerator reportGenerator,
+                               FileExporter fileExporter, int threadCount, Supplier<ExecutorService> executorFactory) {
         if (threadCount < MIN_THREADS || threadCount > MAX_THREADS) {
             throw new IllegalArgumentException(
                     "threadCount must be between " + MIN_THREADS + " and " + MAX_THREADS + ", got: " + threadCount);
@@ -52,6 +66,7 @@ public class BatchReportService {
         this.reportGenerator = reportGenerator;
         this.fileExporter = fileExporter;
         this.threadCount = threadCount;
+        this.executorFactory = executorFactory;
     }
 
     /**
@@ -63,7 +78,7 @@ public class BatchReportService {
      */
     public BatchResult generateBatch(List<String> studentIds, ReportKind kind, String filenamePrefix) {
         long start = System.nanoTime();
-        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+        ExecutorService executor = executorFactory.get();
 
         try {
             List<Future<StudentReportOutcome>> futures = new ArrayList<>(studentIds.size());
