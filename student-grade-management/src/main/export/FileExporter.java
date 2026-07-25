@@ -34,8 +34,8 @@ public class FileExporter {
             writer.write(content);
             writer.flush();
         } catch (IOException e) {
-            Logger.error("Failed to main.export report to " + path, e);
-            throw new ExportException("Failed to main.export report: " + e.getMessage(), path, e);
+            Logger.error("Failed to export report to " + path, e);
+            throw new ExportException("Failed to export report: " + e.getMessage(), path, e);
         }
 
         Logger.info("Report exported: " + path + " (" + file.length() + " bytes)");
