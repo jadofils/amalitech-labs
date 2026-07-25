@@ -39,7 +39,7 @@ public class BulkImportAction implements MenuAction {
         System.out.println("\nBULK IMPORT GRADES");
         System.out.println(ConsoleUtils.DIVIDER);
 
-        System.out.println("\nPlace your CSV file in: ./main.imports/");
+        System.out.println("\nPlace your CSV file in: ./imports/");
         System.out.println("\nCSV Format Required:");
         System.out.println("StudentID,SubjectName,SubjectType,Grade");
         System.out.println("Example: STU001,Mathematics,Core,85");
