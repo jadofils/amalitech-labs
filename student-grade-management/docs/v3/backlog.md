@@ -264,7 +264,7 @@ Source: [../../REAME-V3.md](../../REAME-V3.md).
       `SubjectRepositoryImpl`'s constructor, which nearly every test file in this suite constructs
       directly
 
-### PBI-10: Testing & Coverage (cross-cutting)
+### PBI-10: Testing & Coverage (cross-cutting) — ✅ Done (`feature/v3-coverage-verification`, merged)
 | Field | Value |
 |---|---|
 | **Priority** | High |
@@ -277,12 +277,30 @@ Source: [../../REAME-V3.md](../../REAME-V3.md).
 > production
 
 **Acceptance Criteria:**
-- [ ] 25+ unit tests covering collections, regex, streams, file I/O (per-class, following this
-      repo's existing `<Class>Test`/`<Class>MockitoTest` convention)
-- [ ] 10+ integration tests, including a mocked `ExecutorService` and a mocked file system where
-      real threads/real disk I/O would make tests slow or flaky
-- [ ] Minimum 85% JaCoCo coverage maintained on top of v2's existing suite (currently 495/495
-      passing, 96.2% overall — v3 must not regress this)
+- [x] 25+ unit tests covering collections, regex, streams, file I/O (per-class, following this
+      repo's existing `<Class>Test`/`<Class>MockitoTest` convention) — 616 test methods across 81
+      test classes total, vastly exceeding the target
+- [x] 10+ integration tests, including a mocked `ExecutorService` and a mocked file system where
+      real threads/real disk I/O would make tests slow or flaky — 50 of those 81 classes wire
+      multiple real collaborators together (this codebase's closest equivalent to a separate
+      integration-test module). The mocked-file-system technique already existed
+      (`mock(FileExporter.class)` in three test files); the mocked-`ExecutorService` technique did
+      not, so `BatchReportService` gained a test-only `Supplier<ExecutorService>` constructor
+      overload (existing four-argument constructor unchanged) and a new deterministic test proving
+      its executor always shuts down even when task submission itself fails
+- [x] Minimum 85% JaCoCo coverage maintained on top of v2's existing suite (currently 495/495
+      passing, 96.2% overall — v3 must not regress this) — **the reported 96.2% predates this
+      story and was never real**: `jacoco-maven-plugin` was pinned to 0.8.8, which predates this
+      environment's JDK (25) entirely, so its instrumentation agent threw
+      `IllegalClassFormatException` on JDK-internal classes and every Mockito inline-mock proxy,
+      silently producing an empty report (a session header, no per-class data) instead of failing
+      the build. Upgraded to 0.8.15 (latest available), which instruments cleanly with zero errors.
+      Actual, now-real coverage: **94.9% line / 94.6% instruction / 91.6% branch / 96.9% method /
+      97.9% class** — comfortably above the 85% floor. The two 0%-covered classes are `Main` (a
+      documented, deliberate exception per its own Javadoc - "too thin to need a test of its own")
+      and `MenuAction`'s default methods (a known JaCoCo interface-default-method instrumentation
+      quirk; every implementer either overrides them or reaches them via `ConsoleApp`'s tested
+      dispatch)
 
 ---
 
