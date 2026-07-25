@@ -233,7 +233,7 @@ Source: [../../REAME-V3.md](../../REAME-V3.md).
       cache, so they can't drift apart. Proven: a read that populates the cache, followed by
       `addGrade()`, followed by another read, must reflect the write - not the stale cached result
 
-### PBI-9: Concurrent Audit Trail (US-9)
+### PBI-9: Concurrent Audit Trail (US-9) — ✅ Done (`feature/v3-audit-trail`, merged)
 | Field | Value |
 |---|---|
 | **Priority** | Low |
@@ -245,11 +245,24 @@ Source: [../../REAME-V3.md](../../REAME-V3.md).
 > **So that** I can review who changed what, safely even under concurrent writes
 
 **Acceptance Criteria:**
-- [ ] `SingleThreadExecutor` (or equivalent) serializes audit writes so concurrent callers never
-      interleave/corrupt a log entry
-- [ ] Distinct from the existing `logging.Logger` (diagnostics) — this is a durable, structured
-      record of data-changing actions specifically, not general debug output
-- [ ] Every add/update/delete across student/subject/grade goes through it
+- [x] `SingleThreadExecutor` (or equivalent) serializes audit writes so concurrent callers never
+      interleave/corrupt a log entry — new `AuditTrail.active()`; proven with an 8-thread, 400-call
+      stress test asserting every entry lands exactly once, none lost or duplicated
+- [x] Distinct from the existing `logging.Logger` (diagnostics) — this is a durable, structured
+      record of data-changing actions specifically, not general debug output — `AuditEntry(action,
+      entityType, entityId, details, timestamp)`, retrievable via `getEntries()`
+- [x] Every add/update/delete across student/subject/grade goes through it — wired into
+      `StudentManager.addStudent/updateStudent/deleteStudent` and `GradeManager.addGrade` plus a new
+      `GradeManager.deleteGrade()` (the service/repository layer supported deleting a grade since
+      PBI-1, but nothing above it exposed that capability until this story gave a concrete reason
+      to). `noOp()` is this story's Null Object - the default for both managers' existing
+      two-argument constructors, so no existing test needed to change; `Main.java` wires a real
+      `AuditTrail.active()` through both and calls `shutdown()` after `ConsoleApp.run()` returns.
+      Subject writes (`addSubject`/`deleteSubject`) are **not** wired: they're called directly on
+      `SubjectRepositoryImpl` with no manager/service layer of their own and nothing in the running
+      app currently exercises them — auditing them would mean adding an `AuditTrail` parameter to
+      `SubjectRepositoryImpl`'s constructor, which nearly every test file in this suite constructs
+      directly
 
 ### PBI-10: Testing & Coverage (cross-cutting)
 | Field | Value |
