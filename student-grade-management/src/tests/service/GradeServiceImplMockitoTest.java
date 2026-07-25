@@ -76,6 +76,21 @@ class GradeServiceImplMockitoTest {
     }
 
     @Test
+    @DisplayName("recordGrade() rejects a null subject lookup result instead of persisting it")
+    void recordGradeRejectsNullSubjectLookupTest() {
+        StudentRepository students = mock(StudentRepository.class);
+        SubjectRepository subjects = mock(SubjectRepository.class);
+        GradeRepository grades = mock(GradeRepository.class);
+        GradeServiceImpl service = new GradeServiceImpl(grades, students, subjects);
+        Grade grade = new Grade("STU001", subject, 85.0);
+        when(subjects.findSubjectByCode("MATH01")).thenReturn(null);
+
+        assertThrows(SubjectNotFoundException.class, () -> service.recordGrade(grade));
+
+        verify(grades, never()).addGrade(any());
+    }
+
+    @Test
     @DisplayName("getGradeById() wraps a null main.repository result in a GradeException")
     void getGradeByIdWrapsNullTest() {
         // The real GradeRepositoryImpl can never actually return null here (it

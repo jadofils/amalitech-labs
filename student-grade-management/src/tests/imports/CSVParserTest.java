@@ -58,9 +58,14 @@ class CSVParserTest {
             "'STU001,Mathematics,85', Invalid format",
             "'STU001,Mathematics,Core,abc', Invalid grade number",
             "'STU001,Mathematics,Core,105', out of range",
+            "'STU001,Mathematics,Core,-5', out of range",
             "'STU001,Philosophy,Core,85', Unknown subject",
             "'STU001,Mathematics,Elective,85', type mismatch",
-            "'STU001,Mathematics,Bogus,85', Unknown subject type"
+            "'STU001,Mathematics,Bogus,85', Unknown subject type",
+            "',Mathematics,Core,85', Empty field",
+            "'STU001,,Core,85', Empty field",
+            "'STU001,Mathematics,,85', Empty field",
+            "'STU001,Mathematics,Core, ,', Empty field"
     })
     @DisplayName("A single malformed data row is reported as exactly one error containing the expected message")
     void singleRowErrorTest(String dataRow, String expectedErrorSubstring) throws IOException {
@@ -81,6 +86,17 @@ class CSVParserTest {
         CSVParser.CSVParseResult result = parser.parse(file);
 
         assertEquals(1, result.getValidCount());
+        assertEquals(0, result.getErrorCount());
+    }
+
+    @Test
+    @DisplayName("A completely empty file (not even a header) parses as zero valid rows and zero errors")
+    void emptyFileParsesAsNoRowsTest() throws IOException {
+        File file = writeCsv("");
+
+        CSVParser.CSVParseResult result = parser.parse(file);
+
+        assertEquals(0, result.getValidCount());
         assertEquals(0, result.getErrorCount());
     }
 

@@ -1,5 +1,6 @@
 package tests.service;
 
+import main.exceptions.StudentNotFoundException;
 import main.exceptions.StudentValidationException;
 import main.model.student.RegularStudent;
 import main.model.student.Student;
@@ -54,6 +55,16 @@ class StudentServiceImplMockitoTest {
 
         assertSame(student, service.getStudentById("STU001"));
         verify(repository, times(1)).findStudentById("STU001");
+    }
+
+    @Test
+    @DisplayName("getStudentById() rejects a null main.repository result instead of returning it")
+    void getStudentByIdRejectsNullResultTest() {
+        StudentRepository repository = mock(StudentRepository.class);
+        when(repository.findStudentById("STU001")).thenReturn(null);
+        StudentServiceImpl service = new StudentServiceImpl(repository);
+
+        assertThrows(StudentNotFoundException.class, () -> service.getStudentById("STU001"));
     }
 
     @Test

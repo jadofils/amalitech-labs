@@ -83,6 +83,29 @@ class StudentManagerMockitoTest {
     }
 
     @Test
+    @DisplayName("Construction tolerates a stored student ID with no digits, treating its sequence as 0")
+    void constructorToleratesNonNumericStudentIdTest() {
+        StudentService studentService = mock(StudentService.class);
+        GradeManager gradeManager = mock(GradeManager.class);
+        Student noDigitsId = new RegularStudent("ABCDEF", "Legacy Student", 17, "legacy@school.edu",
+                "1234567890", main.model.enums.StudentStatus.ACTIVE);
+        when(studentService.getAllStudents()).thenReturn(List.of(noDigitsId));
+
+        assertDoesNotThrow(() -> new StudentManager(studentService, gradeManager));
+    }
+
+    @Test
+    @DisplayName("getAverageClassGrade() returns 0.0 without dividing when there are no students")
+    void getAverageClassGradeEmptyReturnsZeroTest() {
+        StudentService studentService = mock(StudentService.class);
+        GradeManager gradeManager = mock(GradeManager.class);
+        StudentManager manager = new StudentManager(studentService, gradeManager);
+        when(studentService.getAllStudents()).thenReturn(List.of());
+
+        assertEquals(0.0, manager.getAverageClassGrade());
+    }
+
+    @Test
     @DisplayName("addStudent() delegates to StudentService exactly once")
     void addStudentDelegatesTest() {
         StudentService studentService = mock(StudentService.class);

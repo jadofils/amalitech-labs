@@ -168,4 +168,40 @@ class StudentValidatorTest {
         Student student = new RegularStudent("Musa Nkusi", 17, "musa@amalitech.com", phone);
         assertDoesNotThrow(() -> StudentValidator.validateStudent(student));
     }
+
+    @Test
+    @DisplayName("A null ID fails validateId() directly")
+    void nullIdFailsTest() {
+        assertThrows(StudentValidationException.class, () -> StudentValidator.validateId(null));
+    }
+
+    @Test
+    @DisplayName("A null name fails validateName() directly")
+    void nullNameFailsTest() {
+        assertThrows(StudentValidationException.class, () -> StudentValidator.validateName(null));
+    }
+
+    @Test
+    @DisplayName("A null email fails validateEmail() directly")
+    void nullEmailFailsTest() {
+        assertThrows(StudentValidationException.class, () -> StudentValidator.validateEmail(null));
+    }
+
+    @Test
+    @DisplayName("A null phone fails validatePhone() directly")
+    void nullPhoneFailsTest() {
+        assertThrows(StudentValidationException.class, () -> StudentValidator.validatePhone(null));
+    }
+
+    @Test
+    @DisplayName("A negative average grade fails validateGrades() directly")
+    void negativeAverageGradeFailsTest() {
+        assertThrows(StudentValidationException.class, () -> StudentValidator.validateGrades(-1));
+    }
+
+    @Test
+    @DisplayName("An average grade above 100 fails validateGrades() directly")
+    void aboveMaxAverageGradeFailsTest() {
+        assertThrows(StudentValidationException.class, () -> StudentValidator.validateGrades(101));
+    }
 }

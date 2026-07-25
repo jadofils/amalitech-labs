@@ -41,6 +41,14 @@ class GradeValidatorTest {
     }
 
     @Test
+    @DisplayName("A negative grade value is rejected")
+    void negativeGradeFailsTest() {
+        InvalidGradeException ex = assertThrows(InvalidGradeException.class,
+                () -> GradeValidator.validateForImport("GRD001", "STU001", -5.0));
+        assertEquals(-5.0, ex.getAttemptedGrade());
+    }
+
+    @Test
     @DisplayName("A null grade ID is rejected, not thrown as an NPE")
     void nullGradeIdFailsTest() {
         assertThrows(InvalidGradeException.class,

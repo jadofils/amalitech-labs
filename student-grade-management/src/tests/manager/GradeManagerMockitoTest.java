@@ -35,6 +35,20 @@ class GradeManagerMockitoTest {
     }
 
     @Test
+    @DisplayName("Construction syncs the grade counter past existing grades, tolerating one with no digits in its ID")
+    void constructorSyncsCounterAndToleratesNonNumericGradeIdTest() {
+        GradeService gradeService = mock(GradeService.class);
+        SubjectRepository subjectRepository = mock(SubjectRepository.class);
+        Grade numbered = mock(Grade.class);
+        when(numbered.getGradeId()).thenReturn("GRD005");
+        Grade noDigitsId = mock(Grade.class);
+        when(noDigitsId.getGradeId()).thenReturn("LEGACY");
+        when(gradeService.getAllGrades()).thenReturn(List.of(numbered, noDigitsId));
+
+        assertDoesNotThrow(() -> new GradeManager(gradeService, subjectRepository));
+    }
+
+    @Test
     @DisplayName("getSubjectsByType() filters the main.repository's full list by type")
     void getSubjectsByTypeFiltersTest() {
         GradeService gradeService = mock(GradeService.class);

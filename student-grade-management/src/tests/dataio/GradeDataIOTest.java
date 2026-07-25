@@ -78,6 +78,18 @@ class GradeDataIOTest {
     }
 
     @Test
+    @DisplayName("importCsv() skips blank lines without erroring or producing empty records")
+    void csvImportSkipsBlankLinesTest() throws IOException {
+        Files.createDirectories(tempDir);
+        Path path = tempDir.resolve("with-blanks.csv");
+        Files.writeString(path, "gradeId,studentId,subjectCode,grade,date\n\nGRD001,STU001,MATH01,85.0,01-01-2026\n\n");
+
+        List<GradeRecord> imported = importer.importCsv(path);
+
+        assertEquals(1, imported.size());
+    }
+
+    @Test
     @DisplayName("importCsv() throws ImportException for a row with the wrong number of fields")
     void csvImportRejectsMalformedRowTest() throws IOException {
         Files.createDirectories(tempDir);

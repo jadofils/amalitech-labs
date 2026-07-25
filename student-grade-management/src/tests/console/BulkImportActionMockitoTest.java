@@ -100,6 +100,19 @@ class BulkImportActionMockitoTest {
     }
 
     @Test
+    @DisplayName("ImportException with no file path omits the file line")
+    void importExceptionWithNoFilePathOmitsTheFileLineTest() {
+        BulkImportService bulkImportService = mock(BulkImportService.class);
+        when(bulkImportService.importFromFile("broken"))
+                .thenThrow(new ImportException("Unexpected failure"));
+
+        String output = assertDoesNotThrow(() -> runWithInput(bulkImportService, "broken\n\n"));
+
+        assertTrue(output.contains("ERROR: Unexpected failure"));
+        assertFalse(output.contains("File:"));
+    }
+
+    @Test
     @DisplayName("getOptionNumber(), getLabel() and isAuthorizedFor() report the expected menu metadata")
     void menuMetadataTest() {
         BulkImportService bulkImportService = mock(BulkImportService.class);

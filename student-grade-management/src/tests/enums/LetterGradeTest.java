@@ -22,7 +22,8 @@ class LetterGradeTest {
             "54.999, D",
             "40.0, D",
             "39.999, F",
-            "0.0, F"
+            "0.0, F",
+            "-5.0, F"
     })
     @DisplayName("fromNumeric() boundaries are inclusive on the lower bound of each band")
     void fromNumericBoundariesTest(double numeric, String expectedLetter) {

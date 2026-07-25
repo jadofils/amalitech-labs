@@ -44,6 +44,14 @@ class GradeRepositoryImplTest {
     }
 
     @Test
+    @DisplayName("findGradeById() scans past non-matching grades before throwing for an unknown ID")
+    void findGradeByIdMissingAmongExistingThrowsTest() {
+        GradeRepositoryImpl repository = new GradeRepositoryImpl();
+        repository.addGrade(new Grade("STU001", math, 85.0));
+        assertThrows(GradeException.class, () -> repository.findGradeById("GRD999"));
+    }
+
+    @Test
     @DisplayName("findGradesByStudentId() returns only that student's grades")
     void findGradesByStudentIdFiltersTest() {
         GradeRepositoryImpl repository = new GradeRepositoryImpl();
@@ -88,5 +96,29 @@ class GradeRepositoryImplTest {
     void deleteGradeMissingThrowsTest() {
         GradeRepositoryImpl repository = new GradeRepositoryImpl();
         assertThrows(GradeException.class, () -> repository.deleteGrade("GRD999"));
+    }
+
+    @Test
+    @DisplayName("deleteGrade() scans past non-matching grades before throwing for an unknown ID")
+    void deleteGradeMissingAmongExistingThrowsTest() {
+        GradeRepositoryImpl repository = new GradeRepositoryImpl();
+        repository.addGrade(new Grade("STU001", math, 85.0));
+        assertThrows(GradeException.class, () -> repository.deleteGrade("GRD999"));
+    }
+
+    @Test
+    @DisplayName("deleteGrade() leaves the student's remaining grades intact when they still have others")
+    void deleteGradeKeepsOtherGradesForSameStudentTest() {
+        GradeRepositoryImpl repository = new GradeRepositoryImpl();
+        Grade g1 = new Grade("STU001", math, 85.0);
+        Grade g2 = new Grade("STU001", math, 90.0);
+        repository.addGrade(g1);
+        repository.addGrade(g2);
+
+        repository.deleteGrade(g1.getGradeId());
+
+        List<Grade> remaining = repository.findGradesByStudentId("STU001");
+        assertEquals(1, remaining.size());
+        assertTrue(remaining.contains(g2));
     }
 }

@@ -41,6 +41,16 @@ class StatisticsCalculatorTest {
     }
 
     @Test
+    @DisplayName("calculateDistribution() returns all-zero percentages for an empty grade list, without dividing by zero")
+    void distributionOfEmptyGradesIsAllZeroTest() {
+        StatisticsCalculator.GradeDistribution dist = calculator.calculateDistribution(List.of());
+
+        for (double percentage : dist.getPercentages()) {
+            assertEquals(0.0, percentage);
+        }
+    }
+
+    @Test
     @DisplayName("calculateStats() computes mean, median (even count), and range correctly")
     void calculateStatsBasicMeasuresTest() {
         List<Grade> grades = List.of(

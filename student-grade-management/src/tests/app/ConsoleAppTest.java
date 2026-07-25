@@ -117,6 +117,39 @@ class ConsoleAppTest {
     }
 
     @Test
+    void studentNotFoundExceptionWithNoAvailableIdsOmitsTheIdsLineTest() {
+        StubAction notFound = new StubAction(4, "View Grade Report", null, false,
+                count -> new main.exceptions.StudentNotFoundException("not found"));
+
+        String output = runWithInput(List.of(notFound, exit()), "N\n4\n10\n");
+
+        assertTrue(output.contains("ERROR: StudentNotFoundException"));
+        assertFalse(output.contains("Available student IDs"));
+    }
+
+    @Test
+    void studentNotFoundExceptionWithEmptyAvailableIdsOmitsTheIdsLineTest() {
+        StubAction notFound = new StubAction(4, "View Grade Report", null, false,
+                count -> new main.exceptions.StudentNotFoundException("not found", "STU999", List.of()));
+
+        String output = runWithInput(List.of(notFound, exit()), "N\n4\n10\n");
+
+        assertTrue(output.contains("ERROR: StudentNotFoundException"));
+        assertFalse(output.contains("Available student IDs"));
+    }
+
+    @Test
+    void exportExceptionWithNoFilePathOmitsTheFileLineTest() {
+        StubAction exportFails = new StubAction(5, "Export Grade Report", null, false,
+                count -> new main.exceptions.ExportException("write failed"));
+
+        String output = runWithInput(List.of(exportFails, exit()), "N\n5\n10\n");
+
+        assertTrue(output.contains("ERROR: ExportException"));
+        assertFalse(output.contains("File:"));
+    }
+
+    @Test
     void exportExceptionPrintsTheFilePathTest() {
         StubAction exportFails = new StubAction(5, "Export Grade Report", null, false,
                 count -> new main.exceptions.ExportException("write failed", "reports/x.txt", new RuntimeException("io")));
@@ -146,6 +179,13 @@ class ConsoleAppTest {
         String output = runWithInput(List.of(genericFailure, exit()), "N\n8\n10\n");
 
         assertTrue(output.contains("ERROR: CSVImportException"));
+    }
+
+    @Test
+    void invalidRoleChoiceReprompsUntilAValidOneIsEnteredTest() {
+        String output = runWithInput(List.of(exit()), "Y\n9\n1\n10\n");
+
+        assertTrue(output.contains("Invalid choice. Please select 1 or 2."));
     }
 
     @Test

@@ -79,6 +79,18 @@ class StudentDataIOTest {
     }
 
     @Test
+    @DisplayName("importCsv() skips blank lines without erroring or producing empty records")
+    void csvImportSkipsBlankLinesTest() throws IOException {
+        Files.createDirectories(tempDir);
+        Path path = tempDir.resolve("with-blanks.csv");
+        Files.writeString(path, "studentId,name,studentType,age,email,phone,status\n\nSTU001,Alice Johnson,REGULAR,16,alice@school.edu,1234567890,ACTIVE\n\n");
+
+        List<StudentRecord> imported = importer.importCsv(path);
+
+        assertEquals(1, imported.size());
+    }
+
+    @Test
     @DisplayName("importCsv() throws ImportException for a row with the wrong number of fields")
     void csvImportRejectsMalformedRowTest() throws IOException {
         Files.createDirectories(tempDir);

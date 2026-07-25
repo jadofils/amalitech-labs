@@ -159,6 +159,25 @@ class CalculateGpaActionMockitoTest {
     }
 
     @Test
+    @DisplayName("An empty class (no other students) uses a 0 class average instead of dividing by zero")
+    void emptyClassUsesZeroClassAverageTest() {
+        StudentManager studentManager = mock(StudentManager.class);
+        GradeManager gradeManager = mock(GradeManager.class);
+        GPACalculator gpaCalculator = mock(GPACalculator.class);
+        Student student = regularStudent();
+        when(studentManager.findStudent(STUDENT_ID)).thenReturn(student);
+        when(gradeManager.getGradesForStudent(STUDENT_ID)).thenReturn(List.of());
+        when(gpaCalculator.cumulativeGPA(STUDENT_ID)).thenReturn(3.0);
+        when(studentManager.getAllStudents()).thenReturn(List.of());
+        when(gpaCalculator.classRank(STUDENT_ID)).thenReturn(1);
+        when(gpaCalculator.percentageToGPA(0.0)).thenReturn(0.0);
+
+        String output = runWithInput(studentManager, gradeManager, gpaCalculator, STUDENT_ID + "\n\n");
+
+        assertTrue(output.contains("Above class average (0.00 GPA)"));
+    }
+
+    @Test
     @DisplayName("cumulativeGPA above the class average GPA prints the above-class-average message")
     void aboveClassAverageBranchTest() {
         StudentManager studentManager = mock(StudentManager.class);
