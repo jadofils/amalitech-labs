@@ -157,7 +157,7 @@ Source: [../../REAME-V3.md](../../REAME-V3.md).
       grades added on one thread while the dashboard refreshes concurrently on another, asserting
       the final count is never lost or duplicated
 
-### PBI-6: Scheduled Grade Processing (US-6)
+### PBI-6: Scheduled Grade Processing (US-6) — ✅ Done (`feature/v3-scheduled-gpa-job`, merged)
 | Field | Value |
 |---|---|
 | **Priority** | Medium |
@@ -169,9 +169,21 @@ Source: [../../REAME-V3.md](../../REAME-V3.md).
 > **So that** rankings stay current without a manual trigger
 
 **Acceptance Criteria:**
-- [ ] `ScheduledExecutorService` runs a daily GPA recalculation job
-- [ ] Job status (last run, next run) visible from the console
-- [ ] Scheduled job shuts down cleanly on application exit (no orphaned threads)
+- [x] `ScheduledExecutorService` runs a daily GPA recalculation job — new
+      `ScheduledGpaRecalculationJob` wraps `Executors.newSingleThreadScheduledExecutor()`, running
+      `GPACalculator.classRankings()` at a 24h-default (configurable) fixed rate — deliberately not
+      the `CachedThreadPool` PBI-5's dashboard uses, so the two stories each demonstrate a different
+      `java.util.concurrent` tool
+- [x] Job status (last run, next run) visible from the console — `getLastRunAt()`/`getNextRunAt()`/
+      `getLastResult()` (all `Optional`, empty before the first run) expose it; console menu wiring
+      deferred the same way PBI-1/2/3/4/5's service-layer capabilities were, ready to be wired in
+      without touching `ConsoleApp`'s existing dispatch tests
+- [x] Scheduled job shuts down cleanly on application exit (no orphaned threads) — `stop()` cancels
+      the scheduled future and shuts the executor down (`awaitTermination` then `shutdownNow` on
+      timeout); the scheduler thread is also daemon as a second line of defense. Reads through
+      `GradeManager.readLocked()` (added in PBI-5), so a recalculation can't observe a grade
+      addition mid-write — proven with a stress test: 150 grades added on one thread while the job
+      runs on another, asserting every student ends up in exactly one GPA bucket
 
 ### PBI-7: Regex-Based Search (US-7)
 | Field | Value |
