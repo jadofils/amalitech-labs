@@ -185,7 +185,7 @@ Source: [../../REAME-V3.md](../../REAME-V3.md).
       addition mid-write — proven with a stress test: 150 grades added on one thread while the job
       runs on another, asserting every student ends up in exactly one GPA bucket
 
-### PBI-7: Regex-Based Search (US-7)
+### PBI-7: Regex-Based Search (US-7) — ✅ Done (`feature/v3-regex-search`, merged)
 | Field | Value |
 |---|---|
 | **Priority** | Medium |
@@ -197,10 +197,16 @@ Source: [../../REAME-V3.md](../../REAME-V3.md).
 > **So that** I can find groups of students a simple substring match can't express
 
 **Acceptance Criteria:**
-- [ ] Extends v2's existing `Searchable`/`StudentSearcher` with a pattern-based search mode
-- [ ] At least the example from the brief works: filter students by email domain
-- [ ] Invalid regex input from the console is caught and reported, not an uncaught
-      `PatternSyntaxException`
+- [x] Extends v2's existing `Searchable`/`StudentSearcher` with a pattern-based search mode —
+      `searchByEmailPattern(String regex)`, the only implementer (`StudentSearcher`) updated to match
+- [x] At least the example from the brief works: filter students by email domain — e.g.
+      `.*@school\.edu$` matches every seeded student, all on that domain
+- [x] Invalid regex input from the console is caught and reported, not an uncaught
+      `PatternSyntaxException` — wired in as `SearchStudentsAction` option 5, catching
+      `PatternSyntaxException` locally in the new `readEmailPatternQuery()` and reporting
+      "Invalid search pattern: ..." then retrying the search-options menu, exactly mirroring how
+      this same class already handles `readGradeRangeQuery()`'s `NumberFormatException` — no changes
+      needed to `ConsoleApp`'s own exception handling
 
 ### PBI-8: Thread-Safe Caching (US-8)
 | Field | Value |
