@@ -9,6 +9,9 @@ import main.service.GradeService;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Supplier;
 
 // Backed by the database (GradeService/GradeRepository) instead of an in-memory array for now.
 public class GradeManager {
@@ -16,6 +19,14 @@ public class GradeManager {
 
     private final GradeService gradeService;
     private final SubjectRepository subjectRepository;
+
+    // v3/PBI-5: guards addGrade() against main.concurrent.StatisticsDashboard's background
+    // refresh reading grade data at the same moment a console action records a new one -
+    // readLocked() is how the dashboard's refresh reads under the same lock. Scoped to grade
+    // *entry* specifically, matching PBI-5's acceptance criteria; student mutation isn't guarded
+    // here since the dashboard's snapshot doesn't read student-mutation-sensitive state beyond
+    // what StudentManager.getAllStudents() already returns as an independent copy.
+    private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
     public GradeManager(GradeService gradeService, SubjectRepository subjectRepository) {
         this.gradeService = gradeService;
@@ -41,7 +52,22 @@ public class GradeManager {
     }
 
     public void addGrade(Grade grade) {
-        gradeService.recordGrade(grade);
+        lock.writeLock().lock();
+        try {
+            gradeService.recordGrade(grade);
+        } finally {
+            lock.writeLock().unlock();
+        }
+    }
+
+    /** Runs {@code read} under this manager's read lock, so it can't observe a partial {@link #addGrade} write. */
+    public <T> T readLocked(Supplier<T> read) {
+        lock.readLock().lock();
+        try {
+            return read.get();
+        } finally {
+            lock.readLock().unlock();
+        }
     }
 
     public List<Grade> getGradesForStudent(String studentId) {
