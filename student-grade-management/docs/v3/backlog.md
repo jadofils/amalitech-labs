@@ -107,7 +107,7 @@ Source: [../../REAME-V3.md](../../REAME-V3.md).
       `Pattern`s (subject-code behavior unchanged, a pure refactor; student-ID check deliberately
       tightened, phone check deliberately widened, both per this story's own acceptance criteria)
 
-### PBI-4: Concurrent Batch Report Generation (US-4)
+### PBI-4: Concurrent Batch Report Generation (US-4) — ✅ Done (`feature/v3-concurrent-reports`, merged)
 | Field | Value |
 |---|---|
 | **Priority** | Medium |
@@ -119,11 +119,16 @@ Source: [../../REAME-V3.md](../../REAME-V3.md).
 > **So that** bulk reporting doesn't block the console on large classes
 
 **Acceptance Criteria:**
-- [ ] `FixedThreadPool`, configurable 2–8 threads
-- [ ] Batch report generation is measurably faster than sequential for a large-enough student count
+- [x] `FixedThreadPool`, configurable 2–8 threads — new `BatchReportService`, constructor-validated
+- [x] Batch report generation is measurably faster than sequential for a large-enough student count
       (brief cites "10x faster" as an illustrative target, not a hard requirement to reproduce
-      exactly — record actual measured speedup instead)
-- [ ] Thread-safety verified for any shared state touched during generation (student/grade reads)
+      exactly — record actual measured speedup instead) — `BatchReportServiceMockitoTest` measures
+      and prints the real speedup (5.62x locally, 16 students/8 threads/25ms simulated work each)
+      rather than asserting a hard-coded ratio, which would be flaky across machines/CI
+- [x] Thread-safety verified for any shared state touched during generation (student/grade reads) —
+      `BatchReportServiceTest` runs 24 concurrently-generated reports over the real, Map-backed
+      (PBI-1) repositories and asserts every single one exactly matches a fresh sequential read of
+      the same student, over real `StudentRepositoryImpl`/`GradeRepositoryImpl` instances
 
 ### PBI-5: Real-Time Statistics Dashboard (US-5)
 | Field | Value |
