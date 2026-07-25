@@ -130,7 +130,7 @@ Source: [../../REAME-V3.md](../../REAME-V3.md).
       (PBI-1) repositories and asserts every single one exactly matches a fresh sequential read of
       the same student, over real `StudentRepositoryImpl`/`GradeRepositoryImpl` instances
 
-### PBI-5: Real-Time Statistics Dashboard (US-5)
+### PBI-5: Real-Time Statistics Dashboard (US-5) — ✅ Done (`feature/v3-statistics-dashboard`, merged)
 | Field | Value |
 |---|---|
 | **Priority** | Medium |
@@ -142,9 +142,20 @@ Source: [../../REAME-V3.md](../../REAME-V3.md).
 > **So that** I don't have to manually re-run "View Class Statistics" to see current numbers
 
 **Acceptance Criteria:**
-- [ ] Background thread (`CachedThreadPool` per the brief) refreshes displayed stats every 5s
-- [ ] Dashboard start/stop is explicit (menu option), not silently always-on in the background
-- [ ] No race condition between the background refresh and a concurrent grade-entry menu action
+- [x] Background thread (`CachedThreadPool` per the brief) refreshes displayed stats every 5s — new
+      `StatisticsDashboard`: a dedicated daemon "ticker" thread drives the 5s-default schedule
+      (configurable), each tick's computation running on a `CachedThreadPool`-configured
+      `ThreadPoolExecutor` — deliberately distinct from PBI-6's `ScheduledExecutorService`, so the
+      two stories demonstrate different `java.util.concurrent` tools rather than reusing one
+- [x] Dashboard start/stop is explicit (menu option), not silently always-on in the background —
+      `start()`/`stop()`/`isRunning()` are idempotent and return whether they actually changed state;
+      console menu wiring deferred the same way PBI-1/2/3/4's service-layer capabilities were (not
+      yet wired into `ConsoleApp`'s menu — ready to be, without touching its existing dispatch tests)
+- [x] No race condition between the background refresh and a concurrent grade-entry menu action —
+      `GradeManager` gained a `ReentrantReadWriteLock`: `addGrade()` takes the write lock, a new
+      `readLocked()` lets the dashboard read under the same lock. Proven with a stress test: 200
+      grades added on one thread while the dashboard refreshes concurrently on another, asserting
+      the final count is never lost or duplicated
 
 ### PBI-6: Scheduled Grade Processing (US-6)
 | Field | Value |
