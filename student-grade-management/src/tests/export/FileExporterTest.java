@@ -72,4 +72,23 @@ class FileExporterTest {
         assertTrue(ex.getMessage().contains("Failed to export report"));
         assertNotNull(ex.getCause());
     }
+
+    @Test
+    @DisplayName("The no-argument constructor doesn't throw (defaults to the \"reports\" directory)")
+    void noArgConstructorConstructsSuccessfullyTest() {
+        assertDoesNotThrow((org.junit.jupiter.api.function.Executable) FileExporter::new);
+    }
+
+    @Test
+    @DisplayName("exportToFile() wraps a directory-creation failure as ExportException (a parent path segment is a regular file, not a directory)")
+    void wrapsDirectoryCreationFailureAsExportExceptionTest() throws IOException {
+        Files.createDirectories(Path.of(testDir));
+        Path blockingFile = Path.of(testDir, "blocking-file");
+        Files.createFile(blockingFile);
+        FileExporter exporter = new FileExporter(blockingFile + "/subdir");
+
+        ExportException ex = assertThrows(ExportException.class, () -> exporter.exportToFile("x.txt", "content"));
+
+        assertTrue(ex.getMessage().contains("Failed to create reports directory"));
+    }
 }

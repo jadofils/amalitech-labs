@@ -1,16 +1,10 @@
 package main.console;
 
 /** Menu option 10: Exit. */
-public class ExitAction implements MenuAction {
+public class ExitAction extends AbstractMenuAction {
 
-    @Override
-    public int getOptionNumber() {
-        return 10;
-    }
-
-    @Override
-    public String getLabel() {
-        return "Exit";
+    public ExitAction() {
+        super(10, "Exit");
     }
 
     @Override

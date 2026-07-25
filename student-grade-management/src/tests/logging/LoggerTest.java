@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.lang.reflect.Method;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -72,6 +73,24 @@ class LoggerTest {
         assertTrue(output.contains("operation failed"));
         assertTrue(output.contains("IllegalStateException"));
         assertTrue(output.contains("boom"));
+    }
+
+    @Test
+    @DisplayName("resolveThreshold() honors a configured log.level system property")
+    void resolveThresholdHonorsConfiguredPropertyTest() throws Exception {
+        String original = System.getProperty("log.level");
+        System.setProperty("log.level", "WARN");
+        try {
+            Method resolveThreshold = Logger.class.getDeclaredMethod("resolveThreshold");
+            resolveThreshold.setAccessible(true);
+            assertEquals(Logger.Level.WARN, resolveThreshold.invoke(null));
+        } finally {
+            if (original == null) {
+                System.clearProperty("log.level");
+            } else {
+                System.setProperty("log.level", original);
+            }
+        }
     }
 
     private String captureStdErr(Runnable action) {

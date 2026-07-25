@@ -23,7 +23,7 @@ class GpaLetterGradeTest {
             "72, C_MINUS", "70, C_MINUS",
             "69, D_PLUS", "67, D_PLUS",
             "66, D", "60, D",
-            "59, F", "0, F"
+            "59, F", "0, F", "-5, F"
     })
     @DisplayName("fromPercentage() matches the ReadMe-v2.md grading table")
     void fromPercentageMatchesTableTest(double percentage, String expectedName) {
@@ -36,7 +36,7 @@ class GpaLetterGradeTest {
     @ParameterizedTest
     @CsvSource({
             "4.0, A", "3.7, A_MINUS", "3.3, B_PLUS", "3.0, B", "2.7, B_MINUS",
-            "2.3, C_PLUS", "2.0, C", "1.7, C_MINUS", "1.3, D_PLUS", "1.0, D", "0.0, F"
+            "2.3, C_PLUS", "2.0, C", "1.7, C_MINUS", "1.3, D_PLUS", "1.0, D", "0.0, F", "-1.0, F"
     })
     @DisplayName("fromGpaPoints() matches the ReadMe-v2.md grading table for every documented GPA value")
     void fromGpaPointsMatchesTableTest(double gpaPoints, String expectedName) {

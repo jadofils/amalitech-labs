@@ -8,9 +8,12 @@ import main.repository.subject.SubjectRepository;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
-import java.util.Scanner;
+import java.util.Objects;
+import java.util.stream.IntStream;
 
 /**
  * Parses a bulk-import CSV ({@code StudentID,SubjectName,SubjectType,Grade})
@@ -30,43 +33,39 @@ public class CSVParser {
         this.subjectRepository = subjectRepository;
     }
 
-    /**
-     * @throws CSVImportException if the file itself cannot be read (missing,
-     *                             permissions, ...) - unlike a malformed row,
-     *                             which is collected in the result instead
-     */
+    /** Retained so existing {@code java.io.File} callers keep compiling; delegates to {@link #parse(Path)}. */
     public CSVParseResult parse(File file) {
-        Logger.debug("Parsing CSV file: " + file.getPath());
-        List<CSVRow> rows = new ArrayList<>();
-        List<String> errors = new ArrayList<>();
-        int lineNum = 0;
+        return parse(file.toPath());
+    }
 
-        try (Scanner fileScanner = new Scanner(file)) {
-            if (fileScanner.hasNextLine()) {
-                fileScanner.nextLine();
-                lineNum++;
-            }
-
-            while (fileScanner.hasNextLine()) {
-                String line = fileScanner.nextLine().trim();
-                lineNum++;
-
-                ParsedLine parsed = parseLine(lineNum, line);
-                if (parsed == null) {
-                    continue; // blank data line - silently skipped, not an error
-                }
-                if (parsed.isValid()) {
-                    rows.add(parsed.row());
-                } else {
-                    errors.add(parsed.error());
-                }
-            }
+    /**
+     * v3: NIO.2 {@code Files.lines()} streamed through a map/filter/collect pipeline (US-10)
+     * instead of the {@code java.util.Scanner} loop the v2 version used - same validation rules,
+     * same behavior (including which rows count as errors vs. are silently skipped as blank).
+     *
+     * @throws CSVImportException if the file itself cannot be read (missing, permissions, ...) -
+     *                             unlike a malformed row, which is collected in the result instead
+     */
+    public CSVParseResult parse(Path path) {
+        Logger.debug("Parsing CSV file: " + path);
+        List<String> lines;
+        try (var lineStream = Files.lines(path, StandardCharsets.UTF_8)) {
+            lines = lineStream.toList();
         } catch (IOException e) {
-            Logger.error("Failed to read CSV file: " + file.getPath(), e);
+            Logger.error("Failed to read CSV file: " + path, e);
             throw new CSVImportException("Failed to read CSV file: " + e.getMessage(), e);
         }
 
-        Logger.info("Parsed " + file.getPath() + ": " + rows.size() + " valid row(s), " + errors.size() + " error(s)");
+        // Index 0 is the header; data rows are 1-based line numbers starting at 2.
+        List<ParsedLine> parsed = lines.isEmpty() ? List.of() : IntStream.range(1, lines.size())
+                .mapToObj(i -> parseLine(i + 1, lines.get(i).trim()))
+                .filter(Objects::nonNull) // blank data lines are silently skipped, same as v2
+                .toList();
+
+        List<CSVRow> rows = parsed.stream().filter(ParsedLine::isValid).map(ParsedLine::row).toList();
+        List<String> errors = parsed.stream().filter(line -> !line.isValid()).map(ParsedLine::error).toList();
+
+        Logger.info("Parsed " + path + ": " + rows.size() + " valid row(s), " + errors.size() + " error(s)");
         return new CSVParseResult(rows, errors);
     }
 

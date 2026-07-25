@@ -29,7 +29,7 @@ public class SubjectValidator {
         if (code == null || code.trim().isEmpty()) {
             throw new SubjectValidationException("Subject code cannot be empty.");
         }
-        if (!code.matches("^[A-Z]{2,}\\d{2,}$")) {
+        if (!ValidationPatterns.COURSE_CODE.matcher(code).matches()) {
             throw new SubjectValidationException("Subject code must follow format like MATH101.");
         }
     }

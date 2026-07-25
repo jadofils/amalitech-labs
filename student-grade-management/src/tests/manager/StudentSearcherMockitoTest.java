@@ -51,6 +51,21 @@ class StudentSearcherMockitoTest {
     }
 
     @Test
+    @DisplayName("searchByEmailPattern() reads getAllStudents() from StudentManager and filters by the regex")
+    void searchByEmailPatternDelegatesTest() {
+        StudentManager studentManager = mock(StudentManager.class);
+        StudentSearcher searcher = new StudentSearcher(studentManager);
+        Student atSchool = new RegularStudent("Alice Johnson", 17, "alice@school.edu", "1234567890");
+        Student atUniversity = new RegularStudent("Bob Smith", 17, "bob@university.edu", "1234567890");
+        when(studentManager.getAllStudents()).thenReturn(List.of(atSchool, atUniversity));
+
+        List<Student> results = searcher.searchByEmailPattern(".*@university\\.edu$");
+
+        assertEquals(List.of(atUniversity), results);
+        verify(studentManager, times(1)).getAllStudents();
+    }
+
+    @Test
     @DisplayName("searchByType() correctly separates a mocked mix of Regular and Honors students")
     void searchByTypeDelegatesTest() {
         StudentManager studentManager = mock(StudentManager.class);

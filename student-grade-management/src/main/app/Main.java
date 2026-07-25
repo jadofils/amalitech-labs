@@ -2,6 +2,7 @@ package main.app;
 
 import main.calculators.GPACalculator;
 import main.calculators.StatisticsCalculator;
+import main.concurrent.AuditTrail;
 import main.console.AddStudentAction;
 import main.console.BulkImportAction;
 import main.console.CalculateGpaAction;
@@ -44,12 +45,13 @@ public class Main {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
 
+        AuditTrail auditTrail = AuditTrail.active();
         StudentRepository studentRepository = new StudentRepositoryImpl();
         SubjectRepository subjectRepository = new SubjectRepositoryImpl();
         GradeService gradeService = new GradeServiceImpl(studentRepository, subjectRepository);
-        GradeManager gradeManager = new GradeManager(gradeService, subjectRepository);
+        GradeManager gradeManager = new GradeManager(gradeService, subjectRepository, auditTrail);
         StudentService studentService = new StudentServiceImpl(studentRepository);
-        StudentManager studentManager = new StudentManager(studentService, gradeManager);
+        StudentManager studentManager = new StudentManager(studentService, gradeManager, auditTrail);
         ReportGenerator reportGenerator = new ReportGenerator(gradeManager, studentManager);
         FileExporter fileExporter = new FileExporter();
         GPACalculator gpaCalculator = new GPACalculator(gradeManager, studentManager);
@@ -71,5 +73,6 @@ public class Main {
         );
 
         new ConsoleApp(scanner, actions).run();
+        auditTrail.shutdown();
     }
 }

@@ -144,4 +144,64 @@ class StudentValidatorTest {
                 () -> StudentValidator.validateStudent(student));
         assertEquals("Student ID must be at least 4 characters and alphanumeric.", ex.getMessage());
     }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"STU001", "STU999", "STU1000"})
+    @DisplayName("validateId() accepts the STU### format, unbounded above 999 (US-3/PBI-3)")
+    void validIdFormatPassesTest(String studentId) {
+        assertDoesNotThrow(() -> StudentValidator.validateId(studentId));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"ABCD1234", "0012STU", "STUD001", "stu001"})
+    @DisplayName("validateId() rejects alphanumeric IDs that would have passed the old generic pattern but aren't STU### (US-3/PBI-3)")
+    void wronglyPrefixedIdFailsTest(String studentId) {
+        StudentValidationException ex = assertThrows(StudentValidationException.class,
+                () -> StudentValidator.validateId(studentId));
+        assertEquals("Student ID must be at least 4 characters and alphanumeric.", ex.getMessage());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"+1-555-0101", "+44-207-1234"})
+    @DisplayName("validatePhone() also accepts the dashed international format (US-3/PBI-3)")
+    void internationalPhoneFormatPassesTest(String phone) {
+        Student student = new RegularStudent("Musa Nkusi", 17, "musa@amalitech.com", phone);
+        assertDoesNotThrow(() -> StudentValidator.validateStudent(student));
+    }
+
+    @Test
+    @DisplayName("A null ID fails validateId() directly")
+    void nullIdFailsTest() {
+        assertThrows(StudentValidationException.class, () -> StudentValidator.validateId(null));
+    }
+
+    @Test
+    @DisplayName("A null name fails validateName() directly")
+    void nullNameFailsTest() {
+        assertThrows(StudentValidationException.class, () -> StudentValidator.validateName(null));
+    }
+
+    @Test
+    @DisplayName("A null email fails validateEmail() directly")
+    void nullEmailFailsTest() {
+        assertThrows(StudentValidationException.class, () -> StudentValidator.validateEmail(null));
+    }
+
+    @Test
+    @DisplayName("A null phone fails validatePhone() directly")
+    void nullPhoneFailsTest() {
+        assertThrows(StudentValidationException.class, () -> StudentValidator.validatePhone(null));
+    }
+
+    @Test
+    @DisplayName("A negative average grade fails validateGrades() directly")
+    void negativeAverageGradeFailsTest() {
+        assertThrows(StudentValidationException.class, () -> StudentValidator.validateGrades(-1));
+    }
+
+    @Test
+    @DisplayName("An average grade above 100 fails validateGrades() directly")
+    void aboveMaxAverageGradeFailsTest() {
+        assertThrows(StudentValidationException.class, () -> StudentValidator.validateGrades(101));
+    }
 }

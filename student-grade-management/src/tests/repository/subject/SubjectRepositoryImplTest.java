@@ -1,5 +1,6 @@
 package tests.repository.subject;
 
+import main.exceptions.SubjectException;
 import main.exceptions.SubjectNotFoundException;
 import main.exceptions.SubjectValidationException;
 import main.model.enums.SubjectType;
@@ -51,6 +52,14 @@ class SubjectRepositoryImplTest {
         SubjectRepositoryImpl repository = new SubjectRepositoryImpl();
         Subject invalid = new ElectiveSubject("Drama", "drama"); // lowercase code fails the format regex
         assertThrows(SubjectValidationException.class, () -> repository.addSubject(invalid));
+    }
+
+    @Test
+    @DisplayName("addSubject() rejects a duplicate subject code")
+    void addSubjectRejectsDuplicateCodeTest() {
+        SubjectRepositoryImpl repository = new SubjectRepositoryImpl();
+        Subject duplicate = new CoreSubject("Advanced Mathematics", "MATH01"); // MATH01 is pre-seeded
+        assertThrows(SubjectException.class, () -> repository.addSubject(duplicate));
     }
 
     @Test

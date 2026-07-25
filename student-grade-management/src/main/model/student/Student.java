@@ -95,6 +95,28 @@ public abstract class Student {
     public abstract StudentType getType();
     public abstract double getPassingGrade();
 
+    /**
+     * The divider-bracketed field listing every concrete {@code displayStudentDetails()}
+     * override shares - {@link RegularStudent} prints nothing extra between the two divider
+     * calls, {@link HonorsStudent} inserts its own "Honors Eligible" line in between.
+     */
+    protected void printDetailsDivider() {
+        System.out.println("─────────────────────────────────────────────");
+    }
+
+    protected void printCommonDetails() {
+        System.out.println("Student ID: " + getStudentId());
+        System.out.println("Name: " + getName());
+        System.out.println("Age: " + getAge());
+        System.out.println("Email: " + getEmail());
+        System.out.println("Phone: " + getPhone());
+        System.out.println("Type: " + getStudentType());
+        System.out.println("Passing Grade: " + getPassingGrade());
+        System.out.println("Status: " + getStatus());
+        System.out.println("Average Grade: " + calculateAverageGrade());
+        System.out.println("Is Passing: " + (isPassing() ? "Yes" : "No"));
+    }
+
     // Concrete, delegating to getType() - lets callers that only need the
     // classification compare main.model.enums.StudentType directly instead of
     // string-matching or instanceof-checking this class's own subclasses.

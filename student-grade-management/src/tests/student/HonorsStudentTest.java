@@ -7,6 +7,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class HonorsStudentTest {
@@ -75,5 +79,24 @@ class HonorsStudentTest {
     void displayStudentDetailsTest() {
         HonorsStudent student = new HonorsStudent("Test Student", 10, "", "1234567890");
         assertDoesNotThrow(student::displayStudentDetails);
+    }
+
+    @Test
+    @DisplayName("Displaying student details prints \"Honors Eligible: Yes\" for an eligible student")
+    void displayStudentDetailsPrintsEligibleYesTest() {
+        HonorsStudent student = new HonorsStudent("Test Student", 10, "", "1234567890");
+        student.setGrade(100);
+        student.checkHonorsEligibility(); // honorsEligible is cached, not recomputed on read - see setGrade()'s own test above
+
+        PrintStream originalOut = System.out;
+        ByteArrayOutputStream captured = new ByteArrayOutputStream();
+        try (PrintStream printStream = new PrintStream(captured, true, StandardCharsets.UTF_8)) {
+            System.setOut(printStream);
+            student.displayStudentDetails();
+        } finally {
+            System.setOut(originalOut);
+        }
+
+        assertTrue(captured.toString(StandardCharsets.UTF_8).contains("Honors Eligible: Yes"));
     }
 }

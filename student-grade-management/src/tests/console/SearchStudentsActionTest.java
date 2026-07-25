@@ -154,6 +154,26 @@ class SearchStudentsActionTest {
     }
 
     @Test
+    @DisplayName("Option 5 (email pattern) matches every seeded student, all on @school.edu")
+    void searchByEmailPatternHappyPathTest() {
+        String output = runWithInput("5\n.*@school\\.edu$\n4\n\n");
+
+        assertTrue(output.contains("SEARCH RESULTS (5 found)"));
+    }
+
+    @Test
+    @DisplayName("Option 5 with a malformed regex reports the error and retries the search-options menu, instead of crashing")
+    void searchByEmailPatternInvalidRegexRetriesTest() {
+        Student alice = studentManager.getAllStudents().get(0);
+
+        String output = runWithInput("5\n[\n1\n" + alice.getStudentId() + "\n4\n\n");
+
+        assertTrue(output.contains("Invalid search pattern:"));
+        assertEquals(2, countOccurrences(output, "Search options:"));
+        assertTrue(output.contains("SEARCH RESULTS (1 found)"));
+    }
+
+    @Test
     @DisplayName("An invalid top-level option prints 'Invalid option.' and retries the search-options menu")
     void invalidTopLevelOptionRetriesTest() {
         Student alice = studentManager.getAllStudents().get(0);

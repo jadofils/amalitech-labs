@@ -1,5 +1,7 @@
 package main.manager;
 
+import main.concurrent.AuditTrail;
+import main.concurrent.LruCache;
 import main.model.enums.SubjectType;
 import main.model.grade.Grade;
 import main.model.subject.Subject;
@@ -9,17 +11,41 @@ import main.service.GradeService;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Supplier;
 
 // Backed by the database (GradeService/GradeRepository) instead of an in-memory array for now.
 public class GradeManager {
     private static final String DIVIDER = "───────────────────────────────────────────────────────────────────────";
+    private static final String AUDIT_ENTITY_GRADE = "GRADE";
 
     private final GradeService gradeService;
     private final SubjectRepository subjectRepository;
 
+    // v3/PBI-5: guards addGrade() against main.concurrent.StatisticsDashboard's background
+    // refresh reading grade data at the same moment a console action records a new one -
+    // readLocked() is how the dashboard's refresh reads under the same lock. Scoped to grade
+    // *entry* specifically, matching PBI-5's acceptance criteria; student mutation isn't guarded
+    // here since the dashboard's snapshot doesn't read student-mutation-sensitive state beyond
+    // what StudentManager.getAllStudents() already returns as an independent copy.
+    private final ReadWriteLock lock = new ReentrantReadWriteLock();
+
+    // v3/PBI-8: caches getGradesForStudent()'s result per student ID. addGrade() invalidates the
+    // affected student's entry as part of the same write - both live in this class, so cache and
+    // write path never drift apart the way they could if a different class owned either half.
+    private final LruCache<String, List<Grade>> gradeCache = new LruCache<>();
+
+    private final AuditTrail auditTrail;
+
     public GradeManager(GradeService gradeService, SubjectRepository subjectRepository) {
+        this(gradeService, subjectRepository, AuditTrail.noOp());
+    }
+
+    public GradeManager(GradeService gradeService, SubjectRepository subjectRepository, AuditTrail auditTrail) {
         this.gradeService = gradeService;
         this.subjectRepository = subjectRepository;
+        this.auditTrail = auditTrail;
         syncGradeCounter();
     }
 
@@ -41,11 +67,55 @@ public class GradeManager {
     }
 
     public void addGrade(Grade grade) {
-        gradeService.recordGrade(grade);
+        lock.writeLock().lock();
+        try {
+            gradeService.recordGrade(grade);
+            gradeCache.invalidate(grade.getStudentId());
+            auditTrail.append("ADD", AUDIT_ENTITY_GRADE, grade.getGradeId(),
+                    "Recorded grade " + grade.getGradeId() + " (" + grade.getGrade() + "%) for student " + grade.getStudentId());
+        } finally {
+            lock.writeLock().unlock();
+        }
+    }
+
+    /** Not currently reachable from any console action - GradeService/GradeRepository have long
+     *  supported deleting a grade, but nothing above this layer exposed it until now (US-9/PBI-9's
+     *  "every ... delete across ... grade" is the reason it's exposed here). */
+    public void deleteGrade(String gradeId) {
+        lock.writeLock().lock();
+        try {
+            Grade grade = gradeService.getGradeById(gradeId);
+            gradeService.deleteGrade(gradeId);
+            gradeCache.invalidate(grade.getStudentId());
+            auditTrail.append("DELETE", AUDIT_ENTITY_GRADE, gradeId, "Deleted grade " + gradeId + " for student " + grade.getStudentId());
+        } finally {
+            lock.writeLock().unlock();
+        }
+    }
+
+    /** Runs {@code read} under this manager's read lock, so it can't observe a partial {@link #addGrade} write. */
+    public <T> T readLocked(Supplier<T> read) {
+        lock.readLock().lock();
+        try {
+            return read.get();
+        } finally {
+            lock.readLock().unlock();
+        }
     }
 
     public List<Grade> getGradesForStudent(String studentId) {
-        return gradeService.getGradesByStudentId(studentId);
+        List<Grade> cached = gradeCache.get(studentId);
+        if (cached != null) {
+            return cached;
+        }
+        List<Grade> fetched = gradeService.getGradesByStudentId(studentId);
+        gradeCache.put(studentId, fetched);
+        return fetched;
+    }
+
+    /** This cache's hit rate so far - surfaced on {@link main.concurrent.StatisticsDashboard} per US-8. */
+    public double getGradeCacheHitRate() {
+        return gradeCache.hitRate();
     }
 
     public List<Subject> getSubjectsByType(SubjectType type) {
@@ -71,7 +141,7 @@ public class GradeManager {
 
         System.out.println("GRADE HISTORY");
         System.out.println(DIVIDER);
-        System.out.printf("%-8s| %-10s | %-16s | %-9s | %s%n", "GRD ID", "DATE", "SUBJECT", "TYPE", "GRADE");
+        System.out.printf("%-8s| %-10s | %-16s | %-9s | %s%n", "GRD ID", "DATE", "SUBJECT", "TYPE", AUDIT_ENTITY_GRADE);
         System.out.println(DIVIDER);
         for (Grade grade : grades) {
             System.out.printf("%-8s| %-10s | %-16s | %-9s | %.1f%%%n",

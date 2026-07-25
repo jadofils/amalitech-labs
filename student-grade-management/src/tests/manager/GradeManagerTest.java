@@ -1,5 +1,6 @@
 package tests.manager;
 
+import main.concurrent.AuditTrail;
 import main.manager.GradeManager;
 import main.model.enums.SubjectType;
 import main.model.grade.Grade;
@@ -17,6 +18,9 @@ import main.service.GradeServiceImpl;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -118,6 +122,75 @@ class GradeManagerTest {
         String output = captureStdOut(() -> gradeManager.viewGradesByStudent(student.getStudentId()));
 
         assertTrue(output.indexOf(second.getGradeId()) < output.indexOf(first.getGradeId()));
+    }
+
+    @Test
+    @DisplayName("getGradesForStudent() reflects a grade added after the first (cache-populating) read, not a stale cached result")
+    void addGradeInvalidatesCachedReadTest() {
+        Student student = studentRepository.getAllStudents().get(0);
+        String studentId = student.getStudentId();
+        Subject subject = gradeManager.getSubjectsByType(SubjectType.CORE).get(0);
+
+        assertTrue(gradeManager.getGradesForStudent(studentId).isEmpty(), "populates the cache with the pre-write (empty) state");
+
+        gradeManager.addGrade(new Grade(studentId, subject, 88.0));
+
+        List<Grade> afterWrite = gradeManager.getGradesForStudent(studentId);
+        assertEquals(1, afterWrite.size(), "must not serve the stale, pre-write cached result");
+        assertEquals(88.0, afterWrite.get(0).getGrade(), 0.0001);
+    }
+
+    @Test
+    @DisplayName("getGradeCacheHitRate() is 0.0 before any read, and increases once a repeated read hits the cache")
+    void gradeCacheHitRateReflectsRepeatedReadsTest() {
+        Student student = studentRepository.getAllStudents().get(0);
+        String studentId = student.getStudentId();
+
+        assertEquals(0.0, gradeManager.getGradeCacheHitRate(), 0.0001);
+
+        gradeManager.getGradesForStudent(studentId); // miss - populates the cache
+        double afterMiss = gradeManager.getGradeCacheHitRate();
+        gradeManager.getGradesForStudent(studentId); // hit
+        double afterHit = gradeManager.getGradeCacheHitRate();
+
+        assertTrue(afterHit > afterMiss, "a cache hit must raise the hit rate above its post-miss value");
+    }
+
+    @Test
+    @DisplayName("addGrade()/deleteGrade() each record a matching audit entry (US-9/PBI-9)")
+    void writesAreAuditedTest() throws InterruptedException, ExecutionException, TimeoutException {
+        AuditTrail auditTrail = AuditTrail.active();
+        GradeService gradeService = new GradeServiceImpl(studentRepository, subjectRepository);
+        GradeManager auditedManager = new GradeManager(gradeService, subjectRepository, auditTrail);
+        try {
+            Student student = studentRepository.getAllStudents().get(0);
+            Subject subject = auditedManager.getSubjectsByType(SubjectType.CORE).get(0);
+            Grade grade = new Grade(student.getStudentId(), subject, 85.0);
+
+            auditedManager.addGrade(grade);
+            auditedManager.deleteGrade(grade.getGradeId());
+            auditTrail.append("ADD", "STUDENT", "__drain__", "").get(5, TimeUnit.SECONDS);
+
+            var actions = auditTrail.getEntries().stream().map(e -> e.action() + ":" + e.entityId()).toList();
+            assertTrue(actions.contains("ADD:" + grade.getGradeId()));
+            assertTrue(actions.contains("DELETE:" + grade.getGradeId()));
+        } finally {
+            auditTrail.shutdown();
+        }
+    }
+
+    @Test
+    @DisplayName("deleteGrade() removes the grade and invalidates its student's cached read")
+    void deleteGradeRemovesGradeAndInvalidatesCacheTest() {
+        Student student = studentRepository.getAllStudents().get(0);
+        Subject subject = gradeManager.getSubjectsByType(SubjectType.CORE).get(0);
+        Grade grade = new Grade(student.getStudentId(), subject, 85.0);
+        gradeManager.addGrade(grade);
+        assertEquals(1, gradeManager.getGradesForStudent(student.getStudentId()).size());
+
+        gradeManager.deleteGrade(grade.getGradeId());
+
+        assertTrue(gradeManager.getGradesForStudent(student.getStudentId()).isEmpty());
     }
 
     private String captureStdOut(Runnable action) {

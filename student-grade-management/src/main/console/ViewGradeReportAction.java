@@ -1,6 +1,5 @@
 package main.console;
 
-import main.exceptions.StudentNotFoundException;
 import main.manager.GradeManager;
 import main.manager.StudentManager;
 import main.model.student.Student;
@@ -9,26 +8,10 @@ import main.utils.InputSanitizer;
 import java.util.Scanner;
 
 /** Menu option 4: View Grade Report. */
-public class ViewGradeReportAction implements MenuAction {
-
-    private final Scanner scanner;
-    private final StudentManager studentManager;
-    private final GradeManager gradeManager;
+public class ViewGradeReportAction extends AbstractGradeAction {
 
     public ViewGradeReportAction(Scanner scanner, StudentManager studentManager, GradeManager gradeManager) {
-        this.scanner = scanner;
-        this.studentManager = studentManager;
-        this.gradeManager = gradeManager;
-    }
-
-    @Override
-    public int getOptionNumber() {
-        return 4;
-    }
-
-    @Override
-    public String getLabel() {
-        return "View Grade Report";
+        super(4, "View Grade Report", scanner, studentManager, gradeManager);
     }
 
     @Override
@@ -39,11 +22,7 @@ public class ViewGradeReportAction implements MenuAction {
         System.out.print("Enter Student ID: ");
         String studentId = InputSanitizer.sanitize(scanner.nextLine());
 
-        Student student = studentManager.findStudent(studentId);
-        if (student == null) {
-            throw new StudentNotFoundException("Student with ID '" + studentId + "' not found.",
-                    studentId, ConsoleUtils.getAvailableStudentIds(studentManager));
-        }
+        Student student = ConsoleUtils.requireStudent(studentManager, studentId);
 
         System.out.println("\nStudent: " + studentId + " - " + student.getName());
         System.out.println("Type: " + student.getStudentType() + " Student");

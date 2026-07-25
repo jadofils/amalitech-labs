@@ -1,6 +1,5 @@
 package main.console;
 
-import main.exceptions.StudentNotFoundException;
 import main.manager.GradeManager;
 import main.manager.StudentManager;
 import main.model.enums.Role;
@@ -14,26 +13,10 @@ import java.util.List;
 import java.util.Scanner;
 
 /** Menu option 3: Record Grade. */
-public class RecordGradeAction implements MenuAction {
-
-    private final Scanner scanner;
-    private final StudentManager studentManager;
-    private final GradeManager gradeManager;
+public class RecordGradeAction extends AbstractGradeAction {
 
     public RecordGradeAction(Scanner scanner, StudentManager studentManager, GradeManager gradeManager) {
-        this.scanner = scanner;
-        this.studentManager = studentManager;
-        this.gradeManager = gradeManager;
-    }
-
-    @Override
-    public int getOptionNumber() {
-        return 3;
-    }
-
-    @Override
-    public String getLabel() {
-        return "Record Grade";
+        super(3, "Record Grade", scanner, studentManager, gradeManager);
     }
 
     @Override
@@ -49,11 +32,7 @@ public class RecordGradeAction implements MenuAction {
         System.out.print("Enter Student ID: ");
         String studentId = InputSanitizer.sanitize(scanner.nextLine());
 
-        Student student = studentManager.findStudent(studentId);
-        if (student == null) {
-            throw new StudentNotFoundException("Student with ID '" + studentId + "' not found in the system.",
-                    studentId, ConsoleUtils.getAvailableStudentIds(studentManager));
-        }
+        Student student = ConsoleUtils.requireStudent(studentManager, studentId);
 
         System.out.println("\nStudent Details:");
         System.out.println("  Name: " + student.getName());

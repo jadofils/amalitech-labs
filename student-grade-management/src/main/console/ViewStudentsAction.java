@@ -9,24 +9,15 @@ import java.util.List;
 import java.util.Scanner;
 
 /** Menu option 2: View Students. */
-public class ViewStudentsAction implements MenuAction {
+public class ViewStudentsAction extends AbstractMenuAction {
 
     private final Scanner scanner;
     private final StudentManager studentManager;
 
     public ViewStudentsAction(Scanner scanner, StudentManager studentManager) {
+        super(2, "View Students");
         this.scanner = scanner;
         this.studentManager = studentManager;
-    }
-
-    @Override
-    public int getOptionNumber() {
-        return 2;
-    }
-
-    @Override
-    public String getLabel() {
-        return "View Students";
     }
 
     @Override

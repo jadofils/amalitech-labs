@@ -84,4 +84,16 @@ class SubjectValidatorTest {
         Subject subject = new CoreSubject("Mathematics", code);
         assertDoesNotThrow(() -> SubjectValidator.validateSubject(subject));
     }
+
+    @Test
+    @DisplayName("A null subject name fails validateName() directly")
+    void nullNameFailsTest() {
+        assertThrows(SubjectValidationException.class, () -> SubjectValidator.validateName(null));
+    }
+
+    @Test
+    @DisplayName("A null subject code fails validateCode() directly")
+    void nullCodeFailsTest() {
+        assertThrows(SubjectValidationException.class, () -> SubjectValidator.validateCode(null));
+    }
 }

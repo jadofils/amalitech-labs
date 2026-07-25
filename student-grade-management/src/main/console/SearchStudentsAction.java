@@ -12,9 +12,10 @@ import main.utils.InputSanitizer;
 
 import java.util.List;
 import java.util.Scanner;
+import java.util.regex.PatternSyntaxException;
 
 /** Menu option 9: Search Students (has its own result/action sub-menu). */
-public class SearchStudentsAction implements MenuAction {
+public class SearchStudentsAction extends AbstractMenuAction {
 
     private final Scanner scanner;
     private final StudentManager studentManager;
@@ -23,20 +24,11 @@ public class SearchStudentsAction implements MenuAction {
 
     public SearchStudentsAction(Scanner scanner, StudentManager studentManager, StudentSearcher studentSearcher,
                                  FileExporter fileExporter) {
+        super(9, "Search Students");
         this.scanner = scanner;
         this.studentManager = studentManager;
         this.studentSearcher = studentSearcher;
         this.fileExporter = fileExporter;
-    }
-
-    @Override
-    public int getOptionNumber() {
-        return 9;
-    }
-
-    @Override
-    public String getLabel() {
-        return "Search Students";
     }
 
     @Override
@@ -73,7 +65,8 @@ public class SearchStudentsAction implements MenuAction {
         System.out.println("2. By Name (partial match)");
         System.out.println("3. By Grade Range");
         System.out.println("4. By Student Type");
-        System.out.print("Select option (1-4): ");
+        System.out.println("5. By Email Pattern (regex, e.g. an email domain filter)");
+        System.out.print("Select option (1-5): ");
         return scanner.nextLine().trim();
     }
 
@@ -94,6 +87,8 @@ public class SearchStudentsAction implements MenuAction {
                 return readGradeRangeQuery();
             case "4":
                 return readStudentTypeQuery();
+            case "5":
+                return readEmailPatternQuery();
             default:
                 System.out.println("Invalid option.");
                 return null;
@@ -122,6 +117,17 @@ public class SearchStudentsAction implements MenuAction {
         String typeChoice = scanner.nextLine().trim();
         StudentType type = typeChoice.equals("2") ? StudentType.HONORS : StudentType.REGULAR;
         return new SearchQuery(studentSearcher.searchByType(type), typeChoice);
+    }
+
+    private SearchQuery readEmailPatternQuery() {
+        System.out.print("Enter an email regex pattern (e.g. .*@university\\.edu$): ");
+        String pattern = scanner.nextLine().trim();
+        try {
+            return new SearchQuery(studentSearcher.searchByEmailPattern(pattern), pattern);
+        } catch (PatternSyntaxException e) {
+            System.out.println("Invalid search pattern: " + e.getMessage());
+            return null;
+        }
     }
 
     private void printSearchResults(List<StudentDTO> resultDtos) {

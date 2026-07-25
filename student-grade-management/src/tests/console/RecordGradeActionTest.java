@@ -112,6 +112,7 @@ class RecordGradeActionTest {
         return Stream.of(
                 Arguments.of("1\nabc\n", "Invalid selection."),
                 Arguments.of("1\n99\n", "Invalid selection."),
+                Arguments.of("1\n0\n", "Invalid selection."),
                 Arguments.of("1\n1\nabc\n", "Invalid grade."),
                 Arguments.of("1\n1\n85\nN\n", "Grade recording cancelled.")
         );
