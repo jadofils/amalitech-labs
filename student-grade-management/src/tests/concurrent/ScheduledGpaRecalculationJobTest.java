@@ -22,10 +22,15 @@ import java.time.Instant;
 import java.util.List;
 import java.util.NavigableMap;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.*;
 
 // Real collaborators throughout - same reasoning as StatisticsDashboardTest: this class's
 // interesting behavior is scheduling/lifecycle/timing, not branching logic worth mocking.
@@ -135,6 +140,48 @@ class ScheduledGpaRecalculationJobTest {
         int totalRankedStudents = job.getLastResult().orElseThrow().values().stream().mapToInt(List::size).sum();
         assertEquals(studentManager.getAllStudents().size(), totalRankedStudents,
                 "every student must appear in exactly one GPA bucket, with none lost or duplicated");
+    }
+
+    @Test
+    @DisplayName("The no-argument constructor defaults to DEFAULT_PERIOD_MILLIS (a real daily schedule)")
+    void noArgConstructorUsesDefaultPeriodTest() {
+        ScheduledGpaRecalculationJob job = new ScheduledGpaRecalculationJob(gradeManager, gpaCalculator);
+        try {
+            assertTrue(job.start());
+        } finally {
+            job.stop();
+        }
+    }
+
+    @Test
+    @DisplayName("stop() calls shutdownNow() when awaitTermination times out (mocked ScheduledExecutorService, no real 30s wait)")
+    void stopCallsShutdownNowOnTimeoutTest() {
+        ScheduledExecutorService mockExecutor = mock(ScheduledExecutorService.class);
+        ScheduledFuture<?> mockFuture = mock(ScheduledFuture.class);
+        doReturn(mockFuture).when(mockExecutor).scheduleAtFixedRate(any(Runnable.class), anyLong(), anyLong(), any(TimeUnit.class));
+        // awaitTermination is left unstubbed, so Mockito's default (false) drives the timeout branch.
+
+        ScheduledGpaRecalculationJob job = new ScheduledGpaRecalculationJob(gradeManager, gpaCalculator, SHORT_PERIOD_MILLIS);
+        job.start(mockExecutor);
+
+        job.stop();
+
+        verify(mockExecutor).shutdown();
+        verify(mockExecutor).shutdownNow();
+    }
+
+    @Test
+    @DisplayName("stop() handles being interrupted while awaiting termination, restoring the interrupt flag")
+    void stopHandlesInterruptedAwaitTest() {
+        ScheduledGpaRecalculationJob job = new ScheduledGpaRecalculationJob(gradeManager, gpaCalculator, SHORT_PERIOD_MILLIS);
+        job.start();
+        Thread.currentThread().interrupt();
+        try {
+            assertDoesNotThrow(job::stop);
+            assertTrue(Thread.interrupted(), "interrupt flag should be restored after stop() catches InterruptedException");
+        } finally {
+            Thread.interrupted();
+        }
     }
 
     private Instant awaitFirstRun(ScheduledGpaRecalculationJob job) throws InterruptedException {

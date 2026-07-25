@@ -32,6 +32,15 @@
         <sonar.tests>src/tests</sonar.tests>
 
         <!--
+            Main.java is the composition root: it only builds and wires the dependency graph, then
+            hands off to ConsoleApp (see Main's own class Javadoc for why it's "deliberately too
+            thin to need a test of its own"). Excluded from the coverage calculation entirely,
+            rather than left dragging the overall percentage down for code that has nothing to
+            branch on or get wrong in a way a test would catch.
+        -->
+        <sonar.coverage.exclusions>src/main/app/Main.java</sonar.coverage.exclusions>
+
+        <!--
             java:S106 ("Replace this use of System.out by a logger") is a
             false positive by design in main.console/ and main.app/: System.out IS this
             application's user-facing menu/report output, deliberately kept
@@ -131,6 +140,12 @@
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>0.8.15</version>
+                <configuration>
+                    <excludes>
+                        <!-- Composition root only - see the sonar.coverage.exclusions comment above for why. -->
+                        <exclude>main/app/Main.class</exclude>
+                    </excludes>
+                </configuration>
                 <executions>
                     <execution>
                         <goals>

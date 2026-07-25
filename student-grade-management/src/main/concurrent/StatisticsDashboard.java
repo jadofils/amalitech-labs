@@ -61,10 +61,21 @@ public class StatisticsDashboard {
 
     /** @return true if the dashboard was actually started; false if it was already running. */
     public boolean start() {
+        return start(new ThreadPoolExecutor(0, Integer.MAX_VALUE, 60L, TimeUnit.SECONDS, new SynchronousQueue<>()));
+    }
+
+    /**
+     * PBI-10: lets a test substitute a mocked {@link ThreadPoolExecutor}, to verify {@link #stop()}'s
+     * timeout/interrupt handling deterministically instead of waiting on a real 30-second timeout.
+     * Ordinary callers should use the no-argument {@link #start()} above.
+     *
+     * @return true if the dashboard was actually started; false if it was already running.
+     */
+    public boolean start(ThreadPoolExecutor executor) {
         if (!running.compareAndSet(false, true)) {
             return false;
         }
-        executor = new ThreadPoolExecutor(0, Integer.MAX_VALUE, 60L, TimeUnit.SECONDS, new SynchronousQueue<>());
+        this.executor = executor;
         ticker = new Thread(this::tickLoop, "dashboard-ticker");
         ticker.setDaemon(true);
         ticker.start();

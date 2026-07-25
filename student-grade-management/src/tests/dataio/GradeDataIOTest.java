@@ -3,6 +3,7 @@ package tests.dataio;
 import main.dataio.GradeDataExporter;
 import main.dataio.GradeDataImporter;
 import main.dataio.GradeRecord;
+import main.exceptions.ExportException;
 import main.exceptions.ImportException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -84,5 +85,25 @@ class GradeDataIOTest {
         Files.writeString(path, "gradeId,studentId,subjectCode,grade,date\nGRD001,STU001,MATH01\n");
 
         assertThrows(ImportException.class, () -> importer.importCsv(path));
+    }
+
+    @Test
+    @DisplayName("exportCsv()/exportJson()/exportBinary() throw ExportException when the target path is a directory, not a file")
+    void exportThrowsWhenTargetIsDirectoryTest() throws IOException {
+        Files.createDirectories(tempDir);
+
+        assertThrows(ExportException.class, () -> exporter.exportCsv(sample, tempDir));
+        assertThrows(ExportException.class, () -> exporter.exportJson(sample, tempDir));
+        assertThrows(ExportException.class, () -> exporter.exportBinary(sample, tempDir));
+    }
+
+    @Test
+    @DisplayName("importCsv()/importJson()/importBinary() throw ImportException when the source file doesn't exist")
+    void importThrowsWhenSourceMissingTest() {
+        Path missing = tempDir.resolve("does-not-exist");
+
+        assertThrows(ImportException.class, () -> importer.importCsv(missing));
+        assertThrows(ImportException.class, () -> importer.importJson(missing));
+        assertThrows(ImportException.class, () -> importer.importBinary(missing));
     }
 }

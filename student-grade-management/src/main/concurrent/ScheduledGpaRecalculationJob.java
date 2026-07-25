@@ -52,14 +52,25 @@ public class ScheduledGpaRecalculationJob {
 
     /** @return true if the job was actually started; false if it was already running. */
     public boolean start() {
-        if (isRunning()) {
-            return false;
-        }
-        executor = Executors.newSingleThreadScheduledExecutor(runnable -> {
+        return start(Executors.newSingleThreadScheduledExecutor(runnable -> {
             Thread thread = new Thread(runnable, "gpa-recalculation-scheduler");
             thread.setDaemon(true);
             return thread;
-        });
+        }));
+    }
+
+    /**
+     * PBI-10: lets a test substitute a mocked {@link ScheduledExecutorService}, to verify
+     * {@link #stop()}'s timeout/interrupt handling deterministically instead of waiting on a real
+     * schedule. Ordinary callers should use the no-argument {@link #start()} above.
+     *
+     * @return true if the job was actually started; false if it was already running.
+     */
+    public boolean start(ScheduledExecutorService executor) {
+        if (isRunning()) {
+            return false;
+        }
+        this.executor = executor;
         scheduledTask = executor.scheduleAtFixedRate(this::runOnce, 0, periodMillis, TimeUnit.MILLISECONDS);
         return true;
     }

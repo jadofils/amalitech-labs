@@ -48,6 +48,14 @@ public final class AuditTrail {
     }
 
     /**
+     * PBI-10: lets a test substitute a mocked {@link ExecutorService}, to verify {@link #shutdown()}'s
+     * timeout/interrupt handling deterministically instead of waiting on a real 30-second timeout.
+     */
+    public static AuditTrail withExecutor(ExecutorService executor) {
+        return new AuditTrail(executor, new CopyOnWriteArrayList<>());
+    }
+
+    /**
      * Records one entry asynchronously - the returned {@link Future} is there for callers (mainly
      * tests) that need to wait for it to actually be written; ordinary business-code call sites are
      * expected to ignore it and move on, exactly like {@link main.logging.Logger} calls do.

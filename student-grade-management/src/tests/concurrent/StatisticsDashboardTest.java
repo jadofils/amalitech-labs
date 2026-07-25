@@ -21,14 +21,20 @@ import org.junit.jupiter.api.Test;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-// Real collaborators throughout, following the same "no collaborator worth mocking" reasoning as
-// FileExporterTest (see src/tests/README.md) - this class's interesting behavior is thread
-// lifecycle and timing, not branching logic a mock would help isolate.
+// Real collaborators for the lifecycle/timing tests (the reasoning FileExporterTest documents in
+// src/tests/README.md); PBI-10 added two tests using a mocked ThreadPoolExecutor specifically to
+// verify stop()'s timeout/interrupt branches deterministically, without a real 30-second wait.
 class StatisticsDashboardTest {
 
     private static final long SHORT_INTERVAL_MILLIS = 30;
@@ -132,6 +138,62 @@ class StatisticsDashboardTest {
         assertEquals(gradesToAdd, added.get());
         assertEquals(gradesToAdd, gradeManager.getGradeCount(),
                 "no grade addition should be lost or duplicated under concurrent refresh reads");
+    }
+
+    @Test
+    @DisplayName("The three-argument constructor defaults to DEFAULT_REFRESH_INTERVAL_MILLIS (a real 5s schedule)")
+    void threeArgConstructorUsesDefaultIntervalTest() {
+        StatisticsDashboard dashboard = new StatisticsDashboard(studentManager, gradeManager, statisticsCalculator);
+        try {
+            assertTrue(dashboard.start());
+        } finally {
+            dashboard.stop();
+        }
+    }
+
+    @Test
+    @DisplayName("stop() calls shutdownNow() when awaitTermination times out (mocked ThreadPoolExecutor, no real 30s wait)")
+    void stopCallsShutdownNowOnTimeoutTest() {
+        ThreadPoolExecutor mockExecutor = mock(ThreadPoolExecutor.class);
+        // awaitTermination is left unstubbed, so Mockito's default (false) drives the timeout branch.
+        StatisticsDashboard dashboard = new StatisticsDashboard(studentManager, gradeManager, statisticsCalculator, SHORT_INTERVAL_MILLIS);
+        dashboard.start(mockExecutor);
+
+        dashboard.stop();
+
+        verify(mockExecutor).shutdown();
+        verify(mockExecutor).shutdownNow();
+    }
+
+    @Test
+    @DisplayName("stop() handles being interrupted while joining the ticker thread, restoring the interrupt flag")
+    void stopHandlesInterruptedJoinTest() {
+        StatisticsDashboard dashboard = new StatisticsDashboard(studentManager, gradeManager, statisticsCalculator, SHORT_INTERVAL_MILLIS);
+        dashboard.start();
+        Thread.currentThread().interrupt();
+        try {
+            assertDoesNotThrow(dashboard::stop);
+            assertTrue(Thread.interrupted(), "interrupt flag should be restored after stop() catches InterruptedException");
+        } finally {
+            Thread.interrupted();
+        }
+    }
+
+    @Test
+    @DisplayName("stop() handles being interrupted while the executor awaits termination, restoring the interrupt flag (mocked ThreadPoolExecutor)")
+    void shutdownExecutorHandlesInterruptedAwaitTest() throws InterruptedException {
+        ThreadPoolExecutor mockExecutor = mock(ThreadPoolExecutor.class);
+        when(mockExecutor.awaitTermination(anyLong(), any(TimeUnit.class))).thenThrow(new InterruptedException());
+        StatisticsDashboard dashboard = new StatisticsDashboard(studentManager, gradeManager, statisticsCalculator, SHORT_INTERVAL_MILLIS);
+        dashboard.start(mockExecutor);
+
+        try {
+            assertDoesNotThrow(dashboard::stop);
+            verify(mockExecutor).shutdownNow();
+            assertTrue(Thread.interrupted(), "interrupt flag should be restored after shutdownExecutor() catches InterruptedException");
+        } finally {
+            Thread.interrupted();
+        }
     }
 
     private String captureStdOut(Runnable action) {

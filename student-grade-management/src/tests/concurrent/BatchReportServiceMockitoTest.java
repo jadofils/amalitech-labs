@@ -15,11 +15,16 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
 class BatchReportServiceMockitoTest {
@@ -116,5 +121,80 @@ class BatchReportServiceMockitoTest {
                 () -> service.generateBatch(List.of("STU001"), ReportKind.SUMMARY, "batch_"));
 
         verify(mockExecutor, times(1)).shutdown();
+    }
+
+    @Test
+    @DisplayName("A student whose Future.get() is interrupted stops the batch with IllegalStateException and restores the interrupt flag")
+    void awaitOutcomeHandlesInterruptedExceptionTest() {
+        StudentManager studentManager = mock(StudentManager.class);
+        ReportGenerator reportGenerator = mock(ReportGenerator.class);
+        FileExporter fileExporter = mock(FileExporter.class);
+        Student student = new RegularStudent("Test Student", 16, "t@school.edu", "1234567890");
+        when(studentManager.findStudent(student.getStudentId())).thenReturn(student);
+        when(reportGenerator.exportSummary(student.getStudentId())).thenReturn("content");
+
+        BatchReportService service = new BatchReportService(studentManager, reportGenerator, fileExporter, BatchReportService.MIN_THREADS);
+
+        // Future.get() (like ExecutorService.awaitTermination()) throws InterruptedException
+        // immediately if the calling thread is already interrupted when it's called - no need to
+        // race a real interrupt against real work.
+        Thread.currentThread().interrupt();
+        try {
+            assertThrows(IllegalStateException.class,
+                    () -> service.generateBatch(List.of(student.getStudentId()), ReportKind.SUMMARY, "batch_"));
+            assertTrue(Thread.interrupted(), "interrupt flag should be restored after awaitOutcome() catches InterruptedException");
+        } finally {
+            Thread.interrupted();
+        }
+    }
+
+    @Test
+    @DisplayName("A Future.get() ExecutionException is wrapped as IllegalStateException, unwrapping the real cause")
+    void awaitOutcomeHandlesExecutionExceptionTest() throws Exception {
+        ExecutorService mockExecutor = mock(ExecutorService.class);
+        Future<Object> mockFuture = mock(Future.class);
+        when(mockFuture.get()).thenThrow(new ExecutionException("boom", new RuntimeException("root cause")));
+        doReturn(mockFuture).when(mockExecutor).submit(any(Callable.class));
+
+        StudentManager studentManager = mock(StudentManager.class);
+        ReportGenerator reportGenerator = mock(ReportGenerator.class);
+        FileExporter fileExporter = mock(FileExporter.class);
+        BatchReportService service = new BatchReportService(studentManager, reportGenerator, fileExporter,
+                BatchReportService.MIN_THREADS, () -> mockExecutor);
+
+        IllegalStateException ex = assertThrows(IllegalStateException.class,
+                () -> service.generateBatch(List.of("STU001"), ReportKind.SUMMARY, "batch_"));
+        assertEquals("root cause", ex.getCause().getMessage());
+    }
+
+    @Test
+    @DisplayName("shutdown() handles being interrupted while awaiting termination, restoring the interrupt flag (mocked ExecutorService)")
+    void shutdownHandlesInterruptedAwaitTest() throws Exception {
+        ExecutorService mockExecutor = mock(ExecutorService.class);
+        when(mockExecutor.submit(any(Callable.class))).thenAnswer(invocation -> {
+            Callable<?> callable = invocation.getArgument(0);
+            return CompletableFuture.completedFuture(callable.call());
+        });
+        when(mockExecutor.awaitTermination(anyLong(), any(TimeUnit.class))).thenThrow(new InterruptedException());
+
+        StudentManager studentManager = mock(StudentManager.class);
+        Student student = new RegularStudent("Test Student", 16, "t@school.edu", "1234567890");
+        when(studentManager.findStudent(student.getStudentId())).thenReturn(student);
+        ReportGenerator reportGenerator = mock(ReportGenerator.class);
+        when(reportGenerator.exportSummary(student.getStudentId())).thenReturn("content");
+        FileExporter fileExporter = mock(FileExporter.class);
+        when(fileExporter.exportToFile(anyString(), anyString()))
+                .thenReturn(new FileExporter.FileExportResult("reports/x.txt", 10));
+
+        BatchReportService service = new BatchReportService(studentManager, reportGenerator, fileExporter,
+                BatchReportService.MIN_THREADS, () -> mockExecutor);
+
+        try {
+            service.generateBatch(List.of(student.getStudentId()), ReportKind.SUMMARY, "batch_");
+            verify(mockExecutor).shutdownNow();
+            assertTrue(Thread.interrupted(), "interrupt flag should be restored after shutdown() catches InterruptedException");
+        } finally {
+            Thread.interrupted();
+        }
     }
 }

@@ -9,11 +9,13 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 class AuditTrailTest {
 
@@ -91,6 +93,32 @@ class AuditTrailTest {
 
         assertDoesNotThrow(auditTrail::shutdown);
         assertDoesNotThrow(auditTrail::shutdown);
+    }
+
+    @Test
+    @DisplayName("shutdown() calls shutdownNow() when awaitTermination times out (mocked ExecutorService, no real 30s wait)")
+    void shutdownCallsShutdownNowOnTimeoutTest() {
+        ExecutorService mockExecutor = mock(ExecutorService.class);
+        // awaitTermination is left unstubbed, so Mockito's default (false) drives the timeout branch.
+        AuditTrail auditTrail = AuditTrail.withExecutor(mockExecutor);
+
+        auditTrail.shutdown();
+
+        verify(mockExecutor).shutdown();
+        verify(mockExecutor).shutdownNow();
+    }
+
+    @Test
+    @DisplayName("shutdown() handles being interrupted while awaiting termination, restoring the interrupt flag")
+    void shutdownHandlesInterruptedAwaitTest() {
+        AuditTrail auditTrail = AuditTrail.active();
+        Thread.currentThread().interrupt();
+        try {
+            assertDoesNotThrow(auditTrail::shutdown);
+            assertTrue(Thread.interrupted(), "interrupt flag should be restored after shutdown() catches InterruptedException");
+        } finally {
+            Thread.interrupted(); // clear, in case the assertion above failed first
+        }
     }
 
     /** Drains the single-thread executor's queue by submitting one more record() and waiting for it. */
