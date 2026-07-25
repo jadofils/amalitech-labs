@@ -38,7 +38,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * StudentSearcher and a real FileExporter redirected to a temp directory
  * (see FileExporterTest for that pattern). SearchStudentsActionMockitoTest
  * covers interaction verification, sanitization, delegation, and the
- * ApplicationException main.export-failure path through mocked collaborators.
+ * ApplicationException export-failure path through mocked collaborators.
  */
 class SearchStudentsActionTest {
 
@@ -187,7 +187,7 @@ class SearchStudentsActionTest {
     }
 
     @Test
-    @DisplayName("Result action 2 (main.export) with a filename writes the report and reports success")
+    @DisplayName("Result action 2 (export) with a filename writes the report and reports success")
     void exportWithFilenameWritesFileTest() throws IOException {
         Student alice = studentManager.getAllStudents().get(0);
 
@@ -201,7 +201,7 @@ class SearchStudentsActionTest {
     }
 
     @Test
-    @DisplayName("Result action 2 (main.export) with an empty filename writes nothing and does not crash")
+    @DisplayName("Result action 2 (export) with an empty filename writes nothing and does not crash")
     void exportWithEmptyFilenameNoOpTest() {
         Student alice = studentManager.getAllStudents().get(0);
 

@@ -69,7 +69,7 @@ class FileExporterTest {
                 () -> exporter.exportToFile("already_a_directory.txt", "content"));
 
         assertEquals(testDir + "/already_a_directory.txt", ex.getFilePath());
-        assertTrue(ex.getMessage().contains("Failed to main.export report"));
+        assertTrue(ex.getMessage().contains("Failed to export report"));
         assertNotNull(ex.getCause());
     }
 }

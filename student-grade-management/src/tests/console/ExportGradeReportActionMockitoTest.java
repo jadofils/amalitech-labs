@@ -25,7 +25,7 @@ import static org.mockito.Mockito.*;
 /**
  * Mocks StudentManager, GradeManager, ReportGenerator and FileExporter to
  * verify ExportGradeReportAction's branching in isolation: the student-not-found
- * and empty-filename short-circuits (report/main.export methods must never be
+ * and empty-filename short-circuits (report/export methods must never be
  * called), the summary-only and detailed-only paths delegating to exactly the
  * right ReportGenerator/FileExporter method, and the "both" path invoking
  * summary before detailed in order.

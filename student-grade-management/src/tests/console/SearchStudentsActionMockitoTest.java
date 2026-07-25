@@ -26,7 +26,7 @@ import static org.mockito.Mockito.*;
  * Verifies SearchStudentsAction's own control flow (branch selection, input
  * sanitization/parsing, delegation to its collaborators) with StudentManager,
  * StudentSearcher, and FileExporter all mocked - including the
- * ApplicationException main.export-failure path that SearchStudentsActionTest
+ * ApplicationException export-failure path that SearchStudentsActionTest
  * cannot exercise with a real FileExporter. Happy-path search results and
  * real file writes are covered there instead.
  */

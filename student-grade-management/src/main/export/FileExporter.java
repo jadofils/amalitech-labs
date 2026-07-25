@@ -41,8 +41,8 @@ public class FileExporter {
         try {
             Files.writeString(file, content, StandardCharsets.UTF_8);
         } catch (IOException e) {
-            Logger.error("Failed to main.export report to " + path, e);
-            throw new ExportException("Failed to main.export report: " + e.getMessage(), path, e);
+            Logger.error("Failed to export report to " + path, e);
+            throw new ExportException("Failed to export report: " + e.getMessage(), path, e);
         }
 
         long size = sizeOf(file, path);

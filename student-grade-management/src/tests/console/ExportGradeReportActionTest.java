@@ -42,7 +42,7 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 class ExportGradeReportActionTest {
 
-    private final String testDir = "target/test-main.export-grade-report-" + System.nanoTime();
+    private final String testDir = "target/test-export-grade-report-" + System.nanoTime();
 
     private StudentManager studentManager;
     private GradeManager gradeManager;
