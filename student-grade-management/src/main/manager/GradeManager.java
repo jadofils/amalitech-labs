@@ -1,5 +1,6 @@
 package main.manager;
 
+import main.concurrent.LruCache;
 import main.model.enums.SubjectType;
 import main.model.grade.Grade;
 import main.model.subject.Subject;
@@ -28,6 +29,11 @@ public class GradeManager {
     // what StudentManager.getAllStudents() already returns as an independent copy.
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
+    // v3/PBI-8: caches getGradesForStudent()'s result per student ID. addGrade() invalidates the
+    // affected student's entry as part of the same write - both live in this class, so cache and
+    // write path never drift apart the way they could if a different class owned either half.
+    private final LruCache<String, List<Grade>> gradeCache = new LruCache<>();
+
     public GradeManager(GradeService gradeService, SubjectRepository subjectRepository) {
         this.gradeService = gradeService;
         this.subjectRepository = subjectRepository;
@@ -55,6 +61,7 @@ public class GradeManager {
         lock.writeLock().lock();
         try {
             gradeService.recordGrade(grade);
+            gradeCache.invalidate(grade.getStudentId());
         } finally {
             lock.writeLock().unlock();
         }
@@ -71,7 +78,18 @@ public class GradeManager {
     }
 
     public List<Grade> getGradesForStudent(String studentId) {
-        return gradeService.getGradesByStudentId(studentId);
+        List<Grade> cached = gradeCache.get(studentId);
+        if (cached != null) {
+            return cached;
+        }
+        List<Grade> fetched = gradeService.getGradesByStudentId(studentId);
+        gradeCache.put(studentId, fetched);
+        return fetched;
+    }
+
+    /** This cache's hit rate so far - surfaced on {@link main.concurrent.StatisticsDashboard} per US-8. */
+    public double getGradeCacheHitRate() {
+        return gradeCache.hitRate();
     }
 
     public List<Subject> getSubjectsByType(SubjectType type) {
