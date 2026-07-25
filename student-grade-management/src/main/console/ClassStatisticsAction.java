@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Scanner;
 
 /** Menu option 8: View Class Statistics. */
-public class ClassStatisticsAction implements MenuAction {
+public class ClassStatisticsAction extends AbstractMenuAction {
 
     private final Scanner scanner;
     private final StudentManager studentManager;
@@ -22,21 +22,12 @@ public class ClassStatisticsAction implements MenuAction {
 
     public ClassStatisticsAction(Scanner scanner, StudentManager studentManager, GradeManager gradeManager,
                                   StatisticsCalculator statisticsCalculator, SubjectRepository subjectRepository) {
+        super(8, "View Class Statistics");
         this.scanner = scanner;
         this.studentManager = studentManager;
         this.gradeManager = gradeManager;
         this.statisticsCalculator = statisticsCalculator;
         this.subjectRepository = subjectRepository;
-    }
-
-    @Override
-    public int getOptionNumber() {
-        return 8;
-    }
-
-    @Override
-    public String getLabel() {
-        return "View Class Statistics";
     }
 
     @Override

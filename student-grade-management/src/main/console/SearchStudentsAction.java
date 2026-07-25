@@ -15,7 +15,7 @@ import java.util.Scanner;
 import java.util.regex.PatternSyntaxException;
 
 /** Menu option 9: Search Students (has its own result/action sub-menu). */
-public class SearchStudentsAction implements MenuAction {
+public class SearchStudentsAction extends AbstractMenuAction {
 
     private final Scanner scanner;
     private final StudentManager studentManager;
@@ -24,20 +24,11 @@ public class SearchStudentsAction implements MenuAction {
 
     public SearchStudentsAction(Scanner scanner, StudentManager studentManager, StudentSearcher studentSearcher,
                                  FileExporter fileExporter) {
+        super(9, "Search Students");
         this.scanner = scanner;
         this.studentManager = studentManager;
         this.studentSearcher = studentSearcher;
         this.fileExporter = fileExporter;
-    }
-
-    @Override
-    public int getOptionNumber() {
-        return 9;
-    }
-
-    @Override
-    public String getLabel() {
-        return "Search Students";
     }
 
     @Override

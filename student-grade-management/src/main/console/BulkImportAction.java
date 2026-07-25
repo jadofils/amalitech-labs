@@ -7,24 +7,15 @@ import main.model.enums.Role;
 import java.util.Scanner;
 
 /** Menu option 7: Bulk Import Grades. */
-public class BulkImportAction implements MenuAction {
+public class BulkImportAction extends AbstractMenuAction {
 
     private final Scanner scanner;
     private final BulkImportService bulkImportService;
 
     public BulkImportAction(Scanner scanner, BulkImportService bulkImportService) {
+        super(7, "Bulk Import Grades");
         this.scanner = scanner;
         this.bulkImportService = bulkImportService;
-    }
-
-    @Override
-    public int getOptionNumber() {
-        return 7;
-    }
-
-    @Override
-    public String getLabel() {
-        return "Bulk Import Grades";
     }
 
     @Override

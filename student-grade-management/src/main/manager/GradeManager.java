@@ -141,7 +141,7 @@ public class GradeManager {
 
         System.out.println("GRADE HISTORY");
         System.out.println(DIVIDER);
-        System.out.printf("%-8s| %-10s | %-16s | %-9s | %s%n", "GRD ID", "DATE", "SUBJECT", "TYPE", "GRADE");
+        System.out.printf("%-8s| %-10s | %-16s | %-9s | %s%n", "GRD ID", "DATE", "SUBJECT", "TYPE", AUDIT_ENTITY_GRADE);
         System.out.println(DIVIDER);
         for (Grade grade : grades) {
             System.out.printf("%-8s| %-10s | %-16s | %-9s | %.1f%%%n",

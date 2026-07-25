@@ -8,26 +8,10 @@ import main.utils.InputSanitizer;
 import java.util.Scanner;
 
 /** Menu option 4: View Grade Report. */
-public class ViewGradeReportAction implements MenuAction {
-
-    private final Scanner scanner;
-    private final StudentManager studentManager;
-    private final GradeManager gradeManager;
+public class ViewGradeReportAction extends AbstractGradeAction {
 
     public ViewGradeReportAction(Scanner scanner, StudentManager studentManager, GradeManager gradeManager) {
-        this.scanner = scanner;
-        this.studentManager = studentManager;
-        this.gradeManager = gradeManager;
-    }
-
-    @Override
-    public int getOptionNumber() {
-        return 4;
-    }
-
-    @Override
-    public String getLabel() {
-        return "View Grade Report";
+        super(4, "View Grade Report", scanner, studentManager, gradeManager);
     }
 
     @Override

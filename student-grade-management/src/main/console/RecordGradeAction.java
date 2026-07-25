@@ -13,26 +13,10 @@ import java.util.List;
 import java.util.Scanner;
 
 /** Menu option 3: Record Grade. */
-public class RecordGradeAction implements MenuAction {
-
-    private final Scanner scanner;
-    private final StudentManager studentManager;
-    private final GradeManager gradeManager;
+public class RecordGradeAction extends AbstractGradeAction {
 
     public RecordGradeAction(Scanner scanner, StudentManager studentManager, GradeManager gradeManager) {
-        this.scanner = scanner;
-        this.studentManager = studentManager;
-        this.gradeManager = gradeManager;
-    }
-
-    @Override
-    public int getOptionNumber() {
-        return 3;
-    }
-
-    @Override
-    public String getLabel() {
-        return "Record Grade";
+        super(3, "Record Grade", scanner, studentManager, gradeManager);
     }
 
     @Override

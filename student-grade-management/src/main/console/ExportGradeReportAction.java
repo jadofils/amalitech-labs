@@ -10,31 +10,16 @@ import main.utils.InputSanitizer;
 import java.util.Scanner;
 
 /** Menu option 5: Export Grade Report. */
-public class ExportGradeReportAction implements MenuAction {
+public class ExportGradeReportAction extends AbstractGradeAction {
 
-    private final Scanner scanner;
-    private final StudentManager studentManager;
-    private final GradeManager gradeManager;
     private final ReportGenerator reportGenerator;
     private final FileExporter fileExporter;
 
     public ExportGradeReportAction(Scanner scanner, StudentManager studentManager, GradeManager gradeManager,
                                     ReportGenerator reportGenerator, FileExporter fileExporter) {
-        this.scanner = scanner;
-        this.studentManager = studentManager;
-        this.gradeManager = gradeManager;
+        super(5, "Export Grade Report", scanner, studentManager, gradeManager);
         this.reportGenerator = reportGenerator;
         this.fileExporter = fileExporter;
-    }
-
-    @Override
-    public int getOptionNumber() {
-        return 5;
-    }
-
-    @Override
-    public String getLabel() {
-        return "Export Grade Report";
     }
 
     @Override

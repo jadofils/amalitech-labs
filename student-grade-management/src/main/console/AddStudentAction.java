@@ -10,24 +10,15 @@ import main.utils.InputSanitizer;
 import java.util.Scanner;
 
 /** Menu option 1: Add Student. */
-public class AddStudentAction implements MenuAction {
+public class AddStudentAction extends AbstractMenuAction {
 
     private final Scanner scanner;
     private final StudentManager studentManager;
 
     public AddStudentAction(Scanner scanner, StudentManager studentManager) {
+        super(1, "Add Student");
         this.scanner = scanner;
         this.studentManager = studentManager;
-    }
-
-    @Override
-    public int getOptionNumber() {
-        return 1;
-    }
-
-    @Override
-    public String getLabel() {
-        return "Add Student";
     }
 
     @Override

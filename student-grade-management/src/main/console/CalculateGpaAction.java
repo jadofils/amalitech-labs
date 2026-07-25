@@ -12,29 +12,14 @@ import java.util.List;
 import java.util.Scanner;
 
 /** Menu option 6: Calculate Student GPA. */
-public class CalculateGpaAction implements MenuAction {
+public class CalculateGpaAction extends AbstractGradeAction {
 
-    private final Scanner scanner;
-    private final StudentManager studentManager;
-    private final GradeManager gradeManager;
     private final GPACalculator gpaCalculator;
 
     public CalculateGpaAction(Scanner scanner, StudentManager studentManager, GradeManager gradeManager,
                                GPACalculator gpaCalculator) {
-        this.scanner = scanner;
-        this.studentManager = studentManager;
-        this.gradeManager = gradeManager;
+        super(6, "Calculate Student GPA", scanner, studentManager, gradeManager);
         this.gpaCalculator = gpaCalculator;
-    }
-
-    @Override
-    public int getOptionNumber() {
-        return 6;
-    }
-
-    @Override
-    public String getLabel() {
-        return "Calculate Student GPA";
     }
 
     @Override
