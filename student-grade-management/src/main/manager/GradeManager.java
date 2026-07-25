@@ -1,5 +1,6 @@
 package main.manager;
 
+import main.concurrent.AuditTrail;
 import main.concurrent.LruCache;
 import main.model.enums.SubjectType;
 import main.model.grade.Grade;
@@ -34,9 +35,16 @@ public class GradeManager {
     // write path never drift apart the way they could if a different class owned either half.
     private final LruCache<String, List<Grade>> gradeCache = new LruCache<>();
 
+    private final AuditTrail auditTrail;
+
     public GradeManager(GradeService gradeService, SubjectRepository subjectRepository) {
+        this(gradeService, subjectRepository, AuditTrail.noOp());
+    }
+
+    public GradeManager(GradeService gradeService, SubjectRepository subjectRepository, AuditTrail auditTrail) {
         this.gradeService = gradeService;
         this.subjectRepository = subjectRepository;
+        this.auditTrail = auditTrail;
         syncGradeCounter();
     }
 
@@ -62,6 +70,23 @@ public class GradeManager {
         try {
             gradeService.recordGrade(grade);
             gradeCache.invalidate(grade.getStudentId());
+            auditTrail.record("ADD", "GRADE", grade.getGradeId(),
+                    "Recorded grade " + grade.getGradeId() + " (" + grade.getGrade() + "%) for student " + grade.getStudentId());
+        } finally {
+            lock.writeLock().unlock();
+        }
+    }
+
+    /** Not currently reachable from any console action - GradeService/GradeRepository have long
+     *  supported deleting a grade, but nothing above this layer exposed it until now (US-9/PBI-9's
+     *  "every ... delete across ... grade" is the reason it's exposed here). */
+    public void deleteGrade(String gradeId) {
+        lock.writeLock().lock();
+        try {
+            Grade grade = gradeService.getGradeById(gradeId);
+            gradeService.deleteGrade(gradeId);
+            gradeCache.invalidate(grade.getStudentId());
+            auditTrail.record("DELETE", "GRADE", gradeId, "Deleted grade " + gradeId + " for student " + grade.getStudentId());
         } finally {
             lock.writeLock().unlock();
         }

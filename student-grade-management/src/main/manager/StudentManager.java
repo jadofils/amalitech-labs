@@ -1,5 +1,6 @@
 package main.manager;
 
+import main.concurrent.AuditTrail;
 import main.exceptions.StudentNotFoundException;
 import main.logging.Logger;
 import main.model.grade.Grade;
@@ -13,10 +14,16 @@ import java.util.List;
 public class StudentManager {
     private final StudentService studentService;
     private final GradeManager gradeManager;
+    private final AuditTrail auditTrail;
 
     public StudentManager(StudentService studentService, GradeManager gradeManager) {
+        this(studentService, gradeManager, AuditTrail.noOp());
+    }
+
+    public StudentManager(StudentService studentService, GradeManager gradeManager, AuditTrail auditTrail) {
         this.studentService = studentService;
         this.gradeManager = gradeManager;
+        this.auditTrail = auditTrail;
         syncStudentCounter();
     }
 
@@ -39,6 +46,7 @@ public class StudentManager {
 
     public void addStudent(Student student) {
         studentService.addStudent(student);
+        auditTrail.record("ADD", "STUDENT", student.getStudentId(), "Added student " + student.getName());
     }
 
     public Student findStudent(String studentId) {
@@ -92,10 +100,12 @@ public class StudentManager {
 
     public void updateStudent(Student student) {
         studentService.updateStudent(student);
+        auditTrail.record("UPDATE", "STUDENT", student.getStudentId(), "Updated student " + student.getName());
     }
 
     public void deleteStudent(String studentId) {
         studentService.deleteStudent(studentId);
+        auditTrail.record("DELETE", "STUDENT", studentId, "Deleted student " + studentId);
     }
 
     // Grades live in their own table, so a freshly loaded Student needs its
