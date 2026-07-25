@@ -144,4 +144,28 @@ class StudentValidatorTest {
                 () -> StudentValidator.validateStudent(student));
         assertEquals("Student ID must be at least 4 characters and alphanumeric.", ex.getMessage());
     }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"STU001", "STU999", "STU1000"})
+    @DisplayName("validateId() accepts the STU### format, unbounded above 999 (US-3/PBI-3)")
+    void validIdFormatPassesTest(String studentId) {
+        assertDoesNotThrow(() -> StudentValidator.validateId(studentId));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"ABCD1234", "0012STU", "STUD001", "stu001"})
+    @DisplayName("validateId() rejects alphanumeric IDs that would have passed the old generic pattern but aren't STU### (US-3/PBI-3)")
+    void wronglyPrefixedIdFailsTest(String studentId) {
+        StudentValidationException ex = assertThrows(StudentValidationException.class,
+                () -> StudentValidator.validateId(studentId));
+        assertEquals("Student ID must be at least 4 characters and alphanumeric.", ex.getMessage());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"+1-555-0101", "+44-207-1234"})
+    @DisplayName("validatePhone() also accepts the dashed international format (US-3/PBI-3)")
+    void internationalPhoneFormatPassesTest(String phone) {
+        Student student = new RegularStudent("Musa Nkusi", 17, "musa@amalitech.com", phone);
+        assertDoesNotThrow(() -> StudentValidator.validateStudent(student));
+    }
 }

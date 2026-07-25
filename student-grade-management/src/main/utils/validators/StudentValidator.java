@@ -7,10 +7,7 @@ import java.util.regex.Pattern;
 
 public class StudentValidator {
 
-    private static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
-    private static final Pattern PHONE_PATTERN = Pattern.compile("^\\d{10}$");
     private static final Pattern NAME_PATTERN = Pattern.compile("^[A-Za-z ]+$");
-    private static final Pattern ID_PATTERN = Pattern.compile("^[A-Za-z0-9]{4,}$");
 
     private StudentValidator() {
     }
@@ -29,7 +26,7 @@ public class StudentValidator {
     }
 
     public static void validateId(String studentId) {
-        if (studentId == null || !ID_PATTERN.matcher(studentId).matches()) {
+        if (studentId == null || !ValidationPatterns.STUDENT_ID.matcher(studentId).matches()) {
             throw new StudentValidationException("Student ID must be at least 4 characters and alphanumeric.");
         }
     }
@@ -53,13 +50,17 @@ public class StudentValidator {
     }
 
     public static void validateEmail(String email) {
-        if (email == null || !EMAIL_PATTERN.matcher(email).matches()) {
+        if (email == null || !ValidationPatterns.EMAIL.matcher(email).matches()) {
             throw new StudentValidationException("Invalid email format.");
         }
     }
 
+    /** Accepts either a plain 10-digit local number or a dashed {@code +<country>-###-####} international one. */
     public static void validatePhone(String phone) {
-        if (phone == null || !PHONE_PATTERN.matcher(phone).matches()) {
+        boolean valid = phone != null
+                && (ValidationPatterns.PHONE_LOCAL.matcher(phone).matches()
+                || ValidationPatterns.PHONE_INTERNATIONAL.matcher(phone).matches());
+        if (!valid) {
             throw new StudentValidationException("Phone number must be exactly 10 digits.");
         }
     }
