@@ -208,7 +208,7 @@ Source: [../../REAME-V3.md](../../REAME-V3.md).
       this same class already handles `readGradeRangeQuery()`'s `NumberFormatException` — no changes
       needed to `ConsoleApp`'s own exception handling
 
-### PBI-8: Thread-Safe Caching (US-8)
+### PBI-8: Thread-Safe Caching (US-8) — ✅ Done (`feature/v3-thread-safe-cache`, merged)
 | Field | Value |
 |---|---|
 | **Priority** | Low |
@@ -220,9 +220,18 @@ Source: [../../REAME-V3.md](../../REAME-V3.md).
 > **So that** repeated lookups don't repeatedly recompute or re-scan storage
 
 **Acceptance Criteria:**
-- [ ] `ConcurrentHashMap`-backed cache with an LRU eviction policy
-- [ ] Cache hit rate observable (surfaced on the dashboard from PBI-5, per the brief's example)
-- [ ] Cache invalidated correctly on writes (a student/grade update must not serve stale cached data)
+- [x] `ConcurrentHashMap`-backed cache with an LRU eviction policy — new generic `LruCache<K, V>`:
+      every `get()`/`put()`/`invalidate()` is lock-free on the backing map itself; recency is a
+      per-entry `AtomicLong` stamp rather than a second, separately-synchronized ordering structure,
+      so eviction never needs its own lock
+- [x] Cache hit rate observable (surfaced on the dashboard from PBI-5, per the brief's example) —
+      `GradeManager.getGradeCacheHitRate()` printed on every `StatisticsDashboard` tick, right
+      alongside "Active Threads", matching the brief's own screenshot mockup
+- [x] Cache invalidated correctly on writes (a student/grade update must not serve stale cached
+      data) — `GradeManager.getGradesForStudent()` reads through the cache, `addGrade()` invalidates
+      that student's entry as part of the same write; both live in the one class that owns the
+      cache, so they can't drift apart. Proven: a read that populates the cache, followed by
+      `addGrade()`, followed by another read, must reflect the write - not the stale cached result
 
 ### PBI-9: Concurrent Audit Trail (US-9)
 | Field | Value |
