@@ -75,7 +75,7 @@ Source: [../../REAME-V3.md](../../REAME-V3.md).
 - [x] Proper resource management — try-with-resources throughout (`Files.lines()`,
       `ObjectOutputStream`/`ObjectInputStream`, buffered writers), no leaked file handles
 
-### PBI-3: Regex-Based Validation (US-3)
+### PBI-3: Regex-Based Validation (US-3) — ✅ Done (`feature/v3-regex-validation`, merged)
 | Field | Value |
 |---|---|
 | **Priority** | High |
@@ -87,13 +87,25 @@ Source: [../../REAME-V3.md](../../REAME-V3.md).
 > **So that** malformed IDs, contact info, and dates are rejected consistently and predictably
 
 **Acceptance Criteria:**
-- [ ] Student ID: `STU\d{3}` (note — decide how this interacts with v2's existing auto-incrementing
-      `STU%03d` ID generation; auto-generated IDs must already satisfy this pattern)
-- [ ] Email, phone (multiple accepted formats), date (`YYYY-MM-DD`), course code (`ENG101`-style)
-      patterns, each with its own named constant (no inline regex literals scattered around)
-- [ ] Validation failures raise the existing `StudentValidationException`/`SubjectValidationException`
-      types (or a v3 equivalent) — no new generic exception type introduced
-- [ ] Patterns centralized in one place (e.g. `utils/validators/`) rather than duplicated per caller
+- [x] Student ID: `STU\d{3,}` — the open question is resolved by the codebase's own existing
+      convention (`RegularStudentTest` already asserted `^STU\\d{3,}$`): `{3,}`, not an exact `{3}`,
+      since `Student`'s `STU%03d` generator is zero-padded to 3 digits but unbounded above 999
+- [x] Email, phone (multiple accepted formats — a plain 10-digit local number, or a dashed
+      `+<country>-###-####` international one), date (`YYYY-MM-DD`), course code (`ENG101`-style)
+      patterns, each with its own named constant in the new `ValidationPatterns` class (no inline
+      regex literals scattered around)
+- [x] Validation failures raise the existing `StudentValidationException`/`SubjectValidationException`/
+      `InvalidGradeException` types — no new generic exception type introduced. New
+      `GradeValidator.validateForImport()` closes a real gap: imported (CSV/JSON/binary)
+      `GradeRecord`s were previously reconstructed via `Grade.reconstruct()` with zero validation;
+      it now checks gradeId/studentId format and the 0-100 grade range before reconstruction. Date
+      format is deliberately *not* enforced there — `Grade`'s own date field is `dd-MM-yyyy`, not the
+      ISO shape `DATE_ISO` validates, so enforcing it would reject every real exported-then-reimported
+      grade
+- [x] Patterns centralized in `utils/validators/ValidationPatterns` rather than duplicated per caller
+      — `StudentValidator`/`SubjectValidator` now reference it instead of declaring their own
+      `Pattern`s (subject-code behavior unchanged, a pure refactor; student-ID check deliberately
+      tightened, phone check deliberately widened, both per this story's own acceptance criteria)
 
 ### PBI-4: Concurrent Batch Report Generation (US-4)
 | Field | Value |
