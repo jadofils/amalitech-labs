@@ -1,5 +1,6 @@
 package tests.manager;
 
+import main.concurrent.AuditTrail;
 import main.manager.GradeManager;
 import main.manager.StudentManager;
 import main.model.grade.Grade;
@@ -12,6 +13,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import main.repository.student.StudentRepositoryImpl;
 import main.repository.subject.SubjectRepositoryImpl;
 import main.service.GradeService;
@@ -169,6 +173,32 @@ class StudentManagerTest {
 
         assertEquals(before - 1, studentManager.getStudentCount());
         assertNull(studentManager.findStudent(student.getStudentId()));
+    }
+
+    @Test
+    @DisplayName("addStudent()/updateStudent()/deleteStudent() each record a matching audit entry (US-9/PBI-9)")
+    void writesAreAuditedTest() throws InterruptedException, ExecutionException, TimeoutException {
+        AuditTrail auditTrail = AuditTrail.active();
+        StudentManager auditedManager = new StudentManager(new StudentServiceImpl(studentRepository), gradeManager, auditTrail);
+        try {
+            Student student = new RegularStudent("Audit Target", 16, "audit@school.edu", "1234567890");
+
+            auditedManager.addStudent(student);
+            auditedManager.updateStudent(student);
+            auditedManager.deleteStudent(student.getStudentId());
+            drain(auditTrail);
+
+            var actions = auditTrail.getEntries().stream().map(e -> e.action() + ":" + e.entityId()).toList();
+            assertTrue(actions.contains("ADD:" + student.getStudentId()));
+            assertTrue(actions.contains("UPDATE:" + student.getStudentId()));
+            assertTrue(actions.contains("DELETE:" + student.getStudentId()));
+        } finally {
+            auditTrail.shutdown();
+        }
+    }
+
+    private void drain(AuditTrail auditTrail) throws InterruptedException, ExecutionException, TimeoutException {
+        auditTrail.record("ADD", "STUDENT", "__drain__", "").get(5, TimeUnit.SECONDS);
     }
 
     private String captureStdOut(Runnable action) {

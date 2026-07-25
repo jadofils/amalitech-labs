@@ -99,6 +99,22 @@ class GradeManagerMockitoTest {
     }
 
     @Test
+    @DisplayName("deleteGrade() looks up the grade (for its student ID) then delegates to GradeService.deleteGrade()")
+    void deleteGradeDelegatesTest() {
+        GradeService gradeService = mock(GradeService.class);
+        SubjectRepository subjectRepository = mock(SubjectRepository.class);
+        GradeManager manager = new GradeManager(gradeService, subjectRepository);
+        Grade grade = mockGrade(80.0, SubjectType.CORE);
+        when(grade.getStudentId()).thenReturn("STU001");
+        when(gradeService.getGradeById("GRD001")).thenReturn(grade);
+
+        manager.deleteGrade("GRD001");
+
+        verify(gradeService, times(1)).getGradeById("GRD001");
+        verify(gradeService, times(1)).deleteGrade("GRD001");
+    }
+
+    @Test
     @DisplayName("getGradeCount() delegates to GradeService.getAllGrades().size()")
     void getGradeCountDelegatesTest() {
         GradeService gradeService = mock(GradeService.class);
