@@ -6,6 +6,7 @@ import main.model.student.Student;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 /** Search Students (menu option 9): by exact ID, partial name, grade range, or student type. */
 public class StudentSearcher implements Searchable {
@@ -64,6 +65,19 @@ public class StudentSearcher implements Searchable {
         return results;
     }
 
+    @Override
+    public List<Student> searchByEmailPattern(String regex) {
+        Logger.debug("Searching students by email pattern: " + regex);
+        Pattern compiled = Pattern.compile(regex);
+        List<Student> results = new ArrayList<>();
+        for (Student s : studentManager.getAllStudents()) {
+            if (compiled.matcher(s.getEmail()).find()) {
+                results.add(s);
+            }
+        }
+        return results;
+    }
+
     /** Human-readable description of a search, for display alongside its results. */
     public String getSearchDescription(String option, String input) {
         return switch (option) {
@@ -71,6 +85,7 @@ public class StudentSearcher implements Searchable {
             case "2" -> "Name: \"" + input + "\"";
             case "3" -> "Grade range: " + input;
             case "4" -> "Type: " + (input.equals("2") ? "Honors" : "Regular");
+            case "5" -> "Email pattern: " + input;
             default -> "";
         };
     }

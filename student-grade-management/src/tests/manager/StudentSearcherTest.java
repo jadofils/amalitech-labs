@@ -18,6 +18,7 @@ import main.service.GradeServiceImpl;
 import main.service.StudentServiceImpl;
 
 import java.util.List;
+import java.util.regex.PatternSyntaxException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -107,6 +108,45 @@ class StudentSearcherTest {
     }
 
     @Test
+    @DisplayName("searchByEmailPattern() matches every student at a given email domain")
+    void searchByEmailPatternMatchesDomainTest() {
+        StudentRepositoryImpl students = new StudentRepositoryImpl();
+        SubjectRepositoryImpl subjects = new SubjectRepositoryImpl();
+        GradeService gradeService = new GradeServiceImpl(students, subjects);
+        GradeManager gradeManager = new GradeManager(gradeService, subjects);
+        StudentSearcher searcher = newSearcher(students, gradeManager);
+
+        // All 5 seeded students use @school.edu (see StudentRepositoryImpl).
+        List<Student> results = searcher.searchByEmailPattern(".*@school\\.edu$");
+
+        assertEquals(5, results.size());
+    }
+
+    @Test
+    @DisplayName("searchByEmailPattern() returns an empty list (not null) for a domain nobody uses")
+    void searchByEmailPatternNoMatchReturnsEmptyTest() {
+        StudentRepositoryImpl students = new StudentRepositoryImpl();
+        SubjectRepositoryImpl subjects = new SubjectRepositoryImpl();
+        GradeService gradeService = new GradeServiceImpl(students, subjects);
+        GradeManager gradeManager = new GradeManager(gradeService, subjects);
+        StudentSearcher searcher = newSearcher(students, gradeManager);
+
+        assertTrue(searcher.searchByEmailPattern(".*@university\\.edu$").isEmpty());
+    }
+
+    @Test
+    @DisplayName("searchByEmailPattern() propagates PatternSyntaxException for a malformed regex, rather than swallowing it")
+    void searchByEmailPatternInvalidRegexThrowsTest() {
+        StudentRepositoryImpl students = new StudentRepositoryImpl();
+        SubjectRepositoryImpl subjects = new SubjectRepositoryImpl();
+        GradeService gradeService = new GradeServiceImpl(students, subjects);
+        GradeManager gradeManager = new GradeManager(gradeService, subjects);
+        StudentSearcher searcher = newSearcher(students, gradeManager);
+
+        assertThrows(PatternSyntaxException.class, () -> searcher.searchByEmailPattern("["));
+    }
+
+    @Test
     @DisplayName("getSearchDescription() describes each search option")
     void getSearchDescriptionTest() {
         StudentSearcher searcher = newSearcher(new StudentRepositoryImpl(),
@@ -117,6 +157,7 @@ class StudentSearcherTest {
         assertEquals("Grade range: 80-90", searcher.getSearchDescription("3", "80-90"));
         assertEquals("Type: Honors", searcher.getSearchDescription("4", "2"));
         assertEquals("Type: Regular", searcher.getSearchDescription("4", "1"));
+        assertEquals("Email pattern: .*@school\\.edu$", searcher.getSearchDescription("5", ".*@school\\.edu$"));
         assertEquals("", searcher.getSearchDescription("9", "anything"));
     }
 }
