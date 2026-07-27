@@ -93,20 +93,39 @@ class StatisticsDashboardTest {
     @DisplayName("A running dashboard refreshes automatically at least twice within a few intervals, then stops cleanly")
     void refreshesAutomaticallyOnScheduleTest() {
         StatisticsDashboard dashboard = new StatisticsDashboard(studentManager, gradeManager, statisticsCalculator, SHORT_INTERVAL_MILLIS);
-
-        String output = captureStdOut(() -> {
+        PrintStream originalOut = System.out;
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        String output;
+        try {
+            System.setOut(new PrintStream(buffer));
             dashboard.start();
-            try {
-                Thread.sleep(SHORT_INTERVAL_MILLIS * 8);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-            dashboard.stop();
-        });
 
-        long refreshCount = output.lines().filter(line -> line.contains("REAL-TIME STATISTICS DASHBOARD")).count();
+            // Polls for the 2nd refresh instead of sleeping a single fixed window - a blind
+            // Thread.sleep(SHORT_INTERVAL_MILLIS * 8) flakes under CPU contention from the rest of
+            // the suite, since the scheduled executor's actual fire times can slip past it.
+            long deadline = System.currentTimeMillis() + 5000;
+            while (refreshCount(buffer) < 2 && System.currentTimeMillis() < deadline) {
+                try {
+                    Thread.sleep(SHORT_INTERVAL_MILLIS);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+            }
+
+            dashboard.stop();
+            output = buffer.toString();
+        } finally {
+            System.setOut(originalOut);
+        }
+
+        long refreshCount = refreshCount(buffer);
         assertTrue(refreshCount >= 2, "expected at least 2 refreshes, got " + refreshCount + " in output:\n" + output);
         assertFalse(dashboard.isRunning());
+    }
+
+    private long refreshCount(ByteArrayOutputStream buffer) {
+        return buffer.toString().lines().filter(line -> line.contains("REAL-TIME STATISTICS DASHBOARD")).count();
     }
 
     @Test
