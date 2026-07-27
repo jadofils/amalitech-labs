@@ -100,6 +100,18 @@ class GradeManagerMockitoTest {
     }
 
     @Test
+    @DisplayName("getAllGrades() delegates to GradeService.getAllGrades()")
+    void getAllGradesDelegatesTest() {
+        GradeService gradeService = mock(GradeService.class);
+        SubjectRepository subjectRepository = mock(SubjectRepository.class);
+        GradeManager manager = new GradeManager(gradeService, subjectRepository);
+        List<Grade> grades = List.of(mockGrade(80.0, SubjectType.CORE), mockGrade(90.0, SubjectType.ELECTIVE));
+        when(gradeService.getAllGrades()).thenReturn(grades);
+
+        assertEquals(grades, manager.getAllGrades());
+    }
+
+    @Test
     @DisplayName("addGrade() delegates to GradeService.recordGrade() with the exact same object")
     void addGradeDelegatesTest() {
         GradeService gradeService = mock(GradeService.class);

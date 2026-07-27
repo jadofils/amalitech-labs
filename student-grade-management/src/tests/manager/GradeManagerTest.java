@@ -78,6 +78,18 @@ class GradeManagerTest {
     }
 
     @Test
+    @DisplayName("getAllGrades() returns every grade in storage, regardless of student")
+    void getAllGradesReturnsEveryGradeTest() {
+        List<Student> students = studentRepository.getAllStudents();
+        Subject core = gradeManager.getSubjectsByType(SubjectType.CORE).get(0);
+
+        gradeManager.addGrade(new Grade(students.get(0).getStudentId(), core, 80.0));
+        gradeManager.addGrade(new Grade(students.get(1).getStudentId(), core, 90.0));
+
+        assertEquals(2, gradeManager.getAllGrades().size());
+    }
+
+    @Test
     @DisplayName("Averages are 0.0 (not an exception) for a student with no grades")
     void averagesWithNoGradesTest() {
         Student student = new RegularStudent("No Grades Yet", 16, "none@school.edu", "1234567890");

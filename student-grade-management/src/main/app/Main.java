@@ -1,9 +1,12 @@
 package main.app;
 
+import main.backup.BackupService;
+import main.backup.BackupServiceImpl;
 import main.calculators.GPACalculator;
 import main.calculators.StatisticsCalculator;
 import main.concurrent.AuditTrail;
 import main.console.AddStudentAction;
+import main.console.BackupAction;
 import main.console.BulkImportAction;
 import main.console.CalculateGpaAction;
 import main.console.ClassStatisticsAction;
@@ -58,6 +61,7 @@ public class Main {
         BulkImportService bulkImportService = new BulkImportService(subjectRepository, studentManager, gradeManager);
         StatisticsCalculator statisticsCalculator = new StatisticsCalculator();
         StudentSearcher studentSearcher = new StudentSearcher(studentManager);
+        BackupService backupService = new BackupServiceImpl();
 
         List<MenuAction> actions = List.of(
                 new AddStudentAction(scanner, studentManager),
@@ -69,6 +73,7 @@ public class Main {
                 new BulkImportAction(scanner, bulkImportService),
                 new ClassStatisticsAction(scanner, studentManager, gradeManager, statisticsCalculator, subjectRepository),
                 new SearchStudentsAction(scanner, studentManager, studentSearcher, fileExporter),
+                new BackupAction(scanner, studentManager, gradeManager, subjectRepository, backupService),
                 new ExitAction()
         );
 

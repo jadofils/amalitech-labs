@@ -118,6 +118,11 @@ public class GradeManager {
         return gradeCache.hitRate();
     }
 
+    /** Every grade in storage, regardless of student - needed to build a full {@link main.backup.BackupService} snapshot. */
+    public List<Grade> getAllGrades() {
+        return gradeService.getAllGrades();
+    }
+
     public List<Subject> getSubjectsByType(SubjectType type) {
         List<Subject> result = new ArrayList<>();
         for (Subject subject : subjectRepository.getAllSubjects()) {
