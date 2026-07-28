@@ -1,5 +1,7 @@
 package tests.imports;
 
+import main.dataio.GradeDataExporter;
+import main.dataio.GradeRecord;
 import main.exceptions.ImportException;
 import main.imports.BulkImportService;
 import main.manager.GradeManager;
@@ -19,13 +21,18 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class BulkImportServiceTest {
 
+    private final GradeDataExporter gradeDataExporter = new GradeDataExporter();
+
     private String csvFilename;
     private String logFilename;
+    private String otherFormatFilename;
+    private String otherFormatExtension;
 
     private void writeCsv(String filename, String content) throws IOException {
         // imports/ is only tracked via .gitkeep (git doesn't track empty
@@ -40,6 +47,9 @@ class BulkImportServiceTest {
     void cleanUp() throws IOException {
         if (csvFilename != null) {
             Files.deleteIfExists(Path.of("imports/" + csvFilename + ".csv"));
+        }
+        if (otherFormatFilename != null) {
+            Files.deleteIfExists(Path.of("imports/" + otherFormatFilename + "." + otherFormatExtension));
         }
         if (logFilename != null) {
             Files.deleteIfExists(Path.of("imports/" + logFilename));
@@ -109,5 +119,94 @@ class BulkImportServiceTest {
         String logContent = Files.readString(Path.of("imports/" + logFilename));
         assertTrue(logContent.contains("Successfully Imported: 1"));
         assertTrue(logContent.contains("Failed: 0"));
+    }
+
+    @Test
+    @DisplayName("importFromFile() auto-detects a .json file, importing a valid record and skipping an unknown student and an out-of-range grade")
+    void importFromFileJsonImportsValidRecordsTest() throws IOException {
+        StudentRepositoryImpl students = new StudentRepositoryImpl();
+        SubjectRepositoryImpl subjects = new SubjectRepositoryImpl();
+        GradeService gradeService = new GradeServiceImpl(students, subjects);
+        GradeManager gradeManager = new GradeManager(gradeService, subjects);
+        StudentService studentService = new StudentServiceImpl(students);
+        StudentManager studentManager = new StudentManager(studentService, gradeManager);
+        BulkImportService bulkImportService = new BulkImportService(subjects, studentManager, gradeManager);
+        Student student = students.getAllStudents().get(0);
+
+        otherFormatFilename = "test-import-json-" + System.nanoTime();
+        otherFormatExtension = "json";
+        new java.io.File("imports").mkdirs();
+        gradeDataExporter.exportJson(List.of(
+                new GradeRecord("GRD901", student.getStudentId(), "MATH01", 85.0, "01-01-2026"),
+                new GradeRecord("GRD902", "NOPE999", "MATH01", 70.0, "01-01-2026"),
+                new GradeRecord("GRD903", student.getStudentId(), "MATH01", 150.0, "01-01-2026")
+        ), Path.of("imports/" + otherFormatFilename + ".json"));
+
+        BulkImportService.ImportResult result = bulkImportService.importFromFile(otherFormatFilename);
+        logFilename = result.getLogFilename();
+
+        assertEquals(1, result.getSuccessCount());
+        assertEquals(2, result.getFailedCount());
+        assertEquals(1, gradeManager.getGradeCount());
+        assertTrue(result.getFailReasons().stream().anyMatch(r -> r.contains("Invalid student ID (NOPE999)")));
+        assertTrue(result.getFailReasons().stream().anyMatch(r -> r.contains("Grade must be between 0 and 100")));
+    }
+
+    @Test
+    @DisplayName("importFromFile() auto-detects a .dat (binary) file and imports its valid records")
+    void importFromFileBinaryImportsValidRecordsTest() throws IOException {
+        StudentRepositoryImpl students = new StudentRepositoryImpl();
+        SubjectRepositoryImpl subjects = new SubjectRepositoryImpl();
+        GradeService gradeService = new GradeServiceImpl(students, subjects);
+        GradeManager gradeManager = new GradeManager(gradeService, subjects);
+        StudentService studentService = new StudentServiceImpl(students);
+        StudentManager studentManager = new StudentManager(studentService, gradeManager);
+        BulkImportService bulkImportService = new BulkImportService(subjects, studentManager, gradeManager);
+        Student student = students.getAllStudents().get(0);
+
+        otherFormatFilename = "test-import-bin-" + System.nanoTime();
+        otherFormatExtension = "dat";
+        new java.io.File("imports").mkdirs();
+        gradeDataExporter.exportBinary(List.of(
+                new GradeRecord("GRD904", student.getStudentId(), "MATH01", 90.0, "01-01-2026")
+        ), Path.of("imports/" + otherFormatFilename + ".dat"));
+
+        BulkImportService.ImportResult result = bulkImportService.importFromFile(otherFormatFilename);
+        logFilename = result.getLogFilename();
+
+        assertEquals(1, result.getSuccessCount());
+        assertEquals(0, result.getFailedCount());
+        assertEquals(1, gradeManager.getGradeCount());
+    }
+
+    @Test
+    @DisplayName("importFromFile() prefers a .csv file over a .json file with the same base name")
+    void importFromFilePrefersCsvOverJsonTest() throws IOException {
+        StudentRepositoryImpl students = new StudentRepositoryImpl();
+        SubjectRepositoryImpl subjects = new SubjectRepositoryImpl();
+        GradeService gradeService = new GradeServiceImpl(students, subjects);
+        GradeManager gradeManager = new GradeManager(gradeService, subjects);
+        StudentService studentService = new StudentServiceImpl(students);
+        StudentManager studentManager = new StudentManager(studentService, gradeManager);
+        BulkImportService bulkImportService = new BulkImportService(subjects, studentManager, gradeManager);
+        Student student = students.getAllStudents().get(0);
+
+        csvFilename = "test-import-priority-" + System.nanoTime();
+        otherFormatFilename = csvFilename;
+        otherFormatExtension = "json";
+        writeCsv(csvFilename, "StudentID,SubjectName,SubjectType,Grade\n"
+                + student.getStudentId() + ",Mathematics,Core,85\n");
+        gradeDataExporter.exportJson(List.of(
+                new GradeRecord("GRD905", student.getStudentId(), "MATH01", 60.0, "01-01-2026"),
+                new GradeRecord("GRD906", student.getStudentId(), "MATH01", 61.0, "01-01-2026")
+        ), Path.of("imports/" + csvFilename + ".json"));
+
+        BulkImportService.ImportResult result = bulkImportService.importFromFile(csvFilename);
+        logFilename = result.getLogFilename();
+
+        // The JSON file has two records; the CSV file has one. Getting exactly
+        // one success back confirms the CSV file was the one actually read.
+        assertEquals(1, result.getSuccessCount());
+        assertEquals(1, gradeManager.getGradeCount());
     }
 }

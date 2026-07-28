@@ -30,10 +30,12 @@ public class BulkImportAction extends AbstractMenuAction {
         System.out.println("\nBULK IMPORT GRADES");
         System.out.println(ConsoleUtils.DIVIDER);
 
-        System.out.println("\nPlace your CSV file in: ./imports/");
-        System.out.println("\nCSV Format Required:");
-        System.out.println("StudentID,SubjectName,SubjectType,Grade");
-        System.out.println("Example: STU001,Mathematics,Core,85");
+        System.out.println("\nPlace your file in: ./imports/");
+        System.out.println("Supported formats (auto-detected, checked in this order): .csv, .json, .dat");
+        System.out.println("\nCSV format: StudentID,SubjectName,SubjectType,Grade");
+        System.out.println("  Example: STU001,Mathematics,Core,85");
+        System.out.println("\nJSON/.dat format: a list of {gradeId, studentId, subjectCode, grade, date}");
+        System.out.println("  records, e.g. as produced by Export Class Report's data export.");
 
         System.out.print("\nEnter filename (without extension): ");
         String filename = scanner.nextLine().trim();

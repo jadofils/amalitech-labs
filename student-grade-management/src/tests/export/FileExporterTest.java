@@ -80,6 +80,28 @@ class FileExporterTest {
     }
 
     @Test
+    @DisplayName("getReportsDir() returns the directory the exporter was constructed with")
+    void getReportsDirReturnsConfiguredDirectoryTest() {
+        FileExporter exporter = new FileExporter(testDir);
+
+        assertEquals(testDir, exporter.getReportsDir());
+    }
+
+    @Test
+    @DisplayName("ensureDirectory() creates the reports directory without writing any file")
+    void ensureDirectoryCreatesDirectoryWithoutWritingFileTest() {
+        assertFalse(new File(testDir).exists());
+        FileExporter exporter = new FileExporter(testDir);
+
+        exporter.ensureDirectory();
+
+        assertTrue(new File(testDir).isDirectory());
+        File[] files = new File(testDir).listFiles();
+        assertNotNull(files);
+        assertEquals(0, files.length);
+    }
+
+    @Test
     @DisplayName("exportToFile() wraps a directory-creation failure as ExportException (a parent path segment is a regular file, not a directory)")
     void wrapsDirectoryCreationFailureAsExportExceptionTest() throws IOException {
         Files.createDirectories(Path.of(testDir));

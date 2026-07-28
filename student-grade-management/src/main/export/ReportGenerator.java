@@ -7,8 +7,10 @@ import main.manager.StudentManager;
 import main.mapper.GradeMapper;
 import main.model.grade.Grade;
 import main.model.student.Student;
+import main.model.subject.Subject;
 import main.utils.DateFormats;
 
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -94,6 +96,76 @@ public class ReportGenerator implements Exportable {
         sb.append("================================\n");
         sb.append("Generated on: ").append(timestamp()).append("\n");
         return sb.toString();
+    }
+
+    /**
+     * A class-wide (per-subject) summary: how many grades were recorded for
+     * this subject across every student, and the class average - the
+     * subject-level counterpart to {@link #exportSummary(String)}.
+     */
+    public String exportClassSummary(Subject subject) {
+        Logger.debug("Generating class summary report for subject " + subject.getSubjectCode());
+        List<Grade> grades = gradesForSubject(subject);
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("CLASS GRADE REPORT - SUMMARY\n");
+        sb.append("================================\n\n");
+        sb.append("Class: ").append(subject.getSubjectName()).append(" (").append(subject.getSubjectCode()).append(")\n");
+        sb.append("Total Grades Recorded: ").append(grades.size()).append("\n");
+        sb.append("Class Average: ").append(String.format(PERCENT_ONE_DECIMAL, average(grades))).append("\n\n");
+        sb.append("================================\n");
+        sb.append("Generated on: ").append(timestamp()).append("\n");
+        return sb.toString();
+    }
+
+    /**
+     * Every grade recorded for this subject, across every student - the
+     * subject-level counterpart to {@link #exportDetailed(String)}.
+     */
+    public String exportClassDetailed(Subject subject) {
+        Logger.debug("Generating class detailed report for subject " + subject.getSubjectCode());
+        List<Grade> grades = gradesForSubject(subject);
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("CLASS GRADE REPORT - DETAILED\n");
+        sb.append("================================\n\n");
+        sb.append("Class: ").append(subject.getSubjectName()).append(" (").append(subject.getSubjectCode()).append(")\n\n");
+
+        sb.append("GRADE HISTORY\n");
+        sb.append(SECTION_DIVIDER);
+        sb.append(String.format("%-8s | %-10s | %-14s | %-16s | %s%n", "GRD ID", "STU ID", "STUDENT", "DATE", "GRADE"));
+        sb.append(SECTION_DIVIDER);
+        for (Grade g : grades) {
+            sb.append(String.format("%-8s | %-10s | %-14s | %-16s | %.1f%%%n",
+                    g.getGradeId(), g.getStudentId(), studentName(studentManager.findStudent(g.getStudentId())),
+                    g.getDate(), g.getGrade()));
+        }
+        sb.append(SECTION_DIVIDER);
+        sb.append("Total Grades: ").append(grades.size()).append("\n");
+        sb.append("Class Average: ").append(String.format(PERCENT_ONE_DECIMAL, average(grades))).append("\n");
+
+        if (!grades.isEmpty()) {
+            Grade highest = grades.stream().max(Comparator.comparingDouble(Grade::getGrade)).orElseThrow();
+            Grade lowest = grades.stream().min(Comparator.comparingDouble(Grade::getGrade)).orElseThrow();
+            sb.append(String.format("Highest Grade: %.1f%% (%s - %s)%n", highest.getGrade(), highest.getStudentId(),
+                    studentName(studentManager.findStudent(highest.getStudentId()))));
+            sb.append(String.format("Lowest Grade: %.1f%% (%s - %s)%n", lowest.getGrade(), lowest.getStudentId(),
+                    studentName(studentManager.findStudent(lowest.getStudentId()))));
+        }
+
+        sb.append("\n================================\n");
+        sb.append("Generated on: ").append(timestamp()).append("\n");
+        return sb.toString();
+    }
+
+    private List<Grade> gradesForSubject(Subject subject) {
+        return gradeManager.getAllGrades().stream()
+                .filter(g -> g.getSubject().getSubjectCode().equals(subject.getSubjectCode()))
+                .toList();
+    }
+
+    private double average(List<Grade> grades) {
+        return grades.stream().mapToDouble(Grade::getGrade).average().orElse(0.0);
     }
 
     private String performanceSummary(double overallAverage) {

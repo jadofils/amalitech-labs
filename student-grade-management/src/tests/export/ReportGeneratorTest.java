@@ -113,4 +113,79 @@ class ReportGeneratorTest {
 
         assertTrue(summary.contains("Name: Unknown"));
     }
+
+    @Test
+    @DisplayName("exportClassSummary() reports zero grades and a zero average for a class with no recorded grades")
+    void exportClassSummaryWithNoGradesTest() {
+        StudentRepositoryImpl students = new StudentRepositoryImpl();
+        SubjectRepositoryImpl subjects = new SubjectRepositoryImpl();
+        GradeService gradeService = new GradeServiceImpl(students, subjects);
+        GradeManager gradeManager = new GradeManager(gradeService, subjects);
+        ReportGenerator generator = newGenerator(students, gradeManager);
+
+        String content = generator.exportClassSummary(subject);
+
+        assertTrue(content.contains("CLASS GRADE REPORT - SUMMARY"));
+        assertTrue(content.contains("Mathematics (MATH01)"));
+        assertTrue(content.contains("Total Grades Recorded: 0"));
+        assertTrue(content.contains("Class Average: 0.0%"));
+    }
+
+    @Test
+    @DisplayName("exportClassSummary() counts only grades for the requested subject and averages them correctly")
+    void exportClassSummaryAveragesOnlyThisSubjectTest() {
+        StudentRepositoryImpl students = new StudentRepositoryImpl();
+        SubjectRepositoryImpl subjects = new SubjectRepositoryImpl();
+        GradeService gradeService = new GradeServiceImpl(students, subjects);
+        GradeManager gradeManager = new GradeManager(gradeService, subjects);
+        ReportGenerator generator = newGenerator(students, gradeManager);
+        Student studentA = students.getAllStudents().get(0);
+        Student studentB = students.getAllStudents().get(1);
+        gradeManager.addGrade(new Grade(studentA.getStudentId(), subject, 80.0));
+        gradeManager.addGrade(new Grade(studentB.getStudentId(), subject, 60.0));
+
+        String content = generator.exportClassSummary(subject);
+
+        assertTrue(content.contains("Total Grades Recorded: 2"));
+        assertTrue(content.contains("Class Average: 70.0%"));
+    }
+
+    @Test
+    @DisplayName("exportClassDetailed() lists every grade for the subject with student ID and highest/lowest")
+    void exportClassDetailedListsGradesAndExtremesTest() {
+        StudentRepositoryImpl students = new StudentRepositoryImpl();
+        SubjectRepositoryImpl subjects = new SubjectRepositoryImpl();
+        GradeService gradeService = new GradeServiceImpl(students, subjects);
+        GradeManager gradeManager = new GradeManager(gradeService, subjects);
+        ReportGenerator generator = newGenerator(students, gradeManager);
+        Student studentA = students.getAllStudents().get(0);
+        Student studentB = students.getAllStudents().get(1);
+        gradeManager.addGrade(new Grade(studentA.getStudentId(), subject, 95.0));
+        gradeManager.addGrade(new Grade(studentB.getStudentId(), subject, 55.0));
+
+        String content = generator.exportClassDetailed(subject);
+
+        assertTrue(content.contains("CLASS GRADE REPORT - DETAILED"));
+        assertTrue(content.contains(studentA.getStudentId()));
+        assertTrue(content.contains(studentB.getStudentId()));
+        assertTrue(content.contains("Total Grades: 2"));
+        assertTrue(content.contains("Highest Grade: 95.0% (" + studentA.getStudentId() + " - " + studentA.getName() + ")"));
+        assertTrue(content.contains("Lowest Grade: 55.0% (" + studentB.getStudentId() + " - " + studentB.getName() + ")"));
+    }
+
+    @Test
+    @DisplayName("exportClassDetailed() omits Highest/Lowest lines for a class with no recorded grades")
+    void exportClassDetailedWithNoGradesOmitsExtremesTest() {
+        StudentRepositoryImpl students = new StudentRepositoryImpl();
+        SubjectRepositoryImpl subjects = new SubjectRepositoryImpl();
+        GradeService gradeService = new GradeServiceImpl(students, subjects);
+        GradeManager gradeManager = new GradeManager(gradeService, subjects);
+        ReportGenerator generator = newGenerator(students, gradeManager);
+
+        String content = generator.exportClassDetailed(subject);
+
+        assertTrue(content.contains("Total Grades: 0"));
+        assertFalse(content.contains("Highest Grade:"));
+        assertFalse(content.contains("Lowest Grade:"));
+    }
 }

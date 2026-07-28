@@ -11,6 +11,7 @@ import main.console.BulkImportAction;
 import main.console.CalculateGpaAction;
 import main.console.ClassStatisticsAction;
 import main.console.ExitAction;
+import main.console.ExportClassReportAction;
 import main.console.ExportGradeReportAction;
 import main.console.MenuAction;
 import main.console.RecordGradeAction;
@@ -74,6 +75,7 @@ public class Main {
                 new ClassStatisticsAction(scanner, studentManager, gradeManager, statisticsCalculator, subjectRepository),
                 new SearchStudentsAction(scanner, studentManager, studentSearcher, fileExporter),
                 new BackupAction(scanner, studentManager, gradeManager, subjectRepository, backupService),
+                new ExportClassReportAction(scanner, subjectRepository, gradeManager, reportGenerator, fileExporter),
                 new ExitAction()
         );
 

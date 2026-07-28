@@ -27,6 +27,16 @@ public class FileExporter {
         this.reportsDir = reportsDir;
     }
 
+    /** The directory reports are written to - lets other exporters (e.g. CSV/JSON data dumps) share it. */
+    public String getReportsDir() {
+        return reportsDir;
+    }
+
+    /** Creates the reports directory if it doesn't exist yet, without writing any file. */
+    public void ensureDirectory() {
+        ensureDirectoryExists();
+    }
+
     /**
      * Writes {@code content} to {@code <reportsDir>/<filename>}, creating the
      * directory if it doesn't exist yet.

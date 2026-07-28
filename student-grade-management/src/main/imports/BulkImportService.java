@@ -1,5 +1,9 @@
 package main.imports;
 
+import main.dataio.GradeDataImporter;
+import main.dataio.GradeRecord;
+import main.dataio.GradeRecordMapper;
+import main.exceptions.ApplicationException;
 import main.exceptions.ImportException;
 import main.imports.CSVParser.CSVParseResult;
 import main.imports.CSVParser.CSVRow;
@@ -19,11 +23,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Imports grades in bulk from a CSV file under {@code imports/}, skipping
- * (not aborting on) invalid rows, and writes a log file summarizing the run.
+ * Imports grades in bulk from a file under {@code imports/}, skipping
+ * (not aborting on) invalid rows/records, and writes a log file summarizing
+ * the run. Accepts a base filename (no extension) and auto-detects the
+ * format by probing for {@code .csv}, {@code .json}, then {@code .dat}
+ * (Java binary serialization) in that order - the CSV path is the original,
+ * hand-editable format; JSON/binary are meant for re-importing a file this
+ * app previously produced via {@link main.dataio.GradeDataExporter}.
  */
 public class BulkImportService {
+    private static final List<String> SUPPORTED_EXTENSIONS = List.of("csv", "json", "dat");
+
     private final CSVParser csvParser;
+    private final GradeDataImporter gradeDataImporter;
+    private final SubjectRepository subjectRepository;
     private final StudentManager studentManager;
     private final GradeManager gradeManager;
 
@@ -31,19 +44,35 @@ public class BulkImportService {
                               StudentManager studentManager,
                               GradeManager gradeManager) {
         this.csvParser = new CSVParser(subjectRepository);
+        this.gradeDataImporter = new GradeDataImporter();
+        this.subjectRepository = subjectRepository;
         this.studentManager = studentManager;
         this.gradeManager = gradeManager;
     }
 
     public ImportResult importFromFile(String filename) {
-        String path = "imports/" + filename + ".csv";
-        Path file = Path.of(path);
-
-        if (!Files.exists(file)) {
-            Logger.warn("Bulk import requested but file does not exist: " + path);
-            throw new ImportException("File not found: " + path, path, null);
+        for (String extension : SUPPORTED_EXTENSIONS) {
+            Path candidate = Path.of("imports/" + filename + "." + extension);
+            if (Files.exists(candidate)) {
+                return importFromFile(filename, extension, candidate);
+            }
         }
 
+        String path = "imports/" + filename + ".csv";
+        Logger.warn("Bulk import requested but file does not exist: " + path);
+        throw new ImportException("File not found: " + path, path, null);
+    }
+
+    private ImportResult importFromFile(String filename, String extension, Path file) {
+        return switch (extension) {
+            case "csv" -> importCsv(filename, file);
+            case "json" -> importRecords(filename, extension, gradeDataImporter.importJson(file));
+            case "dat" -> importRecords(filename, extension, gradeDataImporter.importBinary(file));
+            default -> throw new ImportException("Unsupported file type: ." + extension);
+        };
+    }
+
+    private ImportResult importCsv(String filename, Path file) {
         CSVParseResult parseResult = csvParser.parse(file);
 
         int success = 0;
@@ -63,13 +92,44 @@ public class BulkImportService {
             success++;
         }
 
-        String logFilename = writeImportLog(filename, success, failed, success + failed, failReasons);
-        Logger.info("Bulk import of " + path + " complete: " + success + " succeeded, " + failed + " failed");
+        String logFilename = writeImportLog(filename, "csv", success, failed, success + failed, failReasons);
+        Logger.info("Bulk import of imports/" + filename + ".csv complete: " + success + " succeeded, " + failed + " failed");
 
         return new ImportResult(parseResult.getValidCount(), success, failed, failReasons, logFilename);
     }
 
-    private String writeImportLog(String originalFilename, int success, int failed,
+    /** Shared by the JSON and binary formats: both deserialize to the same flat {@link GradeRecord} list. */
+    private ImportResult importRecords(String filename, String extension, List<GradeRecord> records) {
+        int success = 0;
+        List<String> failReasons = new ArrayList<>();
+
+        int position = 1;
+        for (GradeRecord record : records) {
+            Student student = studentManager.findStudent(record.studentId());
+            if (student == null) {
+                failReasons.add("Record " + position + ": Invalid student ID (" + record.studentId() + ")");
+                position++;
+                continue;
+            }
+            try {
+                Grade grade = GradeRecordMapper.toGrade(record, subjectRepository);
+                gradeManager.addGrade(grade);
+                success++;
+            } catch (ApplicationException e) {
+                failReasons.add("Record " + position + ": " + e.getMessage());
+            }
+            position++;
+        }
+
+        int failed = failReasons.size();
+        String logFilename = writeImportLog(filename, extension, success, failed, success + failed, failReasons);
+        Logger.info("Bulk import of imports/" + filename + "." + extension + " complete: "
+                + success + " succeeded, " + failed + " failed");
+
+        return new ImportResult(records.size(), success, failed, failReasons, logFilename);
+    }
+
+    private String writeImportLog(String originalFilename, String extension, int success, int failed,
                                    int total, List<String> failReasons) {
         String timestamp = DateFormats.now(DateFormats.FILE_SAFE_TIMESTAMP);
         String logFilename = "import_log_" + timestamp + ".txt";
@@ -78,7 +138,7 @@ public class BulkImportService {
         StringBuilder content = new StringBuilder();
         content.append("IMPORT LOG\n");
         content.append("================================\n\n");
-        content.append("File: ").append(originalFilename).append(".csv\n");
+        content.append("File: ").append(originalFilename).append(".").append(extension).append("\n");
         content.append("Date: ").append(DateFormats.now(DateFormats.DISPLAY_DATE_TIME)).append("\n\n");
         content.append("Total Rows: ").append(total).append("\n");
         content.append("Successfully Imported: ").append(success).append("\n");

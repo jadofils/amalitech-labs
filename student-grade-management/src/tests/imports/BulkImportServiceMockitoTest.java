@@ -1,5 +1,7 @@
 package tests.imports;
 
+import main.dataio.GradeDataExporter;
+import main.dataio.GradeRecord;
 import main.imports.BulkImportService;
 import main.manager.GradeManager;
 import main.manager.StudentManager;
@@ -15,6 +17,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -29,7 +32,9 @@ import static org.junit.jupiter.api.Assertions.*;
 class BulkImportServiceMockitoTest {
 
     private final SubjectRepositoryImpl subjects = new SubjectRepositoryImpl();
+    private final GradeDataExporter gradeDataExporter = new GradeDataExporter();
     private String csvFilename;
+    private String jsonFilename;
     private String logFilename;
 
     private void writeCsv(String filename, String content) throws IOException {
@@ -45,6 +50,9 @@ class BulkImportServiceMockitoTest {
     void cleanUp() throws IOException {
         if (csvFilename != null) {
             Files.deleteIfExists(Path.of("imports/" + csvFilename + ".csv"));
+        }
+        if (jsonFilename != null) {
+            Files.deleteIfExists(Path.of("imports/" + jsonFilename + ".json"));
         }
         if (logFilename != null) {
             Files.deleteIfExists(Path.of("imports/" + logFilename));
@@ -84,6 +92,50 @@ class BulkImportServiceMockitoTest {
         writeCsv(csvFilename, "StudentID,SubjectName,SubjectType,Grade\nNOPE,Mathematics,Core,85\n");
 
         BulkImportService.ImportResult result = service.importFromFile(csvFilename);
+        logFilename = result.getLogFilename();
+
+        assertEquals(0, result.getSuccessCount());
+        assertEquals(1, result.getFailedCount());
+        verify(gradeManager, never()).addGrade(any());
+    }
+
+    @Test
+    @DisplayName("A valid JSON record looks up the student and records exactly one grade")
+    void validJsonRecordLooksUpStudentAndRecordsGradeTest() throws IOException {
+        StudentManager studentManager = mock(StudentManager.class);
+        GradeManager gradeManager = mock(GradeManager.class);
+        Student student = new RegularStudent("STU001", "Musa Nkusi", 17, "musa@school.edu",
+                "1234567890", main.model.enums.StudentStatus.ACTIVE);
+        when(studentManager.findStudent("STU001")).thenReturn(student);
+        BulkImportService service = new BulkImportService(subjects, studentManager, gradeManager);
+
+        jsonFilename = "mockito-import-json-" + System.nanoTime();
+        new java.io.File("imports").mkdirs();
+        gradeDataExporter.exportJson(List.of(new GradeRecord("GRD001", "STU001", "MATH01", 85.0, "01-01-2026")),
+                Path.of("imports/" + jsonFilename + ".json"));
+
+        BulkImportService.ImportResult result = service.importFromFile(jsonFilename);
+        logFilename = result.getLogFilename();
+
+        assertEquals(1, result.getSuccessCount());
+        verify(studentManager, times(1)).findStudent("STU001");
+        verify(gradeManager, times(1)).addGrade(any(Grade.class));
+    }
+
+    @Test
+    @DisplayName("A JSON record for an unknown student never reaches GradeManager.addGrade()")
+    void unknownStudentInJsonNeverRecordsGradeTest() throws IOException {
+        StudentManager studentManager = mock(StudentManager.class);
+        GradeManager gradeManager = mock(GradeManager.class);
+        when(studentManager.findStudent("NOPE")).thenReturn(null);
+        BulkImportService service = new BulkImportService(subjects, studentManager, gradeManager);
+
+        jsonFilename = "mockito-import-json-unknown-" + System.nanoTime();
+        new java.io.File("imports").mkdirs();
+        gradeDataExporter.exportJson(List.of(new GradeRecord("GRD001", "NOPE", "MATH01", 85.0, "01-01-2026")),
+                Path.of("imports/" + jsonFilename + ".json"));
+
+        BulkImportService.ImportResult result = service.importFromFile(jsonFilename);
         logFilename = result.getLogFilename();
 
         assertEquals(0, result.getSuccessCount());
