@@ -1,0 +1,25 @@
+[ {
+  "gradeId" : "GRD201",
+  "studentId" : "STU001",
+  "subjectCode" : "MATH01",
+  "grade" : 91.0,
+  "date" : "29-07-2026"
+}, {
+  "gradeId" : "GRD202",
+  "studentId" : "STU002",
+  "subjectCode" : "SCIE01",
+  "grade" : 84.0,
+  "date" : "29-07-2026"
+}, {
+  "gradeId" : "GRD203",
+  "studentId" : "STU003",
+  "subjectCode" : "ENGL01",
+  "grade" : 77.0,
+  "date" : "29-07-2026"
+}, {
+  "gradeId" : "GRD204",
+  "studentId" : "STU999",
+  "subjectCode" : "ART01",
+  "grade" : 60.0,
+  "date" : "29-07-2026"
+} ]

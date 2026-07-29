@@ -59,8 +59,9 @@ public class BulkImportService {
         }
 
         String path = "imports/" + filename + ".csv";
-        Logger.warn("Bulk import requested but file does not exist: " + path);
-        throw new ImportException("File not found: " + path, path, null);
+        String resolvedPath = Path.of(path).toAbsolutePath().normalize().toString();
+        Logger.warn("Bulk import requested but file does not exist: " + resolvedPath);
+        throw new ImportException("File not found: " + resolvedPath, resolvedPath, null);
     }
 
     private ImportResult importFromFile(String filename, String extension, Path file) {
