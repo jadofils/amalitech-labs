@@ -72,12 +72,12 @@ public class Main {
                 new ExportGradeReportAction(scanner, studentManager, gradeManager, reportGenerator, fileExporter),
                 new CalculateGpaAction(scanner, studentManager, gradeManager, gpaCalculator),
                 new BulkImportAction(scanner, bulkImportService),
-                new ClassStatisticsAction(scanner, studentManager, gradeManager, statisticsCalculator, subjectRepository),
+                new ClassStatisticsAction(scanner, studentManager, gradeManager, statisticsCalculator,
+                        subjectRepository),
                 new SearchStudentsAction(scanner, studentManager, studentSearcher, fileExporter),
                 new BackupAction(scanner, studentManager, gradeManager, subjectRepository, backupService),
                 new ExportClassReportAction(scanner, subjectRepository, gradeManager, reportGenerator, fileExporter),
-                new ExitAction()
-        );
+                new ExitAction());
 
         new ConsoleApp(scanner, actions).run();
         auditTrail.shutdown();

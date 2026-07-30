@@ -101,7 +101,7 @@ class BulkImportServiceMockitoTest {
 
     @Test
     @DisplayName("A valid JSON record looks up the student and records exactly one grade")
-    void validJsonRecordLooksUpStudentAndRecordsGradeTest() throws IOException {
+    void validJsonRecordLooksUpStudentAndRecordsGradeTest() {
         StudentManager studentManager = mock(StudentManager.class);
         GradeManager gradeManager = mock(GradeManager.class);
         Student student = new RegularStudent("STU001", "Musa Nkusi", 17, "musa@school.edu",
@@ -124,7 +124,7 @@ class BulkImportServiceMockitoTest {
 
     @Test
     @DisplayName("A JSON record for an unknown student never reaches GradeManager.addGrade()")
-    void unknownStudentInJsonNeverRecordsGradeTest() throws IOException {
+    void unknownStudentInJsonNeverRecordsGradeTest() {
         StudentManager studentManager = mock(StudentManager.class);
         GradeManager gradeManager = mock(GradeManager.class);
         when(studentManager.findStudent("NOPE")).thenReturn(null);

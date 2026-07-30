@@ -33,6 +33,7 @@ import java.util.List;
  */
 public class BulkImportService {
     private static final List<String> SUPPORTED_EXTENSIONS = List.of("csv", "json", "dat");
+    private static final String IMPORTS_DIR = "imports/";
 
     private final CSVParser csvParser;
     private final GradeDataImporter gradeDataImporter;
@@ -52,13 +53,13 @@ public class BulkImportService {
 
     public ImportResult importFromFile(String filename) {
         for (String extension : SUPPORTED_EXTENSIONS) {
-            Path candidate = Path.of("imports/" + filename + "." + extension);
+            Path candidate = Path.of(IMPORTS_DIR + filename + "." + extension);
             if (Files.exists(candidate)) {
                 return importFromFile(filename, extension, candidate);
             }
         }
 
-        String path = "imports/" + filename + ".csv";
+        String path = IMPORTS_DIR + filename + ".csv";
         String resolvedPath = Path.of(path).toAbsolutePath().normalize().toString();
         Logger.warn("Bulk import requested but file does not exist: " + resolvedPath);
         throw new ImportException("File not found: " + resolvedPath, resolvedPath, null);
@@ -94,7 +95,7 @@ public class BulkImportService {
         }
 
         String logFilename = writeImportLog(filename, "csv", success, failed, success + failed, failReasons);
-        Logger.info("Bulk import of imports/" + filename + ".csv complete: " + success + " succeeded, " + failed + " failed");
+        Logger.info("Bulk import of " + IMPORTS_DIR + filename + ".csv complete: " + success + " succeeded, " + failed + " failed");
 
         return new ImportResult(parseResult.getValidCount(), success, failed, failReasons, logFilename);
     }
@@ -105,15 +106,15 @@ public class BulkImportService {
         List<String> failReasons = new ArrayList<>();
 
         int position = 1;
-        for (GradeRecord record : records) {
-            Student student = studentManager.findStudent(record.studentId());
+        for (GradeRecord gradeRecord : records) {
+            Student student = studentManager.findStudent(gradeRecord.studentId());
             if (student == null) {
-                failReasons.add("Record " + position + ": Invalid student ID (" + record.studentId() + ")");
+                failReasons.add("Record " + position + ": Invalid student ID (" + gradeRecord.studentId() + ")");
                 position++;
                 continue;
             }
             try {
-                Grade grade = GradeRecordMapper.toGrade(record, subjectRepository);
+                Grade grade = GradeRecordMapper.toGrade(gradeRecord, subjectRepository);
                 gradeManager.addGrade(grade);
                 success++;
             } catch (ApplicationException e) {
@@ -124,7 +125,7 @@ public class BulkImportService {
 
         int failed = failReasons.size();
         String logFilename = writeImportLog(filename, extension, success, failed, success + failed, failReasons);
-        Logger.info("Bulk import of imports/" + filename + "." + extension + " complete: "
+        Logger.info("Bulk import of " + IMPORTS_DIR + filename + "." + extension + " complete: "
                 + success + " succeeded, " + failed + " failed");
 
         return new ImportResult(records.size(), success, failed, failReasons, logFilename);
@@ -134,7 +135,7 @@ public class BulkImportService {
                                    int total, List<String> failReasons) {
         String timestamp = DateFormats.now(DateFormats.FILE_SAFE_TIMESTAMP);
         String logFilename = "import_log_" + timestamp + ".txt";
-        String logPath = "imports/" + logFilename;
+        String logPath = IMPORTS_DIR + logFilename;
 
         StringBuilder content = new StringBuilder();
         content.append("IMPORT LOG\n");

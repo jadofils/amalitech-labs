@@ -93,7 +93,7 @@ class ExportClassReportActionMockitoTest {
         FileExporter fileExporter = mock(FileExporter.class);
         when(subjectRepository.getAllSubjects()).thenReturn(List.of(mathematics));
         when(reportGenerator.exportClassDetailed(mathematics)).thenReturn("CLASS-CONTENT");
-        when(fileExporter.exportToFile(eq("myclass_MATH01_report.txt"), eq("CLASS-CONTENT")))
+        when(fileExporter.exportToFile("myclass_MATH01_report.txt", "CLASS-CONTENT"))
                 .thenReturn(new FileExporter.FileExportResult("x/myclass_MATH01_report.txt", 10L));
 
         String output = runWithInput(subjectRepository, gradeManager, reportGenerator, fileExporter, "1\n1\nmyclass\n\n");

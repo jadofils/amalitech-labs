@@ -153,8 +153,9 @@ class BulkImportActionTest {
 
         String output = runWithInput(missingFilename + "\n\n");
 
+        String expectedPath = Path.of("imports/" + missingFilename + ".csv").toAbsolutePath().normalize().toString();
         assertTrue(output.contains("ERROR: "));
-        assertTrue(output.contains("File: imports/" + missingFilename + ".csv"));
+        assertTrue(output.contains("File: " + expectedPath));
     }
 
     @Test

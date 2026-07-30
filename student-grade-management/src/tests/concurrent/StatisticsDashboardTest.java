@@ -96,8 +96,8 @@ class StatisticsDashboardTest {
         PrintStream originalOut = System.out;
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         String output;
-        try {
-            System.setOut(new PrintStream(buffer));
+        try (PrintStream captured = new PrintStream(buffer)) {
+            System.setOut(captured);
             dashboard.start();
 
             // Polls for the 2nd refresh instead of sleeping a single fixed window - a blind

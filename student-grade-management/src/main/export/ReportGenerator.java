@@ -27,6 +27,9 @@ public class ReportGenerator implements Exportable {
     private static final double GOOD_THRESHOLD = 60.0;
     private static final String PERCENT_ONE_DECIMAL = "%.1f%%";
     private static final String SECTION_DIVIDER = "------------------------------------------------\n";
+    private static final String HEADER_DIVIDER = "================================\n\n";
+    private static final String FOOTER_DIVIDER = "================================\n";
+    private static final String GENERATED_ON_LABEL = "Generated on: ";
 
     private final GradeManager gradeManager;
     private final StudentManager studentManager;
@@ -44,12 +47,12 @@ public class ReportGenerator implements Exportable {
 
         StringBuilder sb = new StringBuilder();
         sb.append("STUDENT GRADE REPORT - SUMMARY\n");
-        sb.append("================================\n\n");
+        sb.append(HEADER_DIVIDER);
         sb.append("Student ID: ").append(studentId).append("\n");
         sb.append("Name: ").append(studentName(student)).append("\n");
         sb.append("Overall Average: ").append(String.format(PERCENT_ONE_DECIMAL, overallAverage)).append("\n\n");
-        sb.append("================================\n");
-        sb.append("Generated on: ").append(timestamp()).append("\n");
+        sb.append(FOOTER_DIVIDER);
+        sb.append(GENERATED_ON_LABEL).append(timestamp()).append("\n");
         return sb.toString();
     }
 
@@ -60,7 +63,7 @@ public class ReportGenerator implements Exportable {
 
         StringBuilder sb = new StringBuilder();
         sb.append("STUDENT GRADE REPORT - DETAILED\n");
-        sb.append("================================\n\n");
+        sb.append(HEADER_DIVIDER);
         sb.append("Student ID: ").append(studentId).append("\n");
         sb.append("Name: ").append(studentName(student)).append("\n\n");
 
@@ -93,8 +96,8 @@ public class ReportGenerator implements Exportable {
         sb.append(SECTION_DIVIDER);
         sb.append(performanceSummary(overallAverage)).append("\n");
 
-        sb.append("================================\n");
-        sb.append("Generated on: ").append(timestamp()).append("\n");
+        sb.append(FOOTER_DIVIDER);
+        sb.append(GENERATED_ON_LABEL).append(timestamp()).append("\n");
         return sb.toString();
     }
 
@@ -109,12 +112,12 @@ public class ReportGenerator implements Exportable {
 
         StringBuilder sb = new StringBuilder();
         sb.append("CLASS GRADE REPORT - SUMMARY\n");
-        sb.append("================================\n\n");
+        sb.append(HEADER_DIVIDER);
         sb.append("Class: ").append(subject.getSubjectName()).append(" (").append(subject.getSubjectCode()).append(")\n");
         sb.append("Total Grades Recorded: ").append(grades.size()).append("\n");
         sb.append("Class Average: ").append(String.format(PERCENT_ONE_DECIMAL, average(grades))).append("\n\n");
-        sb.append("================================\n");
-        sb.append("Generated on: ").append(timestamp()).append("\n");
+        sb.append(FOOTER_DIVIDER);
+        sb.append(GENERATED_ON_LABEL).append(timestamp()).append("\n");
         return sb.toString();
     }
 
@@ -128,7 +131,7 @@ public class ReportGenerator implements Exportable {
 
         StringBuilder sb = new StringBuilder();
         sb.append("CLASS GRADE REPORT - DETAILED\n");
-        sb.append("================================\n\n");
+        sb.append(HEADER_DIVIDER);
         sb.append("Class: ").append(subject.getSubjectName()).append(" (").append(subject.getSubjectCode()).append(")\n\n");
 
         sb.append("GRADE HISTORY\n");
@@ -153,8 +156,8 @@ public class ReportGenerator implements Exportable {
                     studentName(studentManager.findStudent(lowest.getStudentId()))));
         }
 
-        sb.append("\n================================\n");
-        sb.append("Generated on: ").append(timestamp()).append("\n");
+        sb.append("\n").append(FOOTER_DIVIDER);
+        sb.append(GENERATED_ON_LABEL).append(timestamp()).append("\n");
         return sb.toString();
     }
 

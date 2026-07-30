@@ -123,7 +123,7 @@ class BulkImportServiceTest {
 
     @Test
     @DisplayName("importFromFile() auto-detects a .json file, importing a valid record and skipping an unknown student and an out-of-range grade")
-    void importFromFileJsonImportsValidRecordsTest() throws IOException {
+    void importFromFileJsonImportsValidRecordsTest() {
         StudentRepositoryImpl students = new StudentRepositoryImpl();
         SubjectRepositoryImpl subjects = new SubjectRepositoryImpl();
         GradeService gradeService = new GradeServiceImpl(students, subjects);
@@ -154,7 +154,7 @@ class BulkImportServiceTest {
 
     @Test
     @DisplayName("importFromFile() auto-detects a .dat (binary) file and imports its valid records")
-    void importFromFileBinaryImportsValidRecordsTest() throws IOException {
+    void importFromFileBinaryImportsValidRecordsTest() {
         StudentRepositoryImpl students = new StudentRepositoryImpl();
         SubjectRepositoryImpl subjects = new SubjectRepositoryImpl();
         GradeService gradeService = new GradeServiceImpl(students, subjects);
