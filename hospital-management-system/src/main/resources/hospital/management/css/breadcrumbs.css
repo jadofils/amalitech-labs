@@ -1,0 +1,29 @@
+.breadcrumb-bar {
+    -fx-spacing: 4px;
+    -fx-alignment: CENTER_LEFT;
+    -fx-padding: 0 0 12px 0;
+}
+
+.breadcrumb-item {
+    -fx-background-color: transparent;
+    -fx-text-fill: #3498DB;
+    -fx-font-size: 13px;
+    -fx-cursor: hand;
+    -fx-border-color: transparent;
+    -fx-underline: false;
+    -fx-padding: 2px 4px;
+}
+
+.breadcrumb-item:hover { -fx-underline: true; }
+
+.breadcrumb-separator {
+    -fx-text-fill: #BDC3C7;
+    -fx-font-size: 13px;
+}
+
+.breadcrumb-current {
+    -fx-text-fill: #2C3E50;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-padding: 2px 4px;
+}

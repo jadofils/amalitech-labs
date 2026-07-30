@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import java.lang.String?>
+<HBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="hospital.management.components.breadcrumbs.BreadcrumbsController"
+      fx:id="breadcrumbBar"
+      styleClass="breadcrumb-bar"
+      spacing="4"
+      alignment="CENTER_LEFT">
+
+    <stylesheets>
+        <String value="/hospital/management/css/breadcrumbs.css"/>
+    </stylesheets>
+</HBox>

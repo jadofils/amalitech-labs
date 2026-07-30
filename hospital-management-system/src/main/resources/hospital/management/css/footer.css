@@ -1,0 +1,23 @@
+.footer {
+    -fx-background-color: #2C3E50;
+    -fx-padding: 14px 24px;
+    -fx-pref-height: 48px;
+    -fx-min-height: 48px;
+}
+
+.footer-label {
+    -fx-text-fill: #95A5A6;
+    -fx-font-size: 13px;
+}
+
+.footer-link {
+    -fx-text-fill: #BDC3C7;
+    -fx-font-size: 13px;
+    -fx-cursor: hand;
+    -fx-border-color: transparent;
+    -fx-underline: false;
+}
+
+.footer-link:hover {
+    -fx-text-fill: #3498DB;
+}

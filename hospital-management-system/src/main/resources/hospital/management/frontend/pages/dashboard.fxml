@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.chart.*?>
+<?import java.lang.String?>
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="hospital.management.backend.pages.DashboardController"
+            styleClass="page-root">
+
+    <stylesheets>
+        <String value="/hospital/management/css/global.css"/>
+        <String value="/hospital/management/css/dashboard.css"/>
+        <String value="/hospital/management/css/stats.css"/>
+        <String value="/hospital/management/css/table.css"/>
+        <String value="/hospital/management/css/buttons.css"/>
+    </stylesheets>
+
+    <!-- Navbar -->
+    <top>
+        <fx:include source="/hospital/management/frontend/components/navbar/navbar.fxml"/>
+    </top>
+
+    <!-- Sidebar -->
+    <left>
+        <fx:include fx:id="sidebar" source="/hospital/management/frontend/components/sidebar/sidebar.fxml"/>
+    </left>
+
+    <!-- Main content -->
+    <center>
+        <ScrollPane fitToWidth="true" styleClass="scroll-pane">
+            <VBox styleClass="dashboard-content" spacing="20">
+
+                <!-- Page title -->
+                <Label text="Dashboard" styleClass="section-title"/>
+
+                <!-- Stats row -->
+                <fx:include fx:id="statsWidget"
+                            source="/hospital/management/frontend/components/stats/stats-widget.fxml"/>
+
+                <!-- Charts row -->
+                <HBox spacing="16" styleClass="dashboard-section">
+                    <VBox styleClass="chart-panel" HBox.hgrow="ALWAYS" spacing="8">
+                        <Label text="Monthly Admissions" styleClass="chart-title"/>
+                        <BarChart fx:id="admissionsChart" prefHeight="260" animated="false">
+                            <xAxis><CategoryAxis fx:id="admissionsXAxis" label="Month"/></xAxis>
+                            <yAxis><NumberAxis   fx:id="admissionsYAxis" label="Patients"/></yAxis>
+                        </BarChart>
+                    </VBox>
+                    <VBox styleClass="chart-panel" prefWidth="300" spacing="8">
+                        <Label text="Patient Status" styleClass="chart-title"/>
+                        <PieChart fx:id="statusChart" prefHeight="260" animated="false"/>
+                    </VBox>
+                </HBox>
+
+                <!-- Quick actions -->
+                <HBox styleClass="quick-actions" spacing="10">
+                    <Label text="Quick Actions:" styleClass="label-tag"/>
+                    <Button text="+ New Patient"     styleClass="quick-action-btn"/>
+                    <Button text="+ Appointment"     styleClass="quick-action-btn"/>
+                    <Button text="Generate Report"   styleClass="quick-action-btn"/>
+                    <Button text="Process Billing"   styleClass="quick-action-btn"/>
+                </HBox>
+
+                <!-- Recent patients table -->
+                <VBox styleClass="recent-table-panel" spacing="10">
+                    <Label text="Recent Patients" styleClass="section-title"/>
+                    <TableView fx:id="recentTable" prefHeight="220">
+                        <columns>
+                            <TableColumn fx:id="recentIdCol"     text="ID"     prefWidth="80"/>
+                            <TableColumn fx:id="recentNameCol"   text="Name"   prefWidth="180"/>
+                            <TableColumn fx:id="recentAgeCol"    text="Age"    prefWidth="60"/>
+                            <TableColumn fx:id="recentStatusCol" text="Status" prefWidth="120"/>
+                        </columns>
+                    </TableView>
+                </VBox>
+            </VBox>
+        </ScrollPane>
+    </center>
+
+    <!-- Footer -->
+    <bottom>
+        <fx:include source="/hospital/management/frontend/components/footer/footer.fxml"/>
+    </bottom>
+</BorderPane>

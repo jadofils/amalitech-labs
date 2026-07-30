@@ -1,0 +1,119 @@
+# Hospital Management System – UI & Component Generation
+
+## Goal
+Scan the **Hospital Management System JavaFX project** and generate all necessary **reusable UI components, layouts, dashboards, and pages** with professional styling.  
+
+Each component must:
+- Have its own **FXML file**
+- Have its own **CSS file** for scoped styles
+- Use a **Java controller** if logic is required
+- Share a **global.css** for common design tokens (colors, typography, spacing, shadows)
+
+---
+
+## 🎨 Global Design System
+Create `global.css` with:
+
+### Colors
+- Primary: #3498DB (blue)
+- Secondary: #2C3E50 (dark gray/navy)
+- Accent: #F1C40F (yellow)
+- Danger: #E74C3C (red)
+- Success: #27AE60 (green)
+- Neutral backgrounds: #F8F9F9, #E5E7E9
+
+### Typography
+- Headings: bold, 18–24px
+- Subheadings: semi-bold, 16–18px
+- Body text: regular, 14px
+- Labels: uppercase, 12px, tracking +1px
+
+### Spacing & Layout
+- Padding: 8px, 16px, 24px
+- Border radius: 4px
+- Shadows: subtle for cards and modals
+
+---
+
+## Core UI Components
+- **Buttons**
+  - Primary, Secondary, Danger, Icon, Loading
+- **Search Bars**
+  - Global search, Contextual search, Advanced search with filters
+- **Navigation**
+  - Navbar, Sidebar, Breadcrumbs
+- **Footer**
+  - Copyright, Quick links, Contact info
+
+---
+
+## Loaders & Feedback
+- Spinner / Progress bar
+- Snackbar / Toast notifications
+- Modal dialogs (confirmation, alerts)
+
+---
+
+## 📊 Data & Forms
+- **Tables / Data grids**
+  - Patient lists, appointment schedules, billing records
+  - Pagination, sorting, filtering
+- **Forms**
+  - Input fields (text, number, date, dropdowns)
+  - Validation messages
+  - Multi-step forms (patient registration)
+- **Cards**
+  - Patient profile card
+  - Doctor info card
+  - Appointment summary card
+
+---
+
+## 🖼️ Visual & Interactive Elements
+- **Dashboard widgets**
+  - Statistics (patients today, revenue, appointments)
+  - Charts (bar, pie, line)
+- **Tabs**
+  - Switch between sections (patient details: history, prescriptions, billing)
+- **Accordions**
+  - Expand/collapse medical records or FAQs
+- **Calendar / Scheduler**
+  - Appointment booking
+  - Doctor availability
+
+---
+
+## 🔒 Utility & System Components
+- **Authentication UI**
+  - Login, Registration, Password reset
+- **User Profile**
+  - Avatar, role, settings
+- **Notifications**
+  - Alerts for critical updates (lab results, emergencies)
+- **Searchable dropdowns**
+  - For selecting doctors, patients, medicines
+
+---
+
+## Structure
+- Place FXML in: `resources/hospital.management/frontend/components/<component>/`
+- Place CSS in: `resources/hospital.management/css/`
+- Place controllers in: `java/hospital/management/components/<component>/`
+
+---
+
+## Deliverables
+- `global.css` with shared design tokens
+- Individual component folders with:
+  - `component.fxml`
+  - `component.css`
+  - `ComponentController.java` (if logic is required)
+- Example **layouts and dashboards**:
+  - `dashboard.fxml` → statistics, charts, quick actions
+  - `patients-page.fxml` → table + search + form
+  - `appointments-page.fxml` → calendar + table
+  - `billing-page.fxml` → table + summary cards
+  - `auth-pages.fxml` → login, register, reset password
+- Example usage in a **test-page.fxml** showing all components together
+
+---

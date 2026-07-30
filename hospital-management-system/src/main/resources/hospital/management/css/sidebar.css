@@ -1,0 +1,48 @@
+.sidebar {
+    -fx-background-color: #F8F9F9;
+    -fx-border-color: transparent #E5E7E9 transparent transparent;
+    -fx-border-width: 0 1px 0 0;
+    -fx-padding: 16px 8px;
+    -fx-pref-width: 220px;
+    -fx-min-width: 220px;
+}
+
+.sidebar-section-label {
+    -fx-text-fill: #95A5A6;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-padding: 12px 8px 4px 8px;
+}
+
+.sidebar-item {
+    -fx-background-color: transparent;
+    -fx-text-fill: #2C3E50;
+    -fx-font-size: 14px;
+    -fx-padding: 10px 12px;
+    -fx-background-radius: 6px;
+    -fx-cursor: hand;
+    -fx-border-color: transparent;
+    -fx-alignment: CENTER_LEFT;
+}
+
+.sidebar-item:hover {
+    -fx-background-color: #EBF5FB;
+    -fx-text-fill: #3498DB;
+}
+
+.sidebar-item.active-item {
+    -fx-background-color: #EBF5FB;
+    -fx-text-fill: #3498DB;
+    -fx-font-weight: bold;
+    -fx-border-color: transparent transparent transparent #3498DB;
+    -fx-border-width: 0 0 0 3px;
+    -fx-padding: 10px 12px 10px 9px;
+}
+
+.sidebar-item.danger-item {
+    -fx-text-fill: #E74C3C;
+}
+
+.sidebar-item.danger-item:hover {
+    -fx-background-color: #FADBD8;
+}

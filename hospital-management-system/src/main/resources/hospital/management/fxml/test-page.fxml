@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<!-- Home / Landing page — split-screen: hero branding (left) + auth form (right) -->
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="hospital.management.backend.pages.HomeController"
+            styleClass="home-root">
+
+    <stylesheets>
+        <String value="/hospital/management/css/global.css"/>
+        <String value="/hospital/management/css/home.css"/>
+        <String value="/hospital/management/css/form.css"/>
+        <String value="/hospital/management/css/tabs.css"/>
+    </stylesheets>
+
+    <!-- ───── Center: two-column split ───── -->
+    <center>
+        <HBox>
+
+            <!-- ═══════════════ LEFT — Hero / Branding ═══════════════ -->
+            <VBox styleClass="hero-panel" HBox.hgrow="ALWAYS" spacing="20">
+
+                <!-- Logo & brand name -->
+                <VBox spacing="2">
+                    <Label text="+ HMS" styleClass="hero-logo"/>
+                    <Label text="Hospital Management System" styleClass="hero-logo-sub"/>
+                </VBox>
+
+                <Label text="Modern Healthcare, Intelligently Managed."
+                       styleClass="hero-title"/>
+                <Label text="A unified platform for managing patients, appointments, doctors, and billing — designed for speed, clarity, and care."
+                       styleClass="hero-subtitle" wrapText="true"/>
+
+                <!-- Feature bullets -->
+                <VBox spacing="0">
+                    <HBox styleClass="feature-row">
+                        <Pane styleClass="feature-dot"/>
+                        <Label text="Real-time patient tracking &amp; status management" styleClass="feature-text"/>
+                    </HBox>
+                    <HBox styleClass="feature-row">
+                        <Pane styleClass="feature-dot"/>
+                        <Label text="Smart appointment scheduling with calendar view" styleClass="feature-text"/>
+                    </HBox>
+                    <HBox styleClass="feature-row">
+                        <Pane styleClass="feature-dot"/>
+                        <Label text="Integrated billing, invoicing &amp; payment tracking" styleClass="feature-text"/>
+                    </HBox>
+                    <HBox styleClass="feature-row">
+                        <Pane styleClass="feature-dot"/>
+                        <Label text="Role-based access for doctors, nurses &amp; admins" styleClass="feature-text"/>
+                    </HBox>
+                    <HBox styleClass="feature-row">
+                        <Pane styleClass="feature-dot"/>
+                        <Label text="Analytics dashboard with live statistics &amp; charts" styleClass="feature-text"/>
+                    </HBox>
+                </VBox>
+
+                <!-- Quick stats strip -->
+                <HBox styleClass="hero-stat-panel" spacing="32" alignment="CENTER">
+                    <VBox alignment="CENTER" spacing="2">
+                        <Label text="1,284+"  styleClass="hero-stat-value"/>
+                        <Label text="Patients" styleClass="hero-stat-label"/>
+                    </VBox>
+                    <VBox alignment="CENTER" spacing="2">
+                        <Label text="47"          styleClass="hero-stat-value"/>
+                        <Label text="Appts Today" styleClass="hero-stat-label"/>
+                    </VBox>
+                    <VBox alignment="CENTER" spacing="2">
+                        <Label text="$38.5k"    styleClass="hero-stat-value"/>
+                        <Label text="Revenue"   styleClass="hero-stat-label"/>
+                    </VBox>
+                    <VBox alignment="CENTER" spacing="2">
+                        <Label text="24/7"     styleClass="hero-stat-value"/>
+                        <Label text="Uptime"   styleClass="hero-stat-label"/>
+                    </VBox>
+                </HBox>
+
+                <Region VBox.vgrow="ALWAYS"/>
+
+                <Label text="© 2026 Amalitech – Hospital Management System v1.0"
+                       styleClass="hero-logo-sub"/>
+            </VBox>
+
+            <!-- ═══════════════ RIGHT — Auth form ═══════════════ -->
+            <VBox styleClass="auth-panel" prefWidth="520" minWidth="400" spacing="24">
+
+                <Label text="Welcome back" styleClass="auth-welcome"/>
+                <Label text="Sign in to access your dashboard, or create a new account."
+                       styleClass="auth-welcome-sub" wrapText="true"/>
+
+                <VBox styleClass="home-auth-card" spacing="0">
+                    <TabPane styleClass="home-tab-pane" tabClosingPolicy="UNAVAILABLE">
+
+                        <!-- ─── SIGN IN ─── -->
+                        <Tab text="Sign In">
+                            <VBox spacing="14" style="-fx-padding: 20px 0 0 0;">
+                                <VBox spacing="4">
+                                    <Label text="Email Address" styleClass="form-field-label"/>
+                                    <TextField fx:id="loginEmail"
+                                               promptText="you@hospital.com"
+                                               styleClass="home-input"/>
+                                </VBox>
+                                <VBox spacing="4">
+                                    <Label text="Password" styleClass="form-field-label"/>
+                                    <PasswordField fx:id="loginPassword"
+                                                   promptText="••••••••"
+                                                   styleClass="home-input"/>
+                                </VBox>
+                                <Label fx:id="loginError" text=""
+                                       styleClass="validation-error"/>
+                                <Button text="Sign In"
+                                        styleClass="home-primary-btn"
+                                        maxWidth="Infinity"
+                                        onAction="#handleLogin"/>
+                                <HBox alignment="CENTER_RIGHT">
+                                    <Button text="Forgot password?"
+                                            styleClass="home-link-btn"/>
+                                </HBox>
+                            </VBox>
+                        </Tab>
+
+                        <!-- ─── REGISTER ─── -->
+                        <Tab text="Register">
+                            <VBox spacing="12" style="-fx-padding: 20px 0 0 0;">
+                                <HBox spacing="10">
+                                    <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                        <Label text="First Name" styleClass="form-field-label"/>
+                                        <TextField fx:id="regFirstName"
+                                                   promptText="First name"
+                                                   styleClass="home-input"/>
+                                    </VBox>
+                                    <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                        <Label text="Last Name" styleClass="form-field-label"/>
+                                        <TextField fx:id="regLastName"
+                                                   promptText="Last name"
+                                                   styleClass="home-input"/>
+                                    </VBox>
+                                </HBox>
+                                <VBox spacing="4">
+                                    <Label text="Email" styleClass="form-field-label"/>
+                                    <TextField fx:id="regEmail"
+                                               promptText="you@hospital.com"
+                                               styleClass="home-input"/>
+                                </VBox>
+                                <VBox spacing="4">
+                                    <Label text="Role" styleClass="form-field-label"/>
+                                    <ComboBox fx:id="regRole"
+                                              maxWidth="Infinity"
+                                              styleClass="form-combo"/>
+                                </VBox>
+                                <HBox spacing="10">
+                                    <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                        <Label text="Password" styleClass="form-field-label"/>
+                                        <PasswordField fx:id="regPassword"
+                                                       promptText="••••••••"
+                                                       styleClass="home-input"/>
+                                    </VBox>
+                                    <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                        <Label text="Confirm" styleClass="form-field-label"/>
+                                        <PasswordField fx:id="regConfirmPassword"
+                                                       promptText="••••••••"
+                                                       styleClass="home-input"/>
+                                    </VBox>
+                                </HBox>
+                                <Label fx:id="regError" text=""
+                                       styleClass="validation-error"/>
+                                <Button text="Create Account"
+                                        styleClass="home-primary-btn"
+                                        maxWidth="Infinity"
+                                        onAction="#handleRegister"/>
+                            </VBox>
+                        </Tab>
+
+                        <!-- ─── RESET PASSWORD ─── -->
+                        <Tab text="Reset Password">
+                            <VBox spacing="14" style="-fx-padding: 20px 0 0 0;">
+                                <Label text="Enter your registered email and we will send you a reset link."
+                                       styleClass="body-text" wrapText="true"/>
+                                <VBox spacing="4">
+                                    <Label text="Email Address" styleClass="form-field-label"/>
+                                    <TextField fx:id="resetEmail"
+                                               promptText="you@hospital.com"
+                                               styleClass="home-input"/>
+                                </VBox>
+                                <Label fx:id="resetMessage" text=""
+                                       styleClass="body-text" wrapText="true"/>
+                                <Button text="Send Reset Link"
+                                        styleClass="home-primary-btn"
+                                        maxWidth="Infinity"
+                                        onAction="#handleResetPassword"/>
+                            </VBox>
+                        </Tab>
+                    </TabPane>
+                </VBox>
+
+                <!-- Powered-by line -->
+                <HBox alignment="CENTER" spacing="4">
+                    <Label text="Powered by" styleClass="auth-welcome-sub"/>
+                    <Button text="Amalitech Training" styleClass="home-link-btn"/>
+                </HBox>
+            </VBox>
+        </HBox>
+    </center>
+
+    <!-- ───── Bottom footer ───── -->
+    <bottom>
+        <HBox styleClass="home-footer" spacing="20" alignment="CENTER">
+            <Label text="© 2026 Hospital Management System. All rights reserved."
+                   styleClass="home-footer-text"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button text="Privacy Policy"   styleClass="home-footer-link"/>
+            <Button text="Terms of Service" styleClass="home-footer-link"/>
+            <Button text="Contact Us"       styleClass="home-footer-link"/>
+        </HBox>
+    </bottom>
+</BorderPane>

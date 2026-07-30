@@ -1,0 +1,68 @@
+.dashboard-root {
+    -fx-background-color: #F0F3F4;
+}
+
+.dashboard-content {
+    -fx-padding: 24px;
+    -fx-spacing: 20px;
+}
+
+.dashboard-section {
+    -fx-spacing: 14px;
+}
+
+.stats-row {
+    -fx-spacing: 16px;
+    -fx-alignment: CENTER_LEFT;
+}
+
+.chart-panel {
+    -fx-background-color: white;
+    -fx-background-radius: 8px;
+    -fx-border-color: #E5E7E9;
+    -fx-border-radius: 8px;
+    -fx-border-width: 1px;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.06), 8, 0, 0, 2);
+    -fx-padding: 16px;
+}
+
+.chart-title {
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2C3E50;
+    -fx-padding: 0 0 10px 0;
+}
+
+.quick-actions {
+    -fx-spacing: 10px;
+    -fx-alignment: CENTER_LEFT;
+    -fx-padding: 0 0 8px 0;
+}
+
+.quick-action-btn {
+    -fx-background-color: white;
+    -fx-text-fill: #2C3E50;
+    -fx-font-size: 13px;
+    -fx-padding: 8px 16px;
+    -fx-background-radius: 4px;
+    -fx-border-color: #D5DBDB;
+    -fx-border-radius: 4px;
+    -fx-cursor: hand;
+}
+
+.quick-action-btn:hover {
+    -fx-background-color: #EBF5FB;
+    -fx-border-color: #3498DB;
+    -fx-text-fill: #3498DB;
+}
+
+.recent-table-panel {
+    -fx-background-color: white;
+    -fx-background-radius: 8px;
+    -fx-border-color: #E5E7E9;
+    -fx-border-radius: 8px;
+    -fx-border-width: 1px;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.06), 8, 0, 0, 2);
+    -fx-padding: 16px;
+    -fx-spacing: 12px;
+}

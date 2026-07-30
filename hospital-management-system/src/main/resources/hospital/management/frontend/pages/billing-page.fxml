@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="hospital.management.backend.pages.BillingPageController"
+            styleClass="page-root">
+
+    <stylesheets>
+        <String value="/hospital/management/css/global.css"/>
+        <String value="/hospital/management/css/table.css"/>
+        <String value="/hospital/management/css/stats.css"/>
+        <String value="/hospital/management/css/buttons.css"/>
+    </stylesheets>
+
+    <top>
+        <fx:include source="/hospital/management/frontend/components/navbar/navbar.fxml"/>
+    </top>
+
+    <left>
+        <fx:include fx:id="sidebar" source="/hospital/management/frontend/components/sidebar/sidebar.fxml"/>
+    </left>
+
+    <center>
+        <VBox styleClass="page-content" spacing="16">
+            <Label text="Billing" styleClass="section-title"/>
+
+            <!-- Summary cards -->
+            <HBox spacing="16">
+                <VBox styleClass="stat-card stat-card-blue" spacing="4" HBox.hgrow="ALWAYS">
+                    <Label text="Total Revenue"      styleClass="stat-label"/>
+                    <Label fx:id="totalRevenueLabel" text="$0.00" styleClass="stat-value"/>
+                </VBox>
+                <VBox styleClass="stat-card stat-card-green" spacing="4" HBox.hgrow="ALWAYS">
+                    <Label text="Paid"      styleClass="stat-label"/>
+                    <Label fx:id="paidLabel" text="$0.00" styleClass="stat-value"/>
+                </VBox>
+                <VBox styleClass="stat-card stat-card-yellow" spacing="4" HBox.hgrow="ALWAYS">
+                    <Label text="Pending"      styleClass="stat-label"/>
+                    <Label fx:id="pendingLabel" text="$0.00" styleClass="stat-value"/>
+                </VBox>
+            </HBox>
+
+            <!-- Toolbar -->
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Button text="+ New Invoice" styleClass="primary-button"/>
+                <Button text="Export CSV"    styleClass="secondary-button"/>
+            </HBox>
+
+            <!-- Billing table -->
+            <TableView fx:id="billingTable" VBox.vgrow="ALWAYS">
+                <columns>
+                    <TableColumn fx:id="billIdCol"      text="Invoice #"   prefWidth="100"/>
+                    <TableColumn fx:id="billPatientCol" text="Patient"     prefWidth="160"/>
+                    <TableColumn fx:id="billDateCol"    text="Date"        prefWidth="110"/>
+                    <TableColumn fx:id="billAmountCol"  text="Amount ($)"  prefWidth="110"/>
+                    <TableColumn fx:id="billStatusCol"  text="Status"      prefWidth="100"/>
+                    <TableColumn fx:id="billDescCol"    text="Description" prefWidth="200"/>
+                </columns>
+            </TableView>
+        </VBox>
+    </center>
+
+    <bottom>
+        <fx:include source="/hospital/management/frontend/components/footer/footer.fxml"/>
+    </bottom>
+</BorderPane>

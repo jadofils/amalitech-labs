@@ -1,0 +1,67 @@
+.user-profile-panel {
+    -fx-background-color: white;
+    -fx-background-radius: 8px;
+    -fx-border-color: #E5E7E9;
+    -fx-border-radius: 8px;
+    -fx-border-width: 1px;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.08), 10, 0, 0, 2);
+    -fx-padding: 24px;
+    -fx-spacing: 14px;
+    -fx-alignment: TOP_CENTER;
+}
+
+.avatar-circle {
+    -fx-background-color: #3498DB;
+    -fx-background-radius: 50%;
+    -fx-min-width: 80px;
+    -fx-min-height: 80px;
+    -fx-max-width: 80px;
+    -fx-max-height: 80px;
+    -fx-alignment: center;
+}
+
+.avatar-text {
+    -fx-text-fill: white;
+    -fx-font-size: 26px;
+    -fx-font-weight: bold;
+}
+
+.profile-name {
+    -fx-font-size: 17px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2C3E50;
+}
+
+.profile-role {
+    -fx-font-size: 13px;
+    -fx-text-fill: #7F8C8D;
+}
+
+.role-badge {
+    -fx-background-color: #EBF5FB;
+    -fx-text-fill: #3498DB;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-padding: 4px 12px;
+    -fx-background-radius: 12px;
+}
+
+.profile-menu-item {
+    -fx-background-color: transparent;
+    -fx-text-fill: #2C3E50;
+    -fx-font-size: 14px;
+    -fx-padding: 9px 12px;
+    -fx-background-radius: 4px;
+    -fx-cursor: hand;
+    -fx-alignment: CENTER_LEFT;
+    -fx-border-color: transparent;
+    -fx-max-width: Infinity;
+}
+
+.profile-menu-item:hover { -fx-background-color: #F8F9F9; }
+
+.profile-separator {
+    -fx-background-color: #E5E7E9;
+    -fx-pref-height: 1px;
+    -fx-max-height: 1px;
+}
